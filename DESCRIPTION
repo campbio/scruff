@@ -1,5 +1,5 @@
-Package: Scruff
-Title: Single Cell RNA-Seq UMI Filtering Facilitator (Scruff)
+Package: Scuff
+Title: Single Cell RNA-Seq UMI Filtering Facilitator (Scuff)
 Version: 0.0.0.9000
 Authors@R: person("Zhe", "Wang", email = "zhe@bu.com", role = c("aut", "cre"))
 Description: Demultiplex single cell RNA-seq fastq files, align reads to reference genome using Rsubread, and generate transcript count matrices with UMI filtering.
