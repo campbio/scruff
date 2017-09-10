@@ -216,15 +216,3 @@ parse.input.files <- function(input.dir) {
 }
 
 
-demultiplex.wrapper <- function(bc.index.file, input.dir, stats.out, output.dir, out.folder,
-                                min.bc.quality, umi.length, bc.length, cut.length, fname.delimiter,
-                                mc.cores = 16) {
-  suppressPackageStartupMessages(library(parallel))
-  suppressPackageStartupMessages(library(data.table))
-  suppressPackageStartupMessages(library(ShortRead))
-  suppressPackageStartupMessages(library(gtools))
-  
-  demultiplex(bc.index.file, input.dir, stats.out, output.dir, out.folder, min.bc.quality,
-              umi.length, bc.length, cut.length, fname.delimiter, mc.cores)
-}
-

@@ -25,6 +25,5 @@ scuff <- function(fastqs, barcodes, index, annot, length, umi.pos, bc.pos, bc.qu
   count.wrapper(alignment.dir = align.dir, gtf.file, if.bam = T, count.out, mc.cores)
 }
 
-# run pipeline
-#scruff()
+
 
