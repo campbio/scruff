@@ -1,5 +1,5 @@
-Package: Scuff
-Title: Single Cell RNA-Seq UMI Filtering Facilitator (Scuff)
+Package: scuff
+Title: Single Cell RNA-Seq UMI Filtering Facilitator (scuff)
 Version: 0.0.0.9000
 Authors@R: person("Zhe", "Wang", email = "zhe@bu.com", role = c("aut", "cre"))
 Description: Demultiplex single cell RNA-seq fastq files, align reads to reference genome using Rsubread, and generate transcript count matrices with UMI filtering.
@@ -8,3 +8,13 @@ License: Apache License 2.0
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1.9000
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Imports: data.table,
+    GenomicAlignments,
+    GenomicFeatures,
+    gtools,
+    parallel,
+    Rsamtools,
+    ShortRead
