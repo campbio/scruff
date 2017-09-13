@@ -4,7 +4,7 @@
 \name{examplebc}
 \alias{examplebc}
 \title{Example barcodes.}
-\format{A \code{data.table} with two columns: \code{index} and \code{barcode}.}
+\format{A vector of barcode sequences.}
 \usage{
 examplebc
 }

@@ -2,7 +2,7 @@
 #'
 #' 96 barcodes for demultiplexing example fastq files.
 #'
-#' @format A \code{data.table} with two columns: \code{index} and \code{barcode}.
+#' @format A vector of barcode sequences.
 "examplebc"
 
 #' Example fastq \code{ShortReadQ} objects
