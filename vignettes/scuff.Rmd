@@ -18,9 +18,17 @@ The `scuff` package includes a few single cell RNA-seq example fastq files store
 
 ```{r}
 library(scuff)
+library(ShortRead)
+# write fastg.gz files to working directory
 for (i in seq_len(length(examplefastq))) {
-  writeFastq(examplefastq[[i]], "example/Example-01_S1_L001_R1_001.fastq.gz")
+  writeFastq(examplefastq[[i]], names(examplefastq)[i], mode = "w")
 }
+```
+
+To run the whole pipeline:
+
+```{r}
+examplebc
 ```
 
 ## Styles

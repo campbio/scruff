@@ -10,7 +10,7 @@ examplefastq
 }
 \description{
 A list of \code{ShortReadQ} objects of example fastq reads. Contains R1 and R2 reads
-from Example_01 and R1 and R2 reads from Example_02. Reads library is generated
+from Example_01 and R1 and R2 reads from Example_02. Read library is generated
 using CEL-SEQ2 protocol.
 }
 \keyword{datasets}

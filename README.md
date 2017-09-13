@@ -12,4 +12,8 @@ install_github("87875172/scuff")
 
 ## Package user guide
 
-An introduction to `scuff` package is available within the package as a vignette which can be opened via running `vignette("scuff")`
+An introduction to `scuff` package is available within the package as a vignette which can be opened via running 
+```
+vignette("scuff")
+```
+
