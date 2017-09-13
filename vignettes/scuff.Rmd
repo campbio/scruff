@@ -1,5 +1,5 @@
 ---
-title: "Process Single Cell RNA-Seq reads with _scuff_"
+title: "Process Single Cell RNA-Seq reads using _scuff_"
 author: "Zhe Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -10,11 +10,18 @@ vignette: >
 ---
 
 
-scuff is a tool for processing single cell RNA-seq fastq reads. It does demultiplexing, alignment, umi filtering, and transcript counting in an automated fashion and outputs count matrices. This vignette provides a brief introduction to scuff package. 
+`scuff` is a tool for processing single cell RNA-seq fastq reads. It does demultiplexing, alignment, umi filtering, and transcript counting in an automated fashion and outputs count matrices. This vignette provides a brief introduction to the `scuff` package by walking through an example using built-in dataset. 
 
-## loading 
+## load example dataset
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+The `scuff` package includes a few single cell RNA-seq example fastq files stored as `ShortReadQ` objects. Below is the command for saving these objects as fastq files.
+
+```{r}
+library(scuff)
+for (i in seq_len(length(examplefastq))) {
+  writeFastq(examplefastq[[i]], "example/Example-01_S1_L001_R1_001.fastq.gz")
+}
+```
 
 ## Styles
 

@@ -10,6 +10,6 @@ library(devtools)
 install_github("87875172/scuff")
 ```
 
-## Tutorial example
+## Package user guide
 
-An introduction to `scuff` package is available within the package as a vignette. It can be opened via `vignette("scuff")`
+An introduction to `scuff` package is available within the package as a vignette which can be opened via running `vignette("scuff")`

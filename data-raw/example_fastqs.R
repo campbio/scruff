@@ -6,5 +6,7 @@ for (i in seq_len(length(fdir))) {
   examplefastq[i] <- ShortRead::readFastq(fdir[i])
 }
 
+names(examplefastq) <- basename(fdir)
+
 devtools::use_data(examplefastq, overwrite = TRUE, compress="xz")
 
