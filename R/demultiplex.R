@@ -1,49 +1,41 @@
-#!/usr/bin/env Rscript
-
-# demultiplex scRNA-seq fastq.gz with cell assignment
-# 
-# Zhe Wang
-# 20170816
-
-
-# check minimal length
-# if len(read1.qual) < umi+bc:
-#  sample_counter['unqualified'] +=1
-# if min(quals) >= int(min.bc.quality):
-#  ### trim read to cut.length
-#  if len(read2)>cut.length:
-#  read2 = read2[0:cut.length]
-# else 
-# unqualified + 1
-# if read1 barcode !%in% bc.index.file
-# undetermined_R1.fastq + read1
-# undetermined_R2.fastq + read2
-# undetermined + 1
-demultiplex <- function(bc.index.file, input.dir, stats.out = "demultiplex_stats",
-                        output.dir = "..", out.folder="Demultiplex", min.bc.quality = 10,
+#' Demultiplex cell barcodes and assign cell specific reads
+#' 
+#' Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory.
+#' 
+#' @param fastq An annotation data table or data frame of input fastq files, or alternatively the directory to fastq files.
+#' @param bc A vector of cell barcodes determined from experimental design.
+#' @param index Rsubread index for reference sequences.
+#' @param length Read length. Longer reads will be clipped.
+#' @param umi.pos Start and end index number of umi sequences.
+#' @param bc.pos Start and end index number of barcodes.
+#' @param bc.qual Minimal acceptable quality score for barcode sequence.
+#' @param out Output directory.
+#' @param overwrite Overwrite the output directory. Default is TRUE.
+#' @param ncore Number of cores to use.
+#' @param nthreads Number of threads to run for each core.
+#' @export
+demultiplex <- function(fastq, bc, stats.out = "demultiplex_stats",
+                        output.dir = ".", out.folder="Demultiplex", min.bc.quality = 10,
                         umi.length = 0, bc.length = 6, cut.length = 50, fname.delimiter = "_",
-                        mc.cores) {
+                        mc.cores = 16, overwrite = FALSE) {
+
+  fastq.annot <- parse.fastq(fastq)
   
-  input_files <- parse.input.files(input.dir)
-  barcode.dt <- fread(bc.index.file, col.names = c("cell_num", "barcode"))
+  barcode.dt <- data.table("cell_num" = seq_len(length(bc)), "barcode" = bc)
   
   if (nrow(barcode.dt) != length(barcode.dt[, unique(barcode)])) {
-    stop(paste("Abort. Barcode file", bc.index.file, "have duplicate cell barcodes"))
+    stop("Abort. Barcode vector has duplicate cell barcodes")
   }
   
-  meta.dt <- c()
-  for (i in seq_len(length(input_files))) {
-    meta.dt <- rbindlist(list(meta.dt, parse.fname(input_files[i], fname.delimiter)),
-                      use.names=T, fill=F)
+  if (overwrite) {
+    # delete results from previous run
+    unlink(file.path(output.dir, out.folder), recursive = T)
   }
-  meta.dt <- meta.dt[order(id),]
   
-  # delete results from previous run
-  unlink(file.path(output.dir, out.folder), recursive = T)
-  i <- meta.dt[,unique(id)]
+  sample.id <- fastq.annot[,unique(id)]
   
   # parallelization
-  mclapply(i, demultiplex.sample, meta.dt, barcode.dt, umi.length, bc.length, cut.length,
+  mclapply(sample.id, demultiplex.sample, meta.dt, barcode.dt, umi.length, bc.length, cut.length,
            stats.out, output.dir, out.folder, min.bc.quality, fname.delimiter,
            mc.cores = mc.cores)
   
@@ -182,9 +174,9 @@ demultiplex.sample <- function(i, meta.dt, barcode.dt,  umi.length, bc.length, c
 # GD-0802-04_S4_L002_R2_001.fastq.gz
 # TEST3_S3_R1_001.fastq.gz
 # TEST3_S3_R2_001.fastq.gz
-parse.fname <- function(fastq_filename, fname.delimiter) {
+parse.fname <- function(fastq_filename) {
   fname <- sub(pattern = "(.*?)\\..*$", replacement = "\\1", basename(fastq_filename))
-  fsplit <- strsplit(fname, fname.delimiter)[[1]]
+  fsplit <- strsplit(fname, "_")[[1]]
   if (length(fsplit) == 5) {
     pr <- strsplit(fsplit[1], "-")[[1]]
     project <- paste(head(pr, length(pr)-1), collapse="-")
@@ -192,13 +184,6 @@ parse.fname <- function(fastq_filename, fname.delimiter) {
     num <- fsplit[2]
     lane <- fsplit[3]
     read <- fsplit[4]
-  } else if (length(fsplit) == 4) {
-    pr <- strsplit(gsub("([0-9]+)", "~\\1~", fsplit[1]), "~")[[1]]
-    project <- paste(head(pr, length(pr)-1), collapse="-")
-    id <- tail(pr, 1)
-    num <- fsplit[2]
-    lane <- NA
-    read <- fsplit[3]
   } else {
     stop(paste("fastq filename error:", fastq_filename))
   }
@@ -215,4 +200,26 @@ parse.input.files <- function(input.dir) {
   return (input_files)
 }
 
+
+parse.fastq <- function(fastq) {
+  if ("data.frame" %in% class(fastq)) {
+    return (data.table(exampleannot))
+  }
+  
+  if ("character" %in% class(fastq)) {
+    fname <- parse.input.files(fastq)
+    
+    meta.dt <- c()
+    for (i in seq_len(length(fname))) {
+      meta.dt <- rbindlist(list(meta.dt, parse.fname(fname[i])),
+                           use.names=T, fill=F)
+    }
+    meta.dt <- meta.dt[order(id),]
+    return (meta.dt)
+  }
+  
+  else {
+    stop("Invalid input format for fastq. Need to be of class 'character' or 'data.table/data.frame'.")
+  }
+}
 

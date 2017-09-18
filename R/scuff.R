@@ -15,7 +15,7 @@
 #' @param ncore Number of cores to use.
 #' @param nthreads Number of threads to run for each core.
 #' @export
-scuff <- function(fastqs, barcodes, index, annot, length, umi.pos, bc.pos, bc.qual=10, out="./",
+scuff <- function(fastq, barcodes, index, annot, length, umi.pos, bc.pos, bc.qual=10, out="./",
                   overwrite=TRUE, ncore=1, nthreads=1) {
   # run pipeline
   demultiplex.wrapper(bc.index.file, input.dir, stats.out, output.dir, out.folder, min.bc.quality,
