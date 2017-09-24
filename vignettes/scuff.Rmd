@@ -14,7 +14,7 @@ vignette: >
 
 ## load example dataset
 
-The `scuff` package includes a few single cell RNA-seq example fastq files stored as `ShortReadQ` objects. Below is the command for saving these objects as fastq files.
+The `scuff` package contains a few single cell RNA-seq example fastq files stored as `ShortReadQ` objects. They can be accessed via variable `examplefastq` and exported to local directory as fastq.gz files.
 
 ```{r}
 library(scuff)
@@ -25,10 +25,20 @@ for (i in seq_len(length(examplefastq))) {
 }
 ```
 
+
+
+```{r}
+
+```
+
+
+
 To run the whole pipeline:
 
 ```{r}
-examplebc
+scuff(exampleannot, examplebc, 
+      index, annot, length, umi.pos, bc.pos, bc.qual=10, out="./",
+                  overwrite=TRUE, ncore=1, nthreads=1)
 ```
 
 ## Styles

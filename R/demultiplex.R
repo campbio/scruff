@@ -2,121 +2,159 @@
 #' 
 #' Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory.
 #' 
-#' @param fastq An annotation data table or data frame of input fastq files, or alternatively the directory to fastq files.
-#' @param bc A vector of cell barcodes determined from experimental design.
-#' @param index Rsubread index for reference sequences.
-#' @param length Read length. Longer reads will be clipped.
-#' @param umi.pos Start and end index number of umi sequences.
-#' @param bc.pos Start and end index number of barcodes.
-#' @param bc.qual Minimal acceptable quality score for barcode sequence.
-#' @param out Output directory.
-#' @param overwrite Overwrite the output directory. Default is TRUE.
-#' @param ncore Number of cores to use.
-#' @param nthreads Number of threads to run for each core.
+#' @param fastq Can be in one of the following formats: \enumerate{
+#'   \item An annotation data table or data frame that contains information about input fastq files. For example, please see \code{?exampleannot}.
+#'   \item The directory to fastq files. }
+#' @param bc A vector of cell barcodes determined from experimental design. For example, please see \code{?examplebc}.
+#' @param bc.pos An integer vector of length 2 consisting of the start and end index of barcodes (one-based numbering). Default is \code{c(6, 11)}.
+#' @param umi.pos An integer vector of length 2 consisting of the start and end index of umi sequences (one-based numbering). Default is \code{c(1, 5)}.
+#' @param keep Read length or number of nucleotides to keep for read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.
+#' @param bc.qual Minimal Phred quality score acceptable for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequences. Sequences with at least one score lower than this will be filtered out. Default is \strong{10}.
+#' @param out.dir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. Default is \code{"../Demultiplex"}.
+#' @param summary.prefix Prefix for summary files. Default is \code{"demultiplex"}.
+#' @param overwrite Whether to overwrite the output directory or not. Default is \strong{FALSE}.
+#' @param cores Number of cores to use for parallelization. Default is \strong{16}.
+#' @param verbose Print log messages. Default to \strong{FALSE}.
+#' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), \%Y\%m\%d_\%H\%M\%S)}.
 #' @export
-demultiplex <- function(fastq, bc, stats.out = "demultiplex_stats",
-                        output.dir = ".", out.folder="Demultiplex", min.bc.quality = 10,
-                        umi.length = 0, bc.length = 6, cut.length = 50, fname.delimiter = "_",
-                        mc.cores = 16, overwrite = FALSE) {
-
-  fastq.annot <- parse.fastq(fastq)
+demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
+                        bc.qual = 10, out.dir = "../Demultiplex", summary.prefix = "demultiplex",
+                        overwrite = FALSE, cores = 16, verbose = FALSE,
+                        logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
+  message("Start demultiplexing ...")
   
-  barcode.dt <- data.table("cell_num" = seq_len(length(bc)), "barcode" = bc)
-  
-  if (nrow(barcode.dt) != length(barcode.dt[, unique(barcode)])) {
-    stop("Abort. Barcode vector has duplicate cell barcodes")
+  if (verbose) {
+    print(paste("Input fastq:", class(fastq)))
+    print(fastq)
   }
   
-  if (overwrite) {
+  logfile <- paste0(logfile.prefix, "_demultiplex_log.txt")
+  
+  fastq.annot.dt <- parse.fastq(fastq)
+  barcode.dt <- data.table::data.table("cell_num" = seq_len(length(bc)), "barcode" = bc)
+  
+  #if (nrow(barcode.dt) != length(barcode.dt[, unique(barcode)])) {
+  #  stop("Abort. Barcode vector has duplicate cell barcodes")
+  #}
+  
+  #if (overwrite) {
     # delete results from previous run
-    unlink(file.path(output.dir, out.folder), recursive = T)
-  }
+  #  message ("Delete demultiplex results from previous run ...")
+  #  unlink(file.path(out.dir), recursive = T)
+  #}
   
-  sample.id <- fastq.annot[,unique(id)]
+  sample.id <- fastq.annot.dt[,unique(id)]
   
   # parallelization
-  mclapply(sample.id, demultiplex.sample, meta.dt, barcode.dt, umi.length, bc.length, cut.length,
-           stats.out, output.dir, out.folder, min.bc.quality, fname.delimiter,
-           mc.cores = mc.cores)
+  cl <- if (verbose) parallel::makeCluster(cores, outfile = logfile) else parallel::makeCluster(cores)
+  doParallel::registerDoParallel(cl)
   
-  print(paste(Sys.time(), "Job done!"))
+  foreach::foreach(i = sample.id, .verbose = TRUE, .multicombine=TRUE) %dopar% {
+    if (verbose) {
+      ## Generate a unique log file name based on given prefix and parameters
+      logfile = paste0(logfile_prefix, "_sample_", i , "_log.txt")
+      demultiplex.sample(i, fastq, barcode.dt, bc.pos, umi.pos, keep,
+                         bc.qual, out.dir, summary.prefix,
+                         overwrite, cores, verbose, logfile)
+    } else {
+      suppressMessages(demultiplex.sample(i, fastq, barcode.dt, bc.pos, umi.pos, keep,
+                                          bc.qual, out.dir, summary.prefix,
+                                          overwrite, cores, verbose, logfile))
+    }
+  }
+  parallel::stopCluster(cl)
+  print(paste(Sys.time(), "... Demultiplex done!"))
 }
 
 
-demultiplex.sample <- function(i, meta.dt, barcode.dt,  umi.length, bc.length, cut.length,
-                               stats.out, output.dir, out.folder, min.bc.quality, fname.delimiter) {
-  print(paste(Sys.time(), "Processing sample", i))
-  sample.meta.dt <- meta.dt[id==i,]
+demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qual,
+                               out.dir, summary.prefix, overwrite, verbose, logfile) {
+  log.messages(Sys.time(), "... Processing sample", i, logfile=logfile, append=FALSE)
+  sample.meta.dt <- fastq[id==i,]
   lanes <- unique(sample.meta.dt[,lane])
-  stats.dt <- copy(barcode.dt)
-  stats.dt[,cell_fname := paste0(sample.meta.dt[, paste(unique(project), i, sep=fname.delimiter)],
-                                 "_sample_", sprintf("%04d", cell_num), ".fastq.gz")]
-  stats.dt[,reads := 0]
-  stats.dt[,percentage := 0]
-  stats.dt <- rbindlist(list(stats.dt, list(cell_num=c(NA, NA, NA),
+  summary.dt <- copy(barcode.dt)
+  summary.dt[,cell_fname := paste0(sample.meta.dt[, paste(unique(project), i, sep="_")],
+                                 "_cell_", sprintf("%04d", cell_num), ".fastq.gz")]
+  summary.dt[,reads := 0]
+  summary.dt[,percentage := 0]
+  summary.dt <- rbindlist(list(summary.dt, list(cell_num=c(NA, NA, NA),
                                             barcode=c("low_qual", "other", "total"),
-                                            cell_fname=c("unqualified", "undetermined", "total"),
+                                            cell_fname=c("low_quality", "undetermined", "total"),
                                             reads=c(0, 0, 0),
                                             percentage=c(0, 0, 1))),
                         use.names=T, fill=T, idcol=F)
   
+  if (overwrite) {
+    # delete results from previous run
+    message ("Delete demultiplex results from previous run ...")
+    unlink(file.path(out.dir), recursive = T)
+  }
+  
   for (j in lanes) {
-    print(paste("Lane", j))
+    log.messages(Sys.time(), "... Processing Lane", j, logfile=logfile, append=TRUE)
     if (is.na(j)) {
-      f1 <- sample.meta.dt[read=="R1", fname]
-      f2 <- sample.meta.dt[read=="R2", fname]
+      f1 <- sample.meta.dt[read=="R1", dir]
+      f2 <- sample.meta.dt[read=="R2", dir]
     } else {
-      f1 <- sample.meta.dt[lane==j & read=="R1", fname]
-      f2 <- sample.meta.dt[lane==j & read=="R2", fname]
+      f1 <- sample.meta.dt[lane==j & read=="R1", dir]
+      f2 <- sample.meta.dt[lane==j & read=="R2", dir]
     }
     fq1 <- FastqStreamer(f1)
     fq2 <- FastqStreamer(f2)
     repeat {
       fqy1 <- yield(fq1)
       fqy2 <- yield(fq2)
-      if ((length(fqy1) == 0 & length(fqy2) != 0) | (length(fqy1) != 0 & length(fqy2) == 0))
+      if (length(fqy1) != length(fqy2))
+      {
+        log.messages(Sys.time(), "Abort. Unequal read lengths between read1 and read2 fastq files:",
+                     f1, f2, logfile=logfile, append=TRUE)
         stop(paste("Unequal read lengths between read1 and read2 fastq files:", f1, f2))
-      else if (length(fqy1) == 0 & length(fqy2) == 0)
+      } else if (length(fqy1) == 0 & length(fqy2) == 0)
         break
       
-      stats.dt[cell_fname == "total", reads := reads + length(fqy1)]
+      summary.dt[cell_fname == "total", reads := reads + length(fqy1)]
       
-      min.base.phred1 <- min(as(PhredQuality(substr(fqy1@quality@quality,
-                                                    1, umi.length+bc.length)), "IntegerList"))
+      min.base.phred1 <- min(as(PhredQuality(
+        paste0(substr(fqy1@quality@quality, umi.pos[1], umi.pos[2]),
+               substr(fqy1@quality@quality, bc.pos[1], bc.pos[2]))), "IntegerList"))
       
       fqy.dt <- data.table(rname1=tstrsplit(fqy1@id, " ")[[1]],
                            rname2=tstrsplit(fqy2@id, " ")[[1]],
-                           umi=substr(fqy1@sread, 1, umi.length),
-                           barcode=substr(fqy1@sread, umi.length+1, umi.length+bc.length),
+                           read1=as.character(fqy1@sread),
+                           read2=substr(fqy2@sread, 1, keep),
                            qtring1=as.character(fqy1@quality@quality),
+                           qtring2=substr(fqy2@quality@quality, 1, keep),
                            min.phred1=min.base.phred1,
                            length1=width(fqy1),
-                           read1=as.character(fqy1@sread),
-                           read2=substr(fqy2@sread, 1, cut.length),
-                           qtring2=substr(fqy2@quality@quality, 1, cut.length))
+                           umi=substr(fqy1@sread, umi.pos[1], umi.pos[2]),
+                           barcode=substr(fqy1@sread, bc.pos[1], bc.pos[2]))
       
       if (!(all(fqy.dt[, rname1] == fqy.dt[, rname2])))
+      {
+        log.messages(Sys.time(), "Abort. Read1 and read2 have different ids in files:",
+                     f1, f2, logfile=logfile, append=TRUE)
         stop(paste("Abort. Read1 and read2 have different ids in files:", f1, "and", f2))
+      }
       
-      fqy.dt <- fqy.dt[min.phred1 >= min.bc.quality & length1 >= umi.length+bc.length, ]
+      fqy.dt <- fqy.dt[min.phred1 >= bc.qual & length1 >= 
+                         (max(umi.pos) - min(umi.pos) + 1) + (max(bc.pos) - min(bc.pos) + 1)]
       
-      stats.dt[cell_fname == "unqualified", reads := reads + length(fqy1)-nrow(fqy.dt)]
+      summary.dt[cell_fname == "low_quality", reads := reads + length(fqy1) - nrow(fqy.dt)]
       
       for (k in barcode.dt[,cell_num]) {
-        bar <- barcode.dt[cell_num == k, barcode]
-        sfq.dt <- fqy.dt[barcode == bar,]
+        cell.barcode <- barcode.dt[cell_num == k, barcode]
+        cfq.dt <- cqy.dt[barcode == cell.barcode,]
         
-        # if barcode exists in fastq
-        if (nrow(sfq.dt) != 0) {
-          fq.out <- ShortReadQ(sread=DNAStringSet(sfq.dt[,read2]),
-                               quality=BStringSet(sfq.dt[,qtring2]),
-                               id=BStringSet(sfq.dt[,paste0(rname2, ":UMI:", umi, ":")]))
+        # if barcode exists in fastq reads
+        if (nrow(cfq.dt) != 0) {
+          fq.out <- ShortReadQ(sread=DNAStringSet(cfq.dt[,read2]),
+                               quality=BStringSet(cfq.dt[,qtring2]),
+                               id=BStringSet(cfq.dt[,paste0(rname2, ":UMI:", umi, ":")]))
           # project_id_"sample"_cellnum.fastq.gz
-          out.fname <- paste0(sample.meta.dt[, paste(unique(project), i, sep=fname.delimiter)],
-                              "_sample_", sprintf("%04d", k), ".fastq.gz")
-          dir.create(file.path(output.dir, out.folder, i),
-                     recursive = T, showWarnings = F)
-          out.full <- file.path(output.dir, out.folder, i, out.fname)
+          out.fname <- paste0(sample.meta.dt[, paste(unique(project), i, sep="_")],
+                              "_cell_", sprintf("%04d", k), ".fastq.gz")
+          dir.create(file.path(out.dir, i), recursive = T, showWarnings = F)
+          out.full <- file.path(out.dir, i, out.fname)
           if (file.exists(out.full)) {
             writeFastq(fq.out, out.full, mode = "a")
           }
@@ -124,7 +162,7 @@ demultiplex.sample <- function(i, meta.dt, barcode.dt,  umi.length, bc.length, c
             writeFastq(fq.out, out.full, mode = "w")
           }
         }
-        stats.dt[barcode == bar, reads := reads + nrow(sfq.dt)]
+        summary.dt[barcode == cell.barcode, reads := reads + nrow(cfq.dt)]
       }
       
       undetermined.dt <- fqy.dt[!(barcode %in% barcode.dt[, barcode]), ]
@@ -134,10 +172,8 @@ demultiplex.sample <- function(i, meta.dt, barcode.dt,  umi.length, bc.length, c
       undetermined.fq.out.R2 <- ShortReadQ(sread=DNAStringSet(undetermined.dt[, read2]),
                                            quality=BStringSet(undetermined.dt[, qtring2]),
                                            id=BStringSet(undetermined.dt[, rname2]))
-      out.full.undetermined.R1 <- file.path(output.dir, out.folder, i,
-                                            "Undetermined_R1.fastq.gz")
-      out.full.undetermined.R2 <- file.path(output.dir, out.folder, i,
-                                            "Undetermined_R2.fastq.gz")
+      out.full.undetermined.R1 <- file.path(out.dir, i, "Undetermined_R1.fastq.gz")
+      out.full.undetermined.R2 <- file.path(out.dir, i, "Undetermined_R2.fastq.gz")
       if (file.exists(out.full.undetermined.R1)) {
         writeFastq(undetermined.fq.out.R1, out.full.undetermined.R1, mode = "a")
       }
@@ -151,14 +187,20 @@ demultiplex.sample <- function(i, meta.dt, barcode.dt,  umi.length, bc.length, c
       else {
         writeFastq(undetermined.fq.out.R2, out.full.undetermined.R2, mode = "w")
       }
-      stats.dt[cell_fname == "undetermined", reads := reads + nrow(undetermined.dt)]
-      print(paste(fq1$`.->.status`[3],"read pairs processed"))
+      summary.dt[cell_fname == "undetermined", reads := reads + nrow(undetermined.dt)]
+      log.messages(Sys.time(), paste("...", fq1$`.->.status`[3], "read pairs processed"), 
+                   logfile=logfile, append=TRUE)
     }
   }
-  stats.dt[, percentage := 100*reads/stats.dt[cell_fname == "total", reads]]
-  fwrite(stats.dt, file = file.path(output.dir, out.folder,
-                                    i, paste(sample.meta.dt[, unique(project)], i
-                                             ,stats.out, ".tab", sep="_")), sep="\t")
+  summary.dt[, percentage := 100*reads/summary.dt[cell_fname == "total", reads]]
+  log.messages(Sys.time(), paste("Write demultiplex summary to ", 
+                                 file.path(out.dir, i, paste(sample.meta.dt[, unique(project)],
+                                                             summary.prefix, i, sep="_"))),
+               logfile=logfile, append=TRUE)
+  fwrite(summary.dt, file = file.path(out.dir, i, paste(sample.meta.dt[, unique(project)],
+                                                        summary.prefix, i, sep="_")), sep="\t")
+  log.messages(Sys.time(), paste("... finished demultiplexing sample", i), 
+               logfile=logfile, append=TRUE)
 }
 
 
@@ -187,7 +229,7 @@ parse.fname <- function(fastq_filename) {
   } else {
     stop(paste("fastq filename error:", fastq_filename))
   }
-  return (data.table(project=project, id=id, num=num, lane=lane, read=read, fname=fastq_filename))
+  return (data.table(project=project, id=id, num=num, lane=lane, read=read, dir=fastq_filename))
 }
 
 
@@ -203,7 +245,7 @@ parse.input.files <- function(input.dir) {
 
 parse.fastq <- function(fastq) {
   if ("data.frame" %in% class(fastq)) {
-    return (data.table(exampleannot))
+    return (data.table::data.table(fastq))
   }
   
   if ("character" %in% class(fastq)) {
@@ -219,7 +261,8 @@ parse.fastq <- function(fastq) {
   }
   
   else {
-    stop("Invalid input format for fastq. Need to be of class 'character' or 'data.table/data.frame'.")
+    stop("Invalid input format for fastq. Need to be of class 'character',
+         'data.table' or 'data.frame'.")
   }
 }
 

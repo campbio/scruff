@@ -4,19 +4,15 @@
 \alias{scuff}
 \title{Run scuff pipeline}
 \usage{
-scuff(fastqs, barcodes, index, annot, length, umi.pos, bc.pos, bc.qual = 10,
+scuff(fastq, barcodes, index, annot, length, umi.pos, bc.pos, bc.qual = 10,
   out = "./", overwrite = TRUE, ncore = 1, nthreads = 1)
 }
 \arguments{
-\item{fastqs}{An annotation data table or data frame of input fastq files.}
-
-\item{barcodes}{A vector of cell barcodes known from experimental design.}
+\item{fastq}{An annotation data table or data frame of input fastq files.}
 
 \item{index}{Rsubread index for reference sequences.}
 
 \item{annot}{Directory of the gene annotation file.}
-
-\item{length}{Read length. Longer reads will be clipped.}
 
 \item{umi.pos}{Start and end index number of umi sequences.}
 
@@ -30,7 +26,11 @@ scuff(fastqs, barcodes, index, annot, length, umi.pos, bc.pos, bc.qual = 10,
 
 \item{ncore}{Number of cores to use.}
 
-\item{nthreads}{Number of threads to run for each core.}
+\item{bc}{A vector of cell barcodes known from experimental design.}
+
+\item{clip.at}{Read length or number of nucleotides to keep. Longer reads will be clipped at 3' end.}
+
+\item{threads}{Number of threads to run for each core. Default is \strong{16}.}
 }
 \description{
 scuff runs the whole pipeline including demultiplex, align, and count_umi. Write tables of count matrices in output directory.
