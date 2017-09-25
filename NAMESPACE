@@ -2,3 +2,5 @@
 
 export(demultiplex)
 export(scuff)
+import(ShortRead)
+import(data.table)

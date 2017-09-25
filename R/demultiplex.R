@@ -16,6 +16,7 @@
 #' @param cores Number of cores to use for parallelization. Default is \strong{16}.
 #' @param verbose Print log messages. Default to \strong{FALSE}.
 #' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), \%Y\%m\%d_\%H\%M\%S)}.
+#' @import data.table ShortRead 
 #' @export
 demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
                         bc.qual = 10, out.dir = "../Demultiplex", summary.prefix = "demultiplex",
@@ -43,7 +44,7 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
   #  unlink(file.path(out.dir), recursive = T)
   #}
   
-  sample.id <- unique(fastq.annot.dt[, id])
+  sample.id <- fastq.annot.dt[, unique(id)]
   
   # parallelization
   cl <- if (verbose) parallel::makeCluster(cores, outfile = logfile) else parallel::makeCluster(cores)
@@ -53,14 +54,16 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
     if (verbose) {
       ## Generate a unique log file name based on given prefix and parameters
       logfile = paste0(logfile.prefix, "_sample_", i , "_log.txt")
-      do.call(demultiplex.sample, list(i = i, fastq = fastq, barcode.dt = barcode.dt, bc.pos = bc.pos,
-                                       umi.pos = umi.pos, keep = keep, bc.qual = bc.qual,
-                                       out.dir = out.dir, summary.prefix = summary.prefix,
-                                       overwrite = overwrite, verbose = verbose, logfile = logfile))
+      do.call("demultiplex.sample", 
+              list(i = i, fastq = fastq, barcode.dt = barcode.dt, bc.pos = bc.pos,
+                   umi.pos = umi.pos, keep = keep, bc.qual = bc.qual,
+                   out.dir = out.dir, summary.prefix = summary.prefix,
+                   overwrite = overwrite, verbose = verbose, logfile = logfile))
     } else {
-      do.call(demultiplex.sample, list(i, fastq, barcode.dt, bc.pos, umi.pos, keep,
-                                       bc.qual, out.dir, summary.prefix,
-                                       overwrite, verbose, logfile))
+      do.call("demultiplex.sample", 
+              list(i, fastq, barcode.dt, bc.pos, umi.pos, keep,
+                   bc.qual, out.dir, summary.prefix,
+                   overwrite, verbose, logfile))
     }
   }
   parallel::stopCluster(cl)

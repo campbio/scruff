@@ -17,4 +17,5 @@ Imports: data.table,
     gtools,
     parallel,
     Rsamtools,
-    ShortRead
+    ShortRead,
+    doParallel
