@@ -2,5 +2,7 @@
 
 export(demultiplex)
 export(scuff)
-import(ShortRead)
 import(data.table)
+import(doParallel)
+import(foreach)
+import(parallel)
