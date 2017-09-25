@@ -16,7 +16,7 @@
 #' @param cores Number of cores to use for parallelization. Default is \strong{16}.
 #' @param verbose Print log messages. Default to \strong{FALSE}.
 #' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), \%Y\%m\%d_\%H\%M\%S)}.
-#' @import data.table ShortRead 
+#' @import data.table ShortRead parallel doParallel foreach
 #' @export
 demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
                         bc.qual = 10, out.dir = "../Demultiplex", summary.prefix = "demultiplex",
