@@ -24,7 +24,7 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
   message("Start demultiplexing ...")
   
   if (verbose) {
-    print(paste("Input fastq:", class(fastq)))
+    cat("Input fastq type:", class(fastq), "\n")
     print(fastq)
   }
   
@@ -43,7 +43,7 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
   #  unlink(file.path(out.dir), recursive = T)
   #}
   
-  sample.id <- fastq.annot.dt[,unique(id)]
+  sample.id <- unique(fastq.annot.dt[, id])
   
   # parallelization
   cl <- if (verbose) parallel::makeCluster(cores, outfile = logfile) else parallel::makeCluster(cores)
@@ -53,13 +53,14 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
     if (verbose) {
       ## Generate a unique log file name based on given prefix and parameters
       logfile = paste0(logfile.prefix, "_sample_", i , "_log.txt")
-      demultiplex.sample(i, fastq, barcode.dt, bc.pos, umi.pos, keep,
-                         bc.qual, out.dir, summary.prefix,
-                         overwrite, verbose, logfile)
+      do.call(demultiplex.sample, list(i = i, fastq = fastq, barcode.dt = barcode.dt, bc.pos = bc.pos,
+                                       umi.pos = umi.pos, keep = keep, bc.qual = bc.qual,
+                                       out.dir = out.dir, summary.prefix = summary.prefix,
+                                       overwrite = overwrite, verbose = verbose, logfile = logfile))
     } else {
-      demultiplex.sample(i, fastq, barcode.dt, bc.pos, umi.pos, keep,
-                                          bc.qual, out.dir, summary.prefix,
-                                          overwrite, verbose, logfile)
+      do.call(demultiplex.sample, list(i, fastq, barcode.dt, bc.pos, umi.pos, keep,
+                                       bc.qual, out.dir, summary.prefix,
+                                       overwrite, verbose, logfile))
     }
   }
   parallel::stopCluster(cl)
