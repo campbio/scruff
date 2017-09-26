@@ -3,7 +3,7 @@ Title: Single Cell RNA-Seq UMI Filtering Facilitator (scuff)
 Version: 0.0.0.9000
 Authors@R: person("Zhe", "Wang", email = "zhe@bu.com", role = c("aut", "cre"))
 Description: Demultiplex single cell RNA-seq fastq files, align reads to reference genome using Rsubread, and generate transcript count matrices with UMI filtering.
-Depends: R (>= 3.4.1)
+Depends: R (>= 3.2.0)
 License: Apache License 2.0
 Encoding: UTF-8
 LazyData: true
