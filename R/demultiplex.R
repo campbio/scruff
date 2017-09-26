@@ -15,13 +15,13 @@
 #' @param overwrite Whether to overwrite the output directory or not. Default is \strong{FALSE}.
 #' @param cores Number of cores to use for parallelization. Default is \strong{16}.
 #' @param verbose Print log messages. Default to \strong{FALSE}.
-#' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), \%Y\%m\%d_\%H\%M\%S)}.
+#' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @import data.table foreach
 #' @export
 demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
                         bc.qual = 10, out.dir = "../Demultiplex", summary.prefix = "demultiplex",
-                        overwrite = FALSE, cores = 16, verbose = FALSE,
-                        logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
+                        overwrite = FALSE, cores = max(1, parallel::detectCores() - 1),
+                        verbose = FALSE, logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
   message("Start demultiplexing ...")
   
   if (verbose) {
@@ -40,7 +40,8 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
   cl <- if (verbose) parallel::makeCluster(cores, outfile = logfile) else parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   
-  foreach::foreach(i = sample.id, .verbose = TRUE, .packages = c("data.table", "ShortRead")) %dopar% {
+  foreach::foreach(i = sample.id, .verbose = verbose,
+                   .packages = c("data.table", "ShortRead")) %dopar% {
     if (verbose) {
       ## Generate a unique log file name based on given prefix and parameters
       logfile = paste0(logfile.prefix, "_sample_", i , "_log.txt")
@@ -52,10 +53,13 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
     }
   }
   parallel::stopCluster(cl)
-  print(paste(Sys.time(), "... Demultiplex done!"))
+  message(paste(Sys.time(), "... Demultiplex done!"))
 }
 
 
+
+
+# demultiplex function for one sample (unique id)
 demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qual,
                                out.dir, summary.prefix, overwrite, verbose, logfile) {
   log.messages(Sys.time(), "... Processing sample", i, logfile=logfile, append=FALSE)
@@ -75,7 +79,7 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
   
   if (overwrite) {
     # delete results from previous run
-    message("... Delete demultiplex results from previous run for sample ", i)
+    log.messages(Sys.time(), "... Delete demultiplex results from previous run for sample ", i)
     unlink(file.path(out.dir, i), recursive = T)
   }
   
@@ -180,6 +184,8 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
       log.messages(Sys.time(), paste("...", fq1$`.->.status`[3], "read pairs processed"), 
                    logfile=logfile, append=TRUE)
     }
+    close(fq1)
+    close(fq2)
   }
   summary.dt[, percentage := 100*reads/summary.dt[cell_fname == "total", reads]]
   log.messages(Sys.time(), paste("... Write demultiplex summary to ", 
@@ -193,18 +199,12 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
 }
 
 
-# parse fastq filenames
-# extract project name, sample ID, sample number, lane, read
-# fastq files have specific naming convention
-# project name, sample ID delimiter: "-" or none
-# other fields delimiter: "_"
-#
-# project-ID_number_lane_read_001.fastq.gz
-# sample fastq names:
+# parse fastq filenames (that are in accordance with Illumina Fastq naming convention)
+# in this order: project-ID_number_lane_read_001.fastq.gz
+# extract project name, sample ID, sample number, lane, and read
+# Example fastq names:
 # GD-0802-04_S4_L002_R1_001.fastq.gz
 # GD-0802-04_S4_L002_R2_001.fastq.gz
-# TEST3_S3_R1_001.fastq.gz
-# TEST3_S3_R2_001.fastq.gz
 parse.fname <- function(fastq_filename) {
   fname <- sub(pattern = "(.*?)\\..*$", replacement = "\\1", basename(fastq_filename))
   fsplit <- strsplit(fname, "_")[[1]]
@@ -233,13 +233,10 @@ parse.input.files <- function(input.dir) {
 
 
 parse.fastq <- function(fastq) {
-  if ("data.frame" %in% class(fastq)) {
+  if ("data.frame" %in% class(fastq))
     return (data.table::data.table(fastq))
-  }
-  
   if ("character" %in% class(fastq)) {
     fname <- parse.input.files(fastq)
-    
     meta.dt <- c()
     for (i in seq_len(length(fname))) {
       meta.dt <- rbindlist(list(meta.dt, parse.fname(fname[i])),
@@ -248,7 +245,6 @@ parse.fastq <- function(fastq) {
     meta.dt <- meta.dt[order(id),]
     return (meta.dt)
   }
-  
   else {
     stop("Invalid input format for fastq. Need to be of class 'character',
          'data.table' or 'data.frame'.")
