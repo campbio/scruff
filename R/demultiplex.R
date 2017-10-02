@@ -14,7 +14,7 @@
 #' @param summary.prefix Prefix for summary files. Default is \code{"demultiplex"}.
 #' @param overwrite Whether to overwrite the output directory or not. Default is \strong{FALSE}.
 #' @param cores Number of cores to use for parallelization. Default is \strong{16}.
-#' @param verbose Print log messages. Default to \strong{FALSE}.
+#' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @import data.table foreach
 #' @export
@@ -40,7 +40,7 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
   cl <- if (verbose) parallel::makeCluster(cores, outfile = logfile) else parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   
-  res.list <- foreach::foreach(i = sample.id, .verbose = verbose,
+  res.dt <- foreach::foreach(i = sample.id, .verbose = verbose,
                                .combine = rbind, .multicombine=TRUE,
                                .packages = c("data.table", "ShortRead")) %dopar% {
     if (verbose) {
@@ -54,8 +54,15 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
     }
   }
   parallel::stopCluster(cl)
+  
+  print(Sys.time(), paste("... Write demultiplex summary for all samples to", 
+                                 file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+                                                          summary.prefix, ".tab"))))
+  fwrite(res.dt, file = file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+                                                  summary.prefix, ".tab")), sep="\t")
+  
   message(paste(Sys.time(), "... Demultiplex done!"))
-  return(res.list)
+  return(res.dt)
 }
 
 
@@ -75,20 +82,22 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
                                             cell_fname=c("low_quality", "undetermined", "total"),
                                             reads=c(0, 0, 0),
                                             percentage=c(0, 0, 1))),
-                        use.names=T, fill=T, idcol=F)
+                        use.names = TRUE, fill = TRUE, idcol = FALSE)
   summary.dt[,id := i]
   
   if (overwrite) {
     # delete results from previous run
-    log.messages(Sys.time(), "... Delete demultiplex results from previous run for sample ", i)
-    unlink(file.path(out.dir, i), recursive = T)
+    log.messages(Sys.time(), "... Delete demultiplex results from previous run for sample ",
+                 i, logfile = logfile, append = TRUE)
+    unlink(file.path(out.dir, i), recursive = TRUE)
   } else {
     if (any(file.exists(file.path(out.dir, i, summary.dt[!(is.na(cell_num)), cell_fname])))) {
       log.messages(paste("Abort.", summary.dt[!(is.na(cell_num)),]
                          [which(file.exists(
                            file.path(out.dir, i, summary.dt[!(is.na(cell_num)), cell_fname])) == TRUE),
-                           cell_fname], "already exists in output directory", file.path(out.dir, i)))
-      stop("Abort.")
+                           cell_fname], "already exists in output directory", file.path(out.dir, i),
+                         "\n"), logfile = logfile, append = TRUE)
+      stop("Abort. Try setting overwrite to TRUE\n")
     }
   }
   
@@ -197,7 +206,7 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
     close(fq2)
   }
   summary.dt[, percentage := 100*reads/summary.dt[cell_fname == "total", reads]]
-  log.messages(Sys.time(), paste("... Write demultiplex summary to ", 
+  log.messages(Sys.time(), paste("... Write", i, "demultiplex summary to", 
                                  file.path(out.dir, i, paste(sample.meta.dt[, unique(project)],
                                                              summary.prefix, i, sep="_"))),
                logfile=logfile, append=TRUE)
