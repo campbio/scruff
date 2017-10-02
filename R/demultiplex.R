@@ -22,7 +22,7 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
                         bc.qual = 10, out.dir = "../Demultiplex", summary.prefix = "demultiplex",
                         overwrite = FALSE, cores = max(1, parallel::detectCores() - 1),
                         verbose = FALSE, logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
-  message("Start demultiplexing ...")
+  message(paste(Sys.time(), "Start demultiplexing ..."))
   
   if (verbose) {
     cat("Input fastq type:", class(fastq), "\n")
@@ -161,10 +161,11 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
           fq.out <- ShortReadQ(sread=DNAStringSet(cfq.dt[,read2]),
                                quality=BStringSet(cfq.dt[,qtring2]),
                                id=BStringSet(cfq.dt[,paste0(rname2, ":UMI:", umi, ":")]))
-          # project_id_"sample"_cellnum.fastq.gz
-          out.fname <- paste0(sample.meta.dt[, paste(unique(project), i, sep="_")],
-                              "_cell_", sprintf("%04d", k), ".fastq.gz")
-          dir.create(file.path(out.dir, i), recursive = T, showWarnings = F)
+          # project_id_"cell"_cellnum.fastq.gz
+          out.fname <- sample.meta.dt[cell_num == k, cell_fname]
+          #out.fname <- paste0(sample.meta.dt[, paste(unique(project), i, sep="_")],
+          #                    "_cell_", sprintf("%04d", k), ".fastq.gz")
+          dir.create(file.path(out.dir, i), recursive = TRUE, showWarnings = FALSE)
           out.full <- file.path(out.dir, i, out.fname)
           if (file.exists(out.full)) {
             writeFastq(fq.out, out.full, mode = "a")
@@ -175,6 +176,8 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
         }
         summary.dt[barcode == cell.barcode, reads := reads + nrow(cfq.dt)]
       }
+      
+      summary.dt[cell_num != "NA", dir := file.path(out.dir, id, cell_fname)]
       
       undetermined.dt <- fqy.dt[!(barcode %in% barcode.dt[, barcode]), ]
       undetermined.fq.out.R1 <- ShortReadQ(sread=DNAStringSet(undetermined.dt[, read1]),
