@@ -13,8 +13,8 @@
 #' @param out.dir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. Default is \code{"../Demultiplex"}.
 #' @param summary.prefix Prefix for summary files. Default is \code{"demultiplex"}.
 #' @param overwrite Whether to overwrite the output directory or not. Default is \strong{FALSE}.
-#' @param cores Number of cores to use for parallelization. Default is \strong{16}.
-#' @param verbose Print log messages. Default to \strong{FALSE}.
+#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
+#' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @import data.table foreach
 #' @export
@@ -22,7 +22,7 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
                         bc.qual = 10, out.dir = "../Demultiplex", summary.prefix = "demultiplex",
                         overwrite = FALSE, cores = max(1, parallel::detectCores() - 1),
                         verbose = FALSE, logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
-  message("Start demultiplexing ...")
+  message(paste(Sys.time(), "Start demultiplexing ..."))
   
   if (verbose) {
     cat("Input fastq type:", class(fastq), "\n")
@@ -40,7 +40,7 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
   cl <- if (verbose) parallel::makeCluster(cores, outfile = logfile) else parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   
-  res.list <- foreach::foreach(i = sample.id, .verbose = verbose,
+  res.dt <- foreach::foreach(i = sample.id, .verbose = verbose,
                                .combine = rbind, .multicombine=TRUE,
                                .packages = c("data.table", "ShortRead")) %dopar% {
     if (verbose) {
@@ -54,8 +54,15 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
     }
   }
   parallel::stopCluster(cl)
+  
+  print(paste(Sys.time(), paste("... Write demultiplex summary for all samples to", 
+                                 file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+                                                          summary.prefix, ".tab")))))
+  fwrite(res.dt, file = file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+                                                  summary.prefix, ".tab")), sep="\t")
+  
   message(paste(Sys.time(), "... Demultiplex done!"))
-  return(res.list)
+  return(res.dt)
 }
 
 
@@ -75,20 +82,22 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
                                             cell_fname=c("low_quality", "undetermined", "total"),
                                             reads=c(0, 0, 0),
                                             percentage=c(0, 0, 1))),
-                        use.names=T, fill=T, idcol=F)
+                        use.names = TRUE, fill = TRUE, idcol = FALSE)
   summary.dt[,id := i]
   
   if (overwrite) {
     # delete results from previous run
-    log.messages(Sys.time(), "... Delete demultiplex results from previous run for sample ", i)
-    unlink(file.path(out.dir, i), recursive = T)
+    log.messages(Sys.time(), "... Delete demultiplex results from previous run for sample ",
+                 i, logfile = logfile, append = TRUE)
+    unlink(file.path(out.dir, i), recursive = TRUE)
   } else {
     if (any(file.exists(file.path(out.dir, i, summary.dt[!(is.na(cell_num)), cell_fname])))) {
       log.messages(paste("Abort.", summary.dt[!(is.na(cell_num)),]
                          [which(file.exists(
                            file.path(out.dir, i, summary.dt[!(is.na(cell_num)), cell_fname])) == TRUE),
-                           cell_fname], "already exists in output directory", file.path(out.dir, i)))
-      stop("Abort.")
+                           cell_fname], "already exists in output directory", file.path(out.dir, i),
+                         "\n"), logfile = logfile, append = TRUE)
+      stop("Abort. Try setting overwrite to TRUE\n")
     }
   }
   
@@ -152,10 +161,11 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
           fq.out <- ShortReadQ(sread=DNAStringSet(cfq.dt[,read2]),
                                quality=BStringSet(cfq.dt[,qtring2]),
                                id=BStringSet(cfq.dt[,paste0(rname2, ":UMI:", umi, ":")]))
-          # project_id_"sample"_cellnum.fastq.gz
-          out.fname <- paste0(sample.meta.dt[, paste(unique(project), i, sep="_")],
-                              "_cell_", sprintf("%04d", k), ".fastq.gz")
-          dir.create(file.path(out.dir, i), recursive = T, showWarnings = F)
+          # project_id_"cell"_cellnum.fastq.gz
+          out.fname <- summary.dt[cell_num == k, cell_fname]
+          #out.fname <- paste0(sample.meta.dt[, paste(unique(project), i, sep="_")],
+          #                    "_cell_", sprintf("%04d", k), ".fastq.gz")
+          dir.create(file.path(out.dir, i), recursive = TRUE, showWarnings = FALSE)
           out.full <- file.path(out.dir, i, out.fname)
           if (file.exists(out.full)) {
             writeFastq(fq.out, out.full, mode = "a")
@@ -166,6 +176,8 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
         }
         summary.dt[barcode == cell.barcode, reads := reads + nrow(cfq.dt)]
       }
+      
+      summary.dt[!(is.na(cell_num)), dir := file.path(out.dir, id, cell_fname)]
       
       undetermined.dt <- fqy.dt[!(barcode %in% barcode.dt[, barcode]), ]
       undetermined.fq.out.R1 <- ShortReadQ(sread=DNAStringSet(undetermined.dt[, read1]),
@@ -197,7 +209,7 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
     close(fq2)
   }
   summary.dt[, percentage := 100*reads/summary.dt[cell_fname == "total", reads]]
-  log.messages(Sys.time(), paste("... Write demultiplex summary to ", 
+  log.messages(Sys.time(), paste("... Write", i, "demultiplex summary to", 
                                  file.path(out.dir, i, paste(sample.meta.dt[, unique(project)],
                                                              summary.prefix, i, sep="_"))),
                logfile=logfile, append=TRUE)
@@ -209,7 +221,7 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
 }
 
 
-# parse fastq filenames (that are in accordance with Illumina Fastq naming convention)
+# parse fastq filenames (in Illumina Fastq naming convention)
 # in this order: project-ID_number_lane_read_001.fastq.gz
 # extract project name, sample ID, sample number, lane, and read
 # Example fastq names:

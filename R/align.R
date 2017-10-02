@@ -1,8 +1,28 @@
-#!/usr/bin/env Rscript
+#' A wrapper to \code{Rsubread} read alignment 
+#' 
+#' Align cell specific reads to reference genome and write sequence alignment results to output directory. A wrapper to the \code{align} function in \code{Rsubread} package. For details please refer to \code{Rsubread} manual.
+#' 
+#' @param fastq Can be in one of the following formats: \enumerate{
+#'   \item A vcector of directories to input files.
+#'   \item The main directory to \code{demultiplex} output (sample specific folders containing fastq files). } Default is \code{"../Demultiplex"}.
+#' @param index Directory to the \code{Rsubread} index of reference sequences. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.
+#' @param format Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
+#' @param out.dir Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. Default is \code{"../Alignment"}.
+#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
+#' @param threads Number of threads/CPUs used for mapping. Refer to \code{Rsubread} \code{align} function. Default is \strong{1}.
+#' @param summary.prefix Prefix for summary files. Default is \code{"demultiplex"}.
+#' @param overwrite Overwrite the output directory. Default is \strong{FALSE}.
+#' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
+#' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
+#' @import data.table foreach
+#' @export
+align.rsubread <- function(fastq, index, format = "BAM", out.dir = "../Alignment",
+                           cores = max(1, parallel::detectCores() - 1), threads = 1,
+                           summary.prefix = "alignment", overwrite = FALSE, verbose = FALSE, 
+                           logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S"))
 
-
-align.rsubread <- function(demultiplex.dir, index, out.format = "BAM", out.dir = "../Alignment",
-                           nthreads, mc.cores = 16) {
+align.rsubread <- function(demultiplex.dir, index, format = "BAM", out.dir = "../Alignment",
+                           threads = 1, mc.cores = 16) {
   i <- list.files(demultiplex.dir, full.names = F)
   mclapply(i, align.sample, demultiplex.dir, index, out.format, out.dir, nthreads,
            mc.cores = mc.cores)
