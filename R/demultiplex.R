@@ -40,28 +40,28 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
   cl <- if (verbose) parallel::makeCluster(cores, outfile = logfile) else parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   
-  foreach::foreach(i = sample.id, .verbose = verbose,
-                   .packages = c("data.table", "ShortRead")) %dopar% {
+  res.list <- foreach::foreach(i = sample.id, .verbose = verbose,
+                               .combine = rbind, .multicombine=TRUE,
+                               .packages = c("data.table", "ShortRead")) %dopar% {
     if (verbose) {
       ## Generate a unique log file name based on given prefix and parameters
       logfile = paste0(logfile.prefix, "_sample_", i , "_log.txt")
       demultiplex.sample(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qual,
-                         out.dir, summary.prefix, overwrite, verbose, logfile)
+                         out.dir, summary.prefix, overwrite, logfile)
     } else {
       suppressMessages(demultiplex.sample(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qual,
-                         out.dir, summary.prefix, overwrite, verbose, logfile = NULL))
+                         out.dir, summary.prefix, overwrite, logfile = NULL))
     }
   }
   parallel::stopCluster(cl)
   message(paste(Sys.time(), "... Demultiplex done!"))
+  return(res.list)
 }
-
-
 
 
 # demultiplex function for one sample (unique id)
 demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qual,
-                               out.dir, summary.prefix, overwrite, verbose, logfile) {
+                               out.dir, summary.prefix, overwrite, logfile) {
   log.messages(Sys.time(), "... Processing sample", i, logfile=logfile, append=FALSE)
   sample.meta.dt <- fastq[id==i,]
   lanes <- unique(sample.meta.dt[,lane])
@@ -76,11 +76,20 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
                                             reads=c(0, 0, 0),
                                             percentage=c(0, 0, 1))),
                         use.names=T, fill=T, idcol=F)
+  summary.dt[,id := i]
   
   if (overwrite) {
     # delete results from previous run
     log.messages(Sys.time(), "... Delete demultiplex results from previous run for sample ", i)
     unlink(file.path(out.dir, i), recursive = T)
+  } else {
+    if (any(file.exists(file.path(out.dir, i, summary.dt[!(is.na(cell_num)), cell_fname])))) {
+      log.messages(paste("Abort.", summary.dt[!(is.na(cell_num)),]
+                         [which(file.exists(
+                           file.path(out.dir, i, summary.dt[!(is.na(cell_num)), cell_fname])) == TRUE),
+                           cell_fname], "already exists in output directory", file.path(out.dir, i)))
+      stop("Abort.")
+    }
   }
   
   for (j in lanes) {
@@ -196,6 +205,7 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
                                                         summary.prefix, i, ".tab", sep="_")), sep="\t")
   log.messages(Sys.time(), paste("... finished demultiplexing sample", i), 
                logfile=logfile, append=TRUE)
+  return(summary.dt)
 }
 
 
