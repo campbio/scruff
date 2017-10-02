@@ -13,7 +13,7 @@
 #' @param out.dir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. Default is \code{"../Demultiplex"}.
 #' @param summary.prefix Prefix for summary files. Default is \code{"demultiplex"}.
 #' @param overwrite Whether to overwrite the output directory or not. Default is \strong{FALSE}.
-#' @param cores Number of cores to use for parallelization. Default is \strong{16}.
+#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @import data.table foreach
@@ -221,7 +221,7 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
 }
 
 
-# parse fastq filenames (that are in accordance with Illumina Fastq naming convention)
+# parse fastq filenames (in Illumina Fastq naming convention)
 # in this order: project-ID_number_lane_read_001.fastq.gz
 # extract project name, sample ID, sample number, lane, and read
 # Example fastq names:
