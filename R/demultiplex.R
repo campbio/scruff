@@ -55,9 +55,9 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
   }
   parallel::stopCluster(cl)
   
-  print(Sys.time(), paste("... Write demultiplex summary for all samples to", 
+  print(paste(Sys.time(), paste("... Write demultiplex summary for all samples to", 
                                  file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-                                                          summary.prefix, ".tab"))))
+                                                          summary.prefix, ".tab")))))
   fwrite(res.dt, file = file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
                                                   summary.prefix, ".tab")), sep="\t")
   
