@@ -162,7 +162,7 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
                                quality=BStringSet(cfq.dt[,qtring2]),
                                id=BStringSet(cfq.dt[,paste0(rname2, ":UMI:", umi, ":")]))
           # project_id_"cell"_cellnum.fastq.gz
-          out.fname <- sample.meta.dt[cell_num == k, cell_fname]
+          out.fname <- summary.dt[cell_num == k, cell_fname]
           #out.fname <- paste0(sample.meta.dt[, paste(unique(project), i, sep="_")],
           #                    "_cell_", sprintf("%04d", k), ".fastq.gz")
           dir.create(file.path(out.dir, i), recursive = TRUE, showWarnings = FALSE)
@@ -177,7 +177,7 @@ demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.q
         summary.dt[barcode == cell.barcode, reads := reads + nrow(cfq.dt)]
       }
       
-      summary.dt[cell_num != "NA", dir := file.path(out.dir, id, cell_fname)]
+      summary.dt[!(is.na(cell_num)), dir := file.path(out.dir, id, cell_fname)]
       
       undetermined.dt <- fqy.dt[!(barcode %in% barcode.dt[, barcode]), ]
       undetermined.fq.out.R1 <- ShortReadQ(sread=DNAStringSet(undetermined.dt[, read1]),
