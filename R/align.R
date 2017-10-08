@@ -31,9 +31,6 @@ align.rsubread <- function(fastq.dir, index, format = "BAM", out.dir = "../Align
     print(fastq.dir)
   }
   
-  log.messages(Sys.time(), "... Creating output directory", logfile=logfile, append=TRUE)
-  dir.create(file.path(out.dir), showWarnings = FALSE, recursive = T)
-  
   if (overwrite) {
     # delete results from previous run
     log.messages(Sys.time(), "... Delete alignment results from previous run",
@@ -47,6 +44,9 @@ align.rsubread <- function(fastq.dir, index, format = "BAM", out.dir = "../Align
       stop("Abort. Try setting overwrite to TRUE\n")
     }
   }
+  
+  log.messages(Sys.time(), "... Creating output directory", logfile=logfile, append=TRUE)
+  dir.create(file.path(out.dir), showWarnings = FALSE, recursive = T)
   
   sink(logfile, append = TRUE)
   
