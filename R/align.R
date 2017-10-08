@@ -2,88 +2,94 @@
 #' 
 #' Align cell specific reads to reference genome and write sequence alignment results to output directory. A wrapper to the \code{align} function in \code{Rsubread} package. For details please refer to \code{Rsubread} manual.
 #' 
-#' @param fastq Can be in one of the following formats: \enumerate{
-#'   \item A vcector of directories to input files.
-#'   \item The main directory to \code{demultiplex} output (sample specific folders containing fastq files). } Default is \code{"../Demultiplex"}.
+#' @param fastq.dir A vcector containing directories to input fastq files.
 #' @param index Directory to the \code{Rsubread} index of reference sequences. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.
 #' @param format Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param out.dir Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. Default is \code{"../Alignment"}.
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
-#' @param threads Number of threads/CPUs used for mapping. Refer to \code{Rsubread} \code{align} function. Default is \strong{1}.
-#' @param summary.prefix Prefix for summary files. Default is \code{"demultiplex"}.
+#' @param threads Number of threads/CPUs used for mapping. Refer to \code{align} function in \code{Rsubread}. Default is \strong{1}.
+#' @param summary.prefix Prefix for summary files. Default is \code{"alignment"}.
 #' @param overwrite Overwrite the output directory. Default is \strong{FALSE}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
+#' @return A character vector of the directories to output alignment files.
 #' @import data.table foreach
 #' @export
-align.rsubread <- function(fastq, index, format = "BAM", out.dir = "../Alignment",
+align.rsubread <- function(fastq.dir, index, format = "BAM", out.dir = "../Alignment",
                            cores = max(1, parallel::detectCores() - 1), threads = 1,
                            summary.prefix = "alignment", overwrite = FALSE, verbose = FALSE, 
-                           logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S"))
-
-align.rsubread <- function(demultiplex.dir, index, format = "BAM", out.dir = "../Alignment",
-                           threads = 1, mc.cores = 16) {
-  i <- list.files(demultiplex.dir, full.names = F)
-  mclapply(i, align.sample, demultiplex.dir, index, out.format, out.dir, nthreads,
-           mc.cores = mc.cores)
-}
-
-
-align.sample <- function(i, demultiplex.dir, index, out.format, out.dir, nthreads) {
-  print(paste(Sys.time(), "Align sample", i))
+                           logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
   
-  # delete results from previous run
-  unlink(file.path(out.dir, i), recursive = T)
-  dir.create(file.path(out.dir, i), showWarnings = FALSE, recursive = T)
+  message(paste(Sys.time(), "Start alignment ..."))
   
-  samples <- parse.input.files(file.path(demultiplex.dir, i))
-  sink("/dev/null")
-  align(index = index,
-        readfile1 = samples,
-        nthreads = nthreads,
-        output_format = out.format,
-        output_file = file.path(out.dir, i,
-                                paste0(sub(pattern = "(.*?)\\..*$",
-                                           replacement = "\\1", basename(samples)),
-                                       ".", out.format)))
-  sink.reset()
-}
-
-
-sink.reset <- function(){
-  for(i in seq_len(sink.number())){
-    sink(NULL)
+  logfile <- paste0(logfile.prefix, "_alignment_log.txt")
+  
+  log.messages(Sys.time(), "... Start alignment", logfile=logfile, append=FALSE)
+  log.messages(Sys.time(), fastq.dir, logfile=logfile, append=TRUE)
+  
+  if (verbose) {
+    print("... Input fastq.dir:")
+    print(fastq.dir)
   }
+  
+  if (overwrite) {
+    # delete results from previous run
+    log.messages(Sys.time(), "... Delete alignment results from previous run",
+                 logfile = logfile, append = TRUE)
+    unlink(file.path(out.dir), recursive = TRUE)
+  } else {
+    if (any(file.exists(fastq.dir))) {
+      log.messages(paste("Abort.", fastq.dir[which(file.exists(fastq.dir) == TRUE)],
+                         "already exists in output directory", file.path(out.dir), "\n"),
+                   logfile = logfile, append = TRUE)
+      stop("Abort. Try setting overwrite to TRUE\n")
+    }
+  }
+  
+  log.messages(Sys.time(), "... Creating output directory", logfile=logfile, append=TRUE)
+  dir.create(file.path(out.dir), showWarnings = FALSE, recursive = T)
+  
+  sink(logfile, append = TRUE)
+  
+  # parallelization
+  cl <- if (verbose) parallel::makeCluster(cores, outfile = logfile) else parallel::makeCluster(cores)
+  doParallel::registerDoParallel(cl)
+
+  alignmentfiledir = foreach::foreach(i = fastq.dir, .verbose = verbose, .combine = c,
+                                      .multicombine=TRUE, .packages = c("Rsubread")) %dopar% {
+    align.rsubread.unit(i, index, format, out.dir, threads, logfile)
+  }
+  
+  res.dt = foreach::foreach(i = alignmentfiledir, .verbose = verbose, .combine = rbind, 
+                            .multicombine=TRUE, .packages = c("Rsubread")) %dopar% {
+    Rsubread::propmapped(i)
+  }
+  
+  parallel::stopCluster(cl)
+  
+  sink.reset()
+  
+  print(paste(Sys.time(), paste("... Write demultiplex summary to", 
+                                file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+                                                          summary.prefix, ".tab")))))
+  
+  fwrite(res.dt, file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+                                           summary.prefix, ".tab")), sep="\t")
+  
+  message(paste(Sys.time(), "... Alignment done!"))
+  return(alignmentfiledir)
 }
 
 
-report <- function(out.dir, mc.cores = 16) {
-  i <- list.files(out.dir)
-  mclapply(i, report.sample, out.dir, mc.cores = mc.cores)
+align.rsubread.unit <- function(i, index, format, out.dir, threads, logfile) {
+  log.messages(Sys.time(), "... mapping sample", i, logfile=logfile, append=TRUE)
+  
+  filedir = file.path(out.dir,
+                      paste0(sub(pattern = "(.*?)\\..*$",
+                                 replacement = "\\1", basename(i)),
+                             ".", format))
+  align(index = index, readfile1 = i, nthreads = threads,
+        output_format = format, output_file = filedir)
+  return (filedir)
 }
-
-
-report.sample <- function(i, out.dir) {
-  bams <- list.files(path = file.path(out.dir, i), pattern="*.BAM$", full.names = T)
-  map_prob <- propmapped(bams)
-  write.table(map_prob, file.path(out.dir, i, paste(Sys.Date(),
-                                                    i, "alignmentstats.tab", sep="_")), sep="\t")
-}
-
-
-build.index <- function(fa.dir, prefix) {
-  out.dir <- dirname(fa.dir)
-  bowtie_build(references = fa.dir, outdir = out.dir, force=T, prefix = prefix)
-}
-
-
-align.wrapper <- function(fastq.dir, GRCh38.index, 
-                          out.format = "BAM", out.dir = "../Alignment", nthreads = 16, mc.cores = 16) {
-  suppressPackageStartupMessages(library(Rsubread))
-  align.rsubread(fastq.dir, GRCh38.index, out.format, out.dir, nthreads, mc.cores)
-  report(out.dir)
-}
-
-
-
 

@@ -6,9 +6,9 @@
 \usage{
 demultiplex(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
   bc.qual = 10, out.dir = "../Demultiplex",
-  summary.prefix = "demultiplex", overwrite = FALSE, cores = 16,
-  verbose = FALSE, logfile.prefix = format(Sys.time(),
-  "\%Y\%m\%d_\%H\%M\%S"))
+  summary.prefix = "demultiplex", overwrite = FALSE, cores = max(1,
+  parallel::detectCores() - 1), verbose = FALSE,
+  logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
 \item{fastq}{Can be in one of the following formats: \enumerate{
@@ -31,11 +31,14 @@ demultiplex(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
 
 \item{overwrite}{Whether to overwrite the output directory or not. Default is \strong{FALSE}.}
 
-\item{cores}{Number of cores to use for parallelization. Default is \strong{16}.}
+\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.}
 
-\item{verbose}{Print log messages. Default to \strong{FALSE}.}
+\item{verbose}{Print log messages. Useful for debugging. Default to \strong{FALSE}.}
 
-\item{logfile.prefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), \%Y\%m\%d_\%H\%M\%S)}.}
+\item{logfile.prefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
+}
+\value{
+Demultiplexed annotation \code{data.table}.
 }
 \description{
 Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory.
