@@ -30,6 +30,9 @@ align.rsubread(fastq.dir, index, format = "BAM", out.dir = "../Alignment",
 
 \item{logfile.prefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 }
+\value{
+A character vector of the directories to output alignment files.
+}
 \description{
 Align cell specific reads to reference genome and write sequence alignment results to output directory. A wrapper to the \code{align} function in \code{Rsubread} package. For details please refer to \code{Rsubread} manual.
 }

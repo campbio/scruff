@@ -12,6 +12,7 @@
 #' @param overwrite Overwrite the output directory. Default is \strong{FALSE}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
+#' @return A character vector of the directories to output alignment files.
 #' @import data.table foreach
 #' @export
 align.rsubread <- function(fastq.dir, index, format = "BAM", out.dir = "../Alignment",

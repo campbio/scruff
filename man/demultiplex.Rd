@@ -37,6 +37,9 @@ demultiplex(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
 
 \item{logfile.prefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 }
+\value{
+Demultiplexed annotation \code{data.table}.
+}
 \description{
 Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory.
 }
