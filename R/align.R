@@ -27,7 +27,7 @@ align.rsubread <- function(fastq.dir, index, format = "BAM", out.dir = "../Align
   log.messages(Sys.time(), fastq.dir, logfile=logfile, append=TRUE)
   
   if (verbose) {
-    print("... Input fastq.dir:\n")
+    print("... Input fastq.dir:")
     print(fastq.dir)
   }
   
@@ -55,7 +55,7 @@ align.rsubread <- function(fastq.dir, index, format = "BAM", out.dir = "../Align
   doParallel::registerDoParallel(cl)
 
   foreach::foreach(i = fastq.dir, .verbose = verbose, .packages = c("Rsubread")) %dopar% {
-    align.rsubread.unit(i, index, format, out.dir, threads, logfile)
+    align.rsubread.unit(i, index, format, out.dir, threads, summary.prefix, logfile)
   }
   
   res.dt = foreach::foreach(i = fastq.dir, .verbose = verbose, .packages = c("Rsubread")) %dopar% {
