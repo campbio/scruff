@@ -54,70 +54,41 @@ align.rsubread <- function(fastq.dir, index, format = "BAM", out.dir = "../Align
   cl <- if (verbose) parallel::makeCluster(cores, outfile = logfile) else parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
 
-  foreach::foreach(i = fastq.dir, .verbose = verbose, .packages = c("Rsubread")) %dopar% {
-    align.rsubread.unit(i, index, format, out.dir, threads, summary.prefix, logfile)
+  alignmentfiledir = foreach::foreach(i = fastq.dir, .verbose = verbose, .combine = c,
+                                      .multicombine=TRUE, .packages = c("Rsubread")) %dopar% {
+    align.rsubread.unit(i, index, format, out.dir, threads, logfile)
   }
   
-  res.dt = foreach::foreach(i = fastq.dir, .verbose = verbose, .packages = c("Rsubread")) %dopar% {
-    report.alignment(i, out.dir, format)
+  res.dt = foreach::foreach(i = alignmentfiledir, .verbose = verbose, .combine = rbind, 
+                            .multicombine=TRUE, .packages = c("Rsubread")) %dopar% {
+    Rsubread::propmapped(i)
   }
   
   parallel::stopCluster(cl)
   
   sink.reset()
   
-  print(paste(Sys.time(), paste("... Write demultiplex summary for all samples to", 
+  print(paste(Sys.time(), paste("... Write demultiplex summary to", 
                                 file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
                                                           summary.prefix, ".tab")))))
   
-  summary = report.alignment(fastq.dir, out.dir, format)
-  
-  fwrite(res.dt, file = file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-                                                  summary.prefix, ".tab")), sep="\t")
+  fwrite(res.dt, file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+                                           summary.prefix, ".tab")), sep="\t")
   
   message(paste(Sys.time(), "... Alignment done!"))
-  return(res.dt)
+  return(alignmentfiledir)
 }
 
 
-align.rsubread.unit <- function(i, index, format, out.dir, threads, 
-                                summary.prefix, logfile) {
+align.rsubread.unit <- function(i, index, format, out.dir, threads, logfile) {
   log.messages(Sys.time(), "... mapping sample", i, logfile=logfile, append=TRUE)
-
-  align(index = index,
-        readfile1 = i,
-        nthreads = threads,
-        output_format = format,
-        output_file = file.path(out.dir,
-                                paste0(sub(pattern = "(.*?)\\..*$",
-                                           replacement = "\\1", basename(i)),
-                                       ".", format)))
+  
+  filedir = file.path(out.dir,
+                      paste0(sub(pattern = "(.*?)\\..*$",
+                                 replacement = "\\1", basename(i)),
+                             ".", format))
+  align(index = index, readfile1 = i, nthreads = threads,
+        output_format = format, output_file = filedir)
+  return (filedir)
 }
-
-
-report <- function(out.dir, mc.cores = 16) {
-  i <- list.files(out.dir)
-  mclapply(i, report.sample, out.dir, mc.cores = mc.cores)
-}
-
-
-report.alignment <- function(i, out.dir, format) {
-  bams <- list.files(path = file.path(out.dir), pattern=paste0("*.", format, "$"),
-                     full.names = TRUE, ignore.case = TRUE)
-  map_prob <- propmapped(bams)
-  write.table(map_prob, file.path(out.dir, i, paste(Sys.Date(),
-                                                    i, "alignmentstats.tab", sep="_")), sep="\t")
-  return (map_prob)
-}
-
-
-align.wrapper <- function(fastq.dir, GRCh38.index, 
-                          out.format = "BAM", out.dir = "../Alignment", nthreads = 16, mc.cores = 16) {
-  suppressPackageStartupMessages(library(Rsubread))
-  align.rsubread(fastq.dir, GRCh38.index, out.format, out.dir, nthreads, mc.cores)
-  report(out.dir)
-}
-
-
-
 
