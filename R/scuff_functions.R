@@ -61,4 +61,13 @@ parse.fastq <- function(fastq) {
     stop("Invalid input format for fastq. Need to be of class 'character',
          'data.table' or 'data.frame'.")
   }
+}
+
+
+sink.reset <- function(){
+  for(i in seq_len(sink.number())){
+    sink(NULL)
   }
+}
+
+

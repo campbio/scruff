@@ -4,15 +4,13 @@
 \alias{align.rsubread}
 \title{A wrapper to \code{Rsubread} read alignment}
 \usage{
-align.rsubread(fastq, index, format = "BAM", out.dir = "../Alignment",
+align.rsubread(fastq.dir, index, format = "BAM", out.dir = "../Alignment",
   cores = max(1, parallel::detectCores() - 1), threads = 1,
   summary.prefix = "alignment", overwrite = FALSE, verbose = FALSE,
   logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
-\item{fastq}{Can be in one of the following formats: \enumerate{
-\item A vcector of directories to input files.
-\item The main directory to \code{demultiplex} output (sample specific folders containing fastq files). } Default is \code{"../Demultiplex"}.}
+\item{fastq.dir}{A vcector containing directories to input fastq files.}
 
 \item{index}{Directory to the \code{Rsubread} index of reference sequences. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
 
@@ -22,9 +20,9 @@ align.rsubread(fastq, index, format = "BAM", out.dir = "../Alignment",
 
 \item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.}
 
-\item{threads}{Number of threads/CPUs used for mapping. Refer to \code{Rsubread} \code{align} function. Default is \strong{1}.}
+\item{threads}{Number of threads/CPUs used for mapping. Refer to \code{align} function in \code{Rsubread}. Default is \strong{1}.}
 
-\item{summary.prefix}{Prefix for summary files. Default is \code{"demultiplex"}.}
+\item{summary.prefix}{Prefix for summary files. Default is \code{"alignment"}.}
 
 \item{overwrite}{Overwrite the output directory. Default is \strong{FALSE}.}
 

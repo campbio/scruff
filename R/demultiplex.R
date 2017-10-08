@@ -46,10 +46,10 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
     if (verbose) {
       ## Generate a unique log file name based on given prefix and parameters
       logfile = paste0(logfile.prefix, "_sample_", i , "_log.txt")
-      demultiplex.sample(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qual,
+      demultiplex.unit(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qual,
                          out.dir, summary.prefix, overwrite, logfile)
     } else {
-      suppressMessages(demultiplex.sample(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qual,
+      suppressMessages(demultiplex.unit(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qual,
                          out.dir, summary.prefix, overwrite, logfile = NULL))
     }
   }
@@ -67,9 +67,9 @@ demultiplex <- function(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 
 
 
 # demultiplex function for one sample (unique id)
-demultiplex.sample <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qual,
+demultiplex.unit <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qual,
                                out.dir, summary.prefix, overwrite, logfile) {
-  log.messages(Sys.time(), "... Processing sample", i, logfile=logfile, append=FALSE)
+  log.messages(Sys.time(), "... demultiplexing sample", i, logfile=logfile, append=FALSE)
   sample.meta.dt <- fastq[id==i,]
   lanes <- unique(sample.meta.dt[,lane])
   summary.dt <- copy(barcode.dt)
