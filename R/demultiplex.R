@@ -1,6 +1,6 @@
 #' Demultiplex cell barcodes and assign cell specific reads
 #' 
-#' Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory.
+#' Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory
 #' 
 #' @param fastq Can be in one of the following formats: \enumerate{
 #'   \item An annotation data table or data frame that contains information about input fastq files. For example, please see \code{?exampleannot}.
@@ -10,7 +10,7 @@
 #' @param umi.pos An integer vector of length 2 consisting of the start and end index of umi sequences (one-based numbering). Default is \code{c(1, 5)}.
 #' @param keep Read length or number of nucleotides to keep for read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.
 #' @param bc.qual Minimal Phred quality score acceptable for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequences. Sequences with at least one score lower than this will be filtered out. Default is \strong{10}.
-#' @param out.dir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. Default is \code{"../Demultiplex"}.
+#' @param out.dir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.
 #' @param summary.prefix Prefix for summary files. Default is \code{"demultiplex"}.
 #' @param overwrite Whether to overwrite the output directory or not. Default is \strong{FALSE}.
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
@@ -88,7 +88,7 @@ demultiplex.unit <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qua
   
   if (overwrite) {
     # delete results from previous run
-    log.messages(Sys.time(), "... Delete demultiplex results from previous run for sample ",
+    log.messages(Sys.time(), "... Delete (if any) existing demultiplex results for sample ",
                  i, logfile = logfile, append = TRUE)
     unlink(file.path(out.dir, i), recursive = TRUE)
   } else {
@@ -98,7 +98,7 @@ demultiplex.unit <- function(i, fastq, barcode.dt, bc.pos, umi.pos, keep, bc.qua
                            file.path(out.dir, i, summary.dt[!(is.na(cell_num)), cell_fname])) == TRUE),
                            cell_fname], "already exists in output directory", file.path(out.dir, i),
                          "\n"), logfile = logfile, append = TRUE)
-      stop("Abort. Try setting overwrite to TRUE\n")
+      stop("Abort. Try re-running the function by setting overwrite to TRUE\n")
     }
   }
   

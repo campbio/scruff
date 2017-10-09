@@ -16,7 +16,7 @@ align.rsubread(fastq.dir, index, format = "BAM", out.dir = "../Alignment",
 
 \item{format}{Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 
-\item{out.dir}{Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. Default is \code{"../Alignment"}.}
+\item{out.dir}{Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Alignment"}.}
 
 \item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.}
 
