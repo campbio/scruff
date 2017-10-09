@@ -71,3 +71,10 @@ sink.reset <- function(){
 }
 
 
+getalignmentfiledir = function(fastq.dir, format, out.dir) {
+  filedir = file.path(out.dir,
+                      paste0(sub(pattern = "(.*?)\\..*$",
+                                 replacement = "\\1", basename(fastq.dir)),
+                             ".", format))
+  return (filedir)
+}

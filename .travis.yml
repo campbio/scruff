@@ -8,9 +8,5 @@ before_install:
 - Rscript -e 'update.packages(ask = FALSE)'
 r_build_args: "--no-build-vignettes"
 r_check_args: "--no-build-vignettes --as-cran"
-addons:
-  apt:
-    packages:
-    - libmpfr-dev
 notifications:
   slack: compbiomed:hyj0yf4oseW49qFL2X6Qqhe5

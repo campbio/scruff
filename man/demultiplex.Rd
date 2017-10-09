@@ -25,7 +25,7 @@ demultiplex(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
 
 \item{bc.qual}{Minimal Phred quality score acceptable for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequences. Sequences with at least one score lower than this will be filtered out. Default is \strong{10}.}
 
-\item{out.dir}{Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. Default is \code{"../Demultiplex"}.}
+\item{out.dir}{Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.}
 
 \item{summary.prefix}{Prefix for summary files. Default is \code{"demultiplex"}.}
 
@@ -41,5 +41,5 @@ demultiplex(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
 Demultiplexed annotation \code{data.table}.
 }
 \description{
-Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory.
+Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory
 }
