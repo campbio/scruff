@@ -60,7 +60,7 @@ count.umi <- function(alignment, features, format = "BAM", out.dir = "../Count",
   
   parallel::stopCluster(cl)
   
-  expr = base::Reduce(bass:merge, expr)
+  expr = base::Reduce(base::merge, expr)
   
   print(paste(Sys.time(), paste("... Write expression table to", 
                                 file.path(out.dir, paste0(format(Sys.time(),
