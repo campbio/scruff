@@ -34,23 +34,30 @@ count.umi <- function(alignment, features, format = "BAM", out.dir = "../Count",
                logfile=logfile, append=TRUE)
   dir.create(file.path(out.dir), showWarnings = FALSE, recursive = T)
   
+  log.messages(Sys.time(), paste("... Loading TxDb file"),
+               logfile=logfile, append=TRUE)
+  features = gtf.db.read(features, logfile)
+  
   # parallelization
   cl <- if (verbose) parallel::makeCluster(cores, outfile = logfile) else parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   
   if (format == "SAM") {
     alignment = foreach::foreach(i = alignment, .verbose = verbose, .combine = c,
-                     .multicombine=TRUE, .packages = c("Rsubread")) %dopar% {
-    convert.to.bam(i)
+                     .multicombine=TRUE) %dopar% {
+    convert.to.bam(i, logfile, overwrite=FALSE, index=TRUE)
                      }
   }
   
   expr = foreach::foreach(i = alignment, .verbose = verbose, .combine = cbind,
-                          .multicombine=TRUE, .packages = c("Rsubread")) %dopar% {
+                          .multicombine=TRUE) %dopar% {
     count.umi.unit(i, features, format, out.dir, logfile)
   }
   
   parallel::stopCluster(cl)
+  
+  expr = data.table::data.table(expr, keep.rownames = TRUE)
+  colnames(expr)[1] = "gene.id"
   
   print(paste(Sys.time(), paste("... Write expression table to", 
                                 file.path(out.dir, paste0(format(Sys.time(),
@@ -62,78 +69,32 @@ count.umi <- function(alignment, features, format = "BAM", out.dir = "../Count",
   
   message(paste(Sys.time(), "... UMI counting done!"))
   return(expr)
-  
 }
 
 
 count.umi.unit <- function(i, features, format, out.dir, logfile) {
   log.messages(Sys.time(), "... UMI counting sample", i, logfile=logfile, append=TRUE)
 
-  bfl <- BamFile(i)
-  bamGA <- readGAlignments(bfl, use.names=T)
+  bfl <- Rsamtools::BamFile(i)
+  bamGA <- GenomicAlignments::readGAlignments(bfl, use.names=T)
   names(bamGA) <- data.table::last(data.table::tstrsplit(names(bamGA), ":"))
   ol = GenomicAlignments::findOverlaps(features, bamGA)
-  ol.dt <- data.table(gene.id=names(features)[queryHits(ol)],
-                      umi=names(bamGA)[subjectHits(ol)],
-                      pos=start(bamGA)[subjectHits(ol)],
-                      hits=subjectHits(ol))
+  ol.dt <- data.table(gene.id=base::names(features)[S4Vectors::queryHits(ol)],
+                      umi=base::names(bamGA)[S4Vectors::subjectHits(ol)],
+                      pos=BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)],
+                      hits=S4Vectors::subjectHits(ol))
   
   # remove ambiguous gene alignments
-  ol.dt <- ol.dt[!(data.table::duplicated(ol.dt, by="hits") |
-                     data.table::duplicated(ol.dt, by="hits", fromLast = TRUE)), ]
-  count.umi <- base::table(unique(ol.dt[,.(gene.id, umi)])[,gene.id])
+  ol.dt <- ol.dt[!(base::duplicated(ol.dt, by="hits") |
+                     base::duplicated(ol.dt, by="hits", fromLast = TRUE)), ]
+  count.umi <- base::table(base::unique(ol.dt[,.(gene.id, umi)])[,gene.id])
   
-  count.umi.dt <- data.table(gene.id=names(features))
+  count.umi.dt <- data.table::data.table(gene.id=names(features))
   
   count.umi.dt[[basename(i)]] <- 0
   count.umi.dt[gene.id %in% names(count.umi),
                eval(basename(i)) := as.numeric(count.umi[gene.id])]
-
-  #fwrite(count.umi.dt, file.path(output.dir, paste0(sid, ".tab")), sep="\t")
-  #print(paste(Sys.time(), sid, "umi counting finished!"))
+  count.umi.dt = data.frame(count.umi.dt, row.names = 1)
   return (count.umi.dt)
 }
 
-
-# read gtf database and return feature GRangesList by gene ID
-gtf.db.read <- function(gtf.file, format="auto") {
-  if (!(endsWith(gtf.file, ".gtf"))) {
-    stop("Filename must end with '.gtf'")
-  }
-  gtf.db.file <- paste0(substr(gtf.file, 1, nchar(gtf.file)-3), "sqlite")
-  if ((!(file.exists(gtf.file))) & (!(file.exists(gtf.db.file)))) {
-    stop(paste("File", gtf.file, "does not exist"))
-  }
-  if (!(file.exists(gtf.db.file))) {
-    print(paste("Database file", gtf.db.file, "does not exist"))
-    print(paste("Generating database file", gtf.db.file))
-    gtf.db <- GenomicFeatures::makeTxDbFromGFF(file=gtf.file, format=format)
-    saveDb(gtf.db, file=gtf.db.file)
-    return (exonsBy(gtf.db, by="gene"))
-  }
-  gtf.db <- tryCatch(loadDb(gtf.db.file),
-            error=function(e) stop(paste("Error loading database file.
-Delete the file", gtf.db.file, "and try again.")))
-  return (exonsBy(gtf.db, by="gene"))
-}
-
-
-convert.to.bam <- function(sam.list, overwrite=F, index=T) {
-  for (i in sam.list) {
-    tryCatch(asBam(i, overwrite=overwrite, indexDestination=index),
-             error=function(e) {} )
-  }
-}
-
-
-count.wrapper <- function(alignment.dir = out.dir, gtf.file,
-                          if.bam = T, output.dir = "../Count", mc.cores = 16) {
-  suppressPackageStartupMessages(library(data.table))
-  suppressPackageStartupMessages(library(GenomicAlignments))
-  suppressPackageStartupMessages(library(GenomicFeatures))
-  suppressPackageStartupMessages(library(Rsamtools))
-  suppressPackageStartupMessages(library(gtools))
-  
-  features <- gtf.db.read(gtf.file)
-  count.umi(alignment.dir, features, if.bam, output.dir, mc.cores)
-}

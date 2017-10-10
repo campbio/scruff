@@ -80,7 +80,7 @@ align.rsubread <- function(fastq.dir, index, format = "BAM", out.dir = "../Align
   
   sink.reset()
   
-  print(paste(Sys.time(), paste("... Write demultiplex summary to", 
+  print(paste(Sys.time(), paste("... Write alignment summary to", 
               file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
                                                           summary.prefix, ".tab")))))
   

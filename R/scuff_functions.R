@@ -78,3 +78,38 @@ getalignmentfiledir = function(fastq.dir, format, out.dir) {
                              ".", format))
   return (filedir)
 }
+
+
+# read gtf database and return feature GRangesList by gene ID
+gtf.db.read <- function(gtf.file, logfile) {
+  gtf.db.file <- paste0(gtf.file, ".sqlite")
+  if ((!(file.exists(gtf.file))) & (!(file.exists(gtf.db.file)))) {
+    stop(paste("File", gtf.file, "does not exist"))
+  }
+  
+  if (!(file.exists(gtf.db.file))) {
+    log.messages(Sys.time(), paste("... TxDb file", gtf.db.file, "does not exist"),
+                 logfile=logfile, append=TRUE)
+    log.messages(Sys.time(), paste("... Creating TxDb object", gtf.db.file),
+                 logfile=logfile, append=TRUE)
+    gtf.db <- GenomicFeatures::makeTxDbFromGFF(file=gtf.file)
+    AnnotationDbi::saveDb(gtf.db, file=gtf.db.file)
+    return (GenomicFeatures::exonsBy(gtf.db, by="gene"))
+  }
+  
+  gtf.db <- tryCatch(AnnotationDbi::loadDb(gtf.db.file),
+                     error=function(e) stop(paste("Error loading database file. Delete the file",
+                                                  gtf.db.file, "and try again.")))
+  return (GenomicFeatures::exonsBy(gtf.db, by="gene"))
+}
+
+
+convert.to.bam <- function(sam, logfile, overwrite=F, index=T) {
+  log.messages(Sys.time(), "... Converting", sam, "to BAM format (if not exist)",
+               logfile=logfile, append=TRUE)
+  tryCatch(Rsamtools::asBam(sam, overwrite=overwrite, indexDestination=index),
+           error=function(e) {} )
+  return (sub(pattern= "\\.sam$", ignore.case = T, perl = T,
+              replacement = ".BAM", x = sam))
+}
+
