@@ -82,15 +82,15 @@ count.umi.unit <- function(i, features, format, out.dir, logfile) {
   bamGA <- GenomicAlignments::readGAlignments(bfl, use.names=T)
   names(bamGA) <- data.table::last(data.table::tstrsplit(names(bamGA), ":"))
   ol = GenomicAlignments::findOverlaps(features, bamGA)
-  ol.dt <- data.table(gene.id=names(features)[queryHits(ol)],
-                      umi=names(bamGA)[subjectHits(ol)],
-                      pos=start(bamGA)[subjectHits(ol)],
-                      hits=subjectHits(ol))
+  ol.dt <- data.table(gene.id=base::names(features)[S4Vectors::queryHits(ol)],
+                      umi=base::names(bamGA)[S4Vectors::subjectHits(ol)],
+                      pos=BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)],
+                      hits=S4Vectors::subjectHits(ol))
   
   # remove ambiguous gene alignments
   ol.dt <- ol.dt[!(data.table::duplicated(ol.dt, by="hits") |
                      data.table::duplicated(ol.dt, by="hits", fromLast = TRUE)), ]
-  count.umi <- base::table(unique(ol.dt[,.(gene.id, umi)])[,gene.id])
+  count.umi <- base::table(data.table::unique(ol.dt[,.(gene.id, umi)])[,gene.id])
   
   count.umi.dt <- data.table::data.table(gene.id=names(features))
   
