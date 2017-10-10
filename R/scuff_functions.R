@@ -81,7 +81,7 @@ getalignmentfiledir = function(fastq.dir, format, out.dir) {
 
 
 # read gtf database and return feature GRangesList by gene ID
-gtf.db.read <- function(gtf.file) {
+gtf.db.read <- function(gtf.file, logfile) {
   gtf.db.file <- paste0(gtf.file, ".sqlite")
   if ((!(file.exists(gtf.file))) & (!(file.exists(gtf.db.file)))) {
     stop(paste("File", gtf.file, "does not exist"))

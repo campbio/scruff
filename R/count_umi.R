@@ -36,7 +36,7 @@ count.umi <- function(alignment, features, format = "BAM", out.dir = "../Count",
   
   log.messages(Sys.time(), paste("... Loading TxDb file"),
                logfile=logfile, append=TRUE)
-  features = gtf.db.read(features)
+  features = gtf.db.read(features, logfile)
   
   # parallelization
   cl <- if (verbose) parallel::makeCluster(cores, outfile = logfile) else parallel::makeCluster(cores)
@@ -103,15 +103,3 @@ count.umi.unit <- function(i, features, format, out.dir, logfile) {
   return (count.umi.dt)
 }
 
-
-count.wrapper <- function(alignment.dir = out.dir, gtf.file,
-                          if.bam = T, output.dir = "../Count", mc.cores = 16) {
-  suppressPackageStartupMessages(library(data.table))
-  suppressPackageStartupMessages(library(GenomicAlignments))
-  suppressPackageStartupMessages(library(GenomicFeatures))
-  suppressPackageStartupMessages(library(Rsamtools))
-  suppressPackageStartupMessages(library(gtools))
-  
-  features <- gtf.db.read(gtf.file)
-  count.umi(alignment.dir, features, if.bam, output.dir, mc.cores)
-}
