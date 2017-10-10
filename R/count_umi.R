@@ -88,8 +88,8 @@ count.umi.unit <- function(i, features, format, out.dir, logfile) {
                       hits=S4Vectors::subjectHits(ol))
   
   # remove ambiguous gene alignments
-  ol.dt <- ol.dt[!(data.table::duplicated(ol.dt, by="hits") |
-                     data.table::duplicated(ol.dt, by="hits", fromLast = TRUE)), ]
+  ol.dt <- ol.dt[!(base::duplicated(ol.dt, by="hits") |
+                     base::duplicated(ol.dt, by="hits", fromLast = TRUE)), ]
   count.umi <- base::table(data.table::unique(ol.dt[,.(gene.id, umi)])[,gene.id])
   
   count.umi.dt <- data.table::data.table(gene.id=names(features))
