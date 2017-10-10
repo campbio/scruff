@@ -97,7 +97,7 @@ gtf.db.read <- function(gtf.file, logfile) {
     return (GenomicFeatures::exonsBy(gtf.db, by="gene"))
   }
   
-  gtf.db <- tryCatch(loadDb(gtf.db.file),
+  gtf.db <- tryCatch(AnnotationDbi::loadDb(gtf.db.file),
                      error=function(e) stop(paste("Error loading database file. Delete the file",
                                                   gtf.db.file, "and try again.")))
   return (GenomicFeatures::exonsBy(gtf.db, by="gene"))
