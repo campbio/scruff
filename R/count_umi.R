@@ -44,23 +44,20 @@ count.umi <- function(alignment, features, format = "BAM", out.dir = "../Count",
   
   if (format == "SAM") {
     alignment = foreach::foreach(i = alignment, .verbose = verbose, .combine = c,
-                     .multicombine=TRUE, .packages = c("Rsubread")) %dopar% {
-                       log.messages(Sys.time(), "... Converting", i, "to BAM format (if not exist)",
-                                    logfile=logfile, append=TRUE)
-    convert.to.bam(i)
+                     .multicombine=TRUE) %dopar% {
+    convert.to.bam(i, logfile, overwrite=FALSE, index=TRUE)
                      }
   }
   
-  expr = foreach::foreach(i = alignment, .verbose = verbose, .combine = list,
-                          .multicombine=TRUE, .packages = c("Rsubread")) %dopar% {
-                            log.messages(Sys.time(), "... UMI counting sample", i,
-                                         logfile=logfile, append=TRUE)
+  expr = foreach::foreach(i = alignment, .verbose = verbose, .combine = cbind,
+                          .multicombine=TRUE) %dopar% {
     count.umi.unit(i, features, format, out.dir, logfile)
   }
   
   parallel::stopCluster(cl)
   
-  expr = base::Reduce(base::merge, expr)
+  expr = data.table::data.table(expr, keep.rownames = TRUE)
+  colnames(expr)[1] = "gene.id"
   
   print(paste(Sys.time(), paste("... Write expression table to", 
                                 file.path(out.dir, paste0(format(Sys.time(),
@@ -97,7 +94,9 @@ count.umi.unit <- function(i, features, format, out.dir, logfile) {
   count.umi.dt[[basename(i)]] <- 0
   count.umi.dt[gene.id %in% names(count.umi),
                eval(basename(i)) := as.numeric(count.umi[gene.id])]
-
+  
+  count.umi.dt = data.frame(count.umi.dt, row.names = 1)
+  
   #fwrite(count.umi.dt, file.path(output.dir, paste0(sid, ".tab")), sep="\t")
   #print(paste(Sys.time(), sid, "umi counting finished!"))
   return (count.umi.dt)

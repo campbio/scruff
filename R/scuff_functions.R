@@ -104,7 +104,9 @@ gtf.db.read <- function(gtf.file, logfile) {
 }
 
 
-convert.to.bam <- function(sam, overwrite=F, index=T) {
+convert.to.bam <- function(sam, logfile, overwrite=F, index=T) {
+  log.messages(Sys.time(), "... Converting", sam, "to BAM format (if not exist)",
+               logfile=logfile, append=TRUE)
   tryCatch(Rsamtools::asBam(sam, overwrite=overwrite, indexDestination=index),
            error=function(e) {} )
   return (sub(pattern= "\\.sam$", ignore.case = T, perl = T,
