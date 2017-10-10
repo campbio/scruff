@@ -1,6 +1,6 @@
 #' Run scuff pipeline
 #' 
-#' scuff runs the whole pipeline including demultiplex, align, and count_umi. Write tables of count matrices in output directory.
+#' Run the \code{scuff} pipeline including \code{demultiplex}, \code{align.rsubread}, and \code{count.umi}. Write expression table in output directory.
 #' 
 #' @param fastq An annotation data table or data frame of input fastq files.
 #' @param index Rsubread index for reference sequences.
@@ -15,16 +15,37 @@
 #' @param ncore Number of cores to use.
 #' @param threads Number of threads to run for each core. Default is \strong{16}.
 #' @export
-scuff <- function(fastq, barcodes, index, annot, length, umi.pos, bc.pos, bc.qual=10, out="./",
-                  overwrite=TRUE, ncore=1, nthreads=1) {
+scuff = function(fastq, bc, index, features, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
+                 bc.qual = 10, alignmentFileFormat = "BAM",
+                 exprPrefix = "count",
+                 demultiplexOutDir = "../Demultiplex", 
+                 alignmentOutDir = "../Alignment",
+                 umiCountOutDir = "../Count",
+                 demultiplexSummaryPrefix = "demultiplex", 
+                 alignmentSummaryPrefix = "alignment", 
+                 logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S"),
+                 overwrite = FALSE, 
+                  verbose = FALSE,
+                 cores = max(1, parallel::detectCores() - 1), threads = 1) 
+{
   # run pipeline
-  message("Starting scuff ...")
+  message("Start running scuff ...")
+  message()
   
-  demultiplex.wrapper(bc.index.file, input.dir, stats.out, output.dir, out.folder, min.bc.quality,
-                      umi.length, bc.length, cut.length, fname.delimiter, mc.cores)
-  fastq.dir <- file.path(output.dir, out.folder)
-  align.wrapper(fastq.dir, GRCh38.index, out.format, align.dir, nthreads, mc.cores)
-  count.wrapper(alignment.dir = align.dir, gtf.file, if.bam = T, count.out, mc.cores)
+  dem = demultiplex(
+    fastq = fastq,
+    bc = bc,
+    bc.pos = bc.pos,
+    umi.pos = umi.pos,
+    keep = keep,
+    bc.qual = bc.qual,
+    out.dir = demultiplexOutDir,
+    summary.prefix = demultiplexSummaryPrefix,
+    overwrite = overwrite,
+    cores = cores,
+    verbose = verbose,
+    logfile.prefix = logfile.prefix)
+  
 }
 
 
