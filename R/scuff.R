@@ -24,8 +24,8 @@ scuff = function(fastq, bc, index, features, bc.pos = c(6, 11), umi.pos = c(1, 5
                  demultiplexSummaryPrefix = "demultiplex", 
                  alignmentSummaryPrefix = "alignment", 
                  logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S"),
-                 overwrite = FALSE, 
-                  verbose = FALSE,
+                 overwrite = FALSE,
+                 verbose = FALSE,
                  cores = max(1, parallel::detectCores() - 1), threads = 1) 
 {
   # run pipeline
@@ -45,6 +45,8 @@ scuff = function(fastq, bc, index, features, bc.pos = c(6, 11), umi.pos = c(1, 5
     cores = cores,
     verbose = verbose,
     logfile.prefix = logfile.prefix)
+  
+  fastq.dir = demultiplex.res[!(is.na(cell_num)), dir]
   
 }
 
