@@ -93,7 +93,7 @@ gtf.db.read <- function(gtf.file, logfile) {
     log.messages(Sys.time(), paste("... Creating TxDb object", gtf.db.file),
                  logfile=logfile, append=TRUE)
     gtf.db <- GenomicFeatures::makeTxDbFromGFF(file=gtf.file)
-    saveDb(gtf.db, file=gtf.db.file)
+    AnnotationDbi::saveDb(gtf.db, file=gtf.db.file)
     return (GenomicFeatures::exonsBy(gtf.db, by="gene"))
   }
   
