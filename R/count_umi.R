@@ -34,7 +34,7 @@ count.umi <- function(alignment, features, format = "BAM", out.dir = "../Count",
                logfile=logfile, append=TRUE)
   dir.create(file.path(out.dir), showWarnings = FALSE, recursive = T)
   
-  log.messages(Sys.time(), paste("... Loading TxDb file", gtf.db.file),
+  log.messages(Sys.time(), paste("... Loading TxDb file"),
                logfile=logfile, append=TRUE)
   features = gtf.db.read(features)
   
