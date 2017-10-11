@@ -24,12 +24,13 @@ align.rsubread <- function(fastq.dir, index, format = "BAM", out.dir = "../Align
   
   logfile <- paste0(logfile.prefix, "_alignment_log.txt")
   
-  log.messages(Sys.time(), "... Start alignment", logfile=logfile, append=FALSE)
-  log.messages(Sys.time(), fastq.dir, logfile=logfile, append=TRUE)
-  
   if (verbose) {
+    log.messages(Sys.time(), "... Start alignment", logfile=logfile, append=FALSE)
+    log.messages(Sys.time(), fastq.dir, logfile=logfile, append=TRUE)
     print("... Input fastq.dir:")
     print(fastq.dir)
+  } else {
+    log.messages(Sys.time(), "... Start alignment", logfile=NULL, append=FALSE)
   }
   
   if (overwrite) {

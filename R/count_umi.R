@@ -22,12 +22,13 @@ count.umi <- function(alignment, features, format = "BAM", out.dir = "../Count",
   
   logfile <- paste0(logfile.prefix, "_countUMI_log.txt")
   
-  log.messages(Sys.time(), "... Start UMI counting", logfile=logfile, append=FALSE)
-  log.messages(Sys.time(), alignment, logfile=logfile, append=TRUE)
-  
   if (verbose) {
+    log.messages(Sys.time(), "... Start UMI counting", logfile=logfile, append=FALSE)
+    log.messages(Sys.time(), alignment, logfile=logfile, append=TRUE)
     print("... Input alignment files:")
     print(alignment)
+  } else {
+    log.messages(Sys.time(), "... Start UMI counting", logfile=NULL, append=FALSE)
   }
   
   log.messages(Sys.time(), "... Creating output directory", out.dir,
