@@ -65,7 +65,7 @@ scuff = function(fastq,
     logfile.prefix = logfile.prefix
   )
   
-  fastq.dir = demultiplex.res[!(is.na(cell_num)), dir]
+  fastq.dir = dem[!(is.na(cell_num)), dir]
   
   ali = align.rsubread(
     fastq.dir = fastq.dir,
