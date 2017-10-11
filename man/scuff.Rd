@@ -4,34 +4,40 @@
 \alias{scuff}
 \title{Run scuff pipeline}
 \usage{
-scuff(fastq, barcodes, index, annot, length, umi.pos, bc.pos, bc.qual = 10,
-  out = "./", overwrite = TRUE, ncore = 1, nthreads = 1)
+scuff(fastq, bc, index, features, bc.pos = c(6, 11), umi.pos = c(1, 5),
+  keep = 50, bc.qual = 10, alignmentFileFormat = "BAM",
+  demultiplexOutDir = "../Demultiplex", alignmentOutDir = "../Alignment",
+  umiCountOutDir = "../Count", demultiplexSummaryPrefix = "demultiplex",
+  alignmentSummaryPrefix = "alignment", exprPrefix = "count",
+  logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"),
+  overwrite = FALSE, verbose = FALSE, cores = max(1,
+  parallel::detectCores() - 1), threads = 1)
 }
 \arguments{
 \item{fastq}{An annotation data table or data frame of input fastq files.}
 
+\item{bc}{A vector of cell barcodes known from experimental design.}
+
 \item{index}{Rsubread index for reference sequences.}
 
-\item{annot}{Directory of the gene annotation file.}
-
-\item{umi.pos}{Start and end index number of umi sequences.}
+\item{features}{}
 
 \item{bc.pos}{Start and end index number of barcodes.}
 
+\item{umi.pos}{Start and end index number of umi sequences.}
+
+\item{keep}{Read length or number of nucleotides to keep. Longer reads will be clipped at 3' end.}
+
 \item{bc.qual}{Minimal acceptable quality score for barcode sequence.}
 
-\item{out}{Output directory.}
+\item{demultiplexOutDir}{}
 
 \item{overwrite}{Overwrite the output directory. Default is TRUE.}
 
-\item{ncore}{Number of cores to use.}
-
-\item{bc}{A vector of cell barcodes known from experimental design.}
-
-\item{clip.at}{Read length or number of nucleotides to keep. Longer reads will be clipped at 3' end.}
+\item{cores}{Number of cores to use.}
 
 \item{threads}{Number of threads to run for each core. Default is \strong{16}.}
 }
 \description{
-scuff runs the whole pipeline including demultiplex, align, and count_umi. Write tables of count matrices in output directory.
+Run the \code{scuff} pipeline including \code{demultiplex}, \code{align.rsubread}, and \code{count.umi}. Write expression table in output directory.
 }
