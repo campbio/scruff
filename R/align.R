@@ -7,8 +7,8 @@
 #' @param format Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param out.dir Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Alignment"}.
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
-#' @param threads Number of threads/CPUs used for mapping. Refer to \code{align} function in \code{Rsubread}. Default is \strong{1}.
-#' @param summary.prefix Prefix for summary files. Default is \code{"alignment"}.
+#' @param threads Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}.
+#' @param summary.prefix Prefix for alignment summary file. Default is \code{"alignment"}.
 #' @param overwrite Overwrite the output directory. Default is \strong{FALSE}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.

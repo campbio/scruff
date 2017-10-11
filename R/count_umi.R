@@ -6,7 +6,7 @@
 #' @param alignment A character vector of the directories to input alignment files.
 #' @param features Directory to the gtf reference file. For generation of TxDb objects from gtf files, please refer to \code{makeTxDbFromGFF} function in \code{GenomicFeatures} package.
 #' @param format Format of input sequence alignment files. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
-#' @param out.dir Output directory for UMI counting results. Expression table will be stored in this directory. \strong{Make sure the folder is empty.} Default is \code{"../Count"}.
+#' @param out.dir Output directory for UMI counting results. Expression table will be stored in this directory. Default is \code{"../Count"}.
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
 #' @param output.prefix Prefix for expression table filename. Default is \code{"countUMI"}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.

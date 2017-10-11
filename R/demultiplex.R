@@ -3,16 +3,16 @@
 #' Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory
 #' 
 #' @param fastq Can be in one of the following formats: \enumerate{
-#'   \item An annotation data table or data frame that contains information about input fastq files. For example, please see \code{?exampleannot}.
+#'   \item An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
 #'   \item The directory to fastq files. }
-#' @param bc A vector of cell barcodes determined from experimental design. For example, please see \code{?examplebc}.
+#' @param bc A vector of cell barcodes determined from experimental design. For example, see \code{?examplebc}.
 #' @param bc.pos An integer vector of length 2 consisting of the start and end index of barcodes (one-based numbering). Default is \code{c(6, 11)}.
 #' @param umi.pos An integer vector of length 2 consisting of the start and end index of umi sequences (one-based numbering). Default is \code{c(1, 5)}.
 #' @param keep Read length or number of nucleotides to keep for read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.
 #' @param bc.qual Minimal Phred quality score acceptable for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequences. Sequences with at least one score lower than this will be filtered out. Default is \strong{10}.
 #' @param out.dir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.
-#' @param summary.prefix Prefix for summary files. Default is \code{"demultiplex"}.
-#' @param overwrite Whether to overwrite the output directory or not. Default is \strong{FALSE}.
+#' @param summary.prefix Prefix for demultiplex summary file. Default is \code{"demultiplex"}.
+#' @param overwrite Overwrite the output directory. Default is \strong{FALSE}.
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
