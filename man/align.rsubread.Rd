@@ -20,9 +20,9 @@ align.rsubread(fastq.dir, index, format = "BAM", out.dir = "../Alignment",
 
 \item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.}
 
-\item{threads}{Number of threads/CPUs used for mapping. Refer to \code{align} function in \code{Rsubread}. Default is \strong{1}.}
+\item{threads}{Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}.}
 
-\item{summary.prefix}{Prefix for summary files. Default is \code{"alignment"}.}
+\item{summary.prefix}{Prefix for alignment summary file. Default is \code{"alignment"}.}
 
 \item{overwrite}{Overwrite the output directory. Default is \strong{FALSE}.}
 

@@ -28,3 +28,8 @@
 #' \item{\code{dir}}{Directory to the fastq file}
 #' }
 "exampleannot"
+
+#' GRCh38 mitochondial dna fasta sequence
+#'
+#' An \strong{R} object (vector) containing GRCh38 chrMT fasta sequence.
+"GRCh38_MT"

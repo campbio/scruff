@@ -14,29 +14,47 @@ scuff(fastq, bc, index, features, bc.pos = c(6, 11), umi.pos = c(1, 5),
   parallel::detectCores() - 1), threads = 1)
 }
 \arguments{
-\item{fastq}{An annotation data table or data frame of input fastq files.}
+\item{fastq}{Can be in one of the following formats: \enumerate{
+\item An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
+\item The directory to fastq files. }}
 
-\item{bc}{A vector of cell barcodes known from experimental design.}
+\item{bc}{A vector of cell barcodes determined from experimental design. For example, see \code{?examplebc}.}
 
-\item{index}{Rsubread index for reference sequences.}
+\item{index}{Directory to the \code{Rsubread} index of reference sequences. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
 
-\item{features}{}
+\item{features}{Directory to the gtf reference file. For generation of TxDb objects from gtf files, please refer to \code{makeTxDbFromGFF} function in \code{GenomicFeatures} package.}
 
-\item{bc.pos}{Start and end index number of barcodes.}
+\item{bc.pos}{An integer vector of length 2 consisting of the start and end index of barcodes (one-based numbering). Default is \code{c(6, 11)}.}
 
-\item{umi.pos}{Start and end index number of umi sequences.}
+\item{umi.pos}{An integer vector of length 2 consisting of the start and end index of umi sequences (one-based numbering). Default is \code{c(1, 5)}.}
 
-\item{keep}{Read length or number of nucleotides to keep. Longer reads will be clipped at 3' end.}
+\item{keep}{Read length or number of nucleotides to keep for read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.}
 
-\item{bc.qual}{Minimal acceptable quality score for barcode sequence.}
+\item{bc.qual}{Minimal Phred quality score acceptable for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequences. Sequences with at least one score lower than this will be filtered out. Default is \strong{10}.}
 
-\item{demultiplexOutDir}{}
+\item{alignmentFileFormat}{Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 
-\item{overwrite}{Overwrite the output directory. Default is TRUE.}
+\item{demultiplexOutDir}{Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.}
 
-\item{cores}{Number of cores to use.}
+\item{alignmentOutDir}{Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Alignment"}.}
 
-\item{threads}{Number of threads to run for each core. Default is \strong{16}.}
+\item{umiCountOutDir}{Output directory for UMI counting results. Expression table will be stored in this directory. Default is \code{"../Count"}.}
+
+\item{demultiplexSummaryPrefix}{Prefix for demultiplex summary file. Default is \code{"demultiplex"}.}
+
+\item{alignmentSummaryPrefix}{Prefix for alignment summary file. Default is \code{"alignment"}.}
+
+\item{exprPrefix}{Prefix for expression table filename. Default is \code{"countUMI"}.}
+
+\item{logfile.prefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
+
+\item{overwrite}{Overwrite the output directory. Default is \strong{FALSE}.}
+
+\item{verbose}{Print log messages. Useful for debugging. Default to \strong{FALSE}.}
+
+\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.}
+
+\item{threads}{Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}.}
 }
 \description{
 Run the \code{scuff} pipeline including \code{demultiplex}, \code{align.rsubread}, and \code{count.umi}. Write expression table in output directory.

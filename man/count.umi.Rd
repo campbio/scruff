@@ -16,7 +16,7 @@ count.umi(alignment, features, format = "BAM", out.dir = "../Count",
 
 \item{format}{Format of input sequence alignment files. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 
-\item{out.dir}{Output directory for UMI counting results. Expression table will be stored in this directory. \strong{Make sure the folder is empty.} Default is \code{"../Count"}.}
+\item{out.dir}{Output directory for UMI counting results. Expression table will be stored in this directory. Default is \code{"../Count"}.}
 
 \item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.}
 
