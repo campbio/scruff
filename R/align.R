@@ -125,7 +125,7 @@ align.rsubread <- function(fastq.dir,
   )), sep = "\t")
   
   if (!(verbose))
-    file.remove(logfile)
+    file.remove(logfile, showWarnings = FALSE)
   
   message(paste(Sys.time(), "... Alignment done!"))
   return(alignmentfiledir)

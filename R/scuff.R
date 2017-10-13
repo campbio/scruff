@@ -47,7 +47,7 @@ scuff <- function(fastq,
                   threads = 1) {
   # run pipeline
   message(paste(Sys.time(), "Start running scuff ..."))
-  message(match.call())
+  message(paste(match.call(), sep = ", "))
   
   dem <- demultiplex(
     fastq = fastq,
