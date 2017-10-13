@@ -25,32 +25,31 @@
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
 #' @param threads Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}.
 #' @export
-scuff = function(fastq,
-                 bc,
-                 index,
-                 features,
-                 bc.pos = c(6, 11),
-                 umi.pos = c(1, 5),
-                 keep = 50,
-                 bc.qual = 10,
-                 alignmentFileFormat = "BAM",
-                 demultiplexOutDir = "../Demultiplex",
-                 alignmentOutDir = "../Alignment",
-                 umiCountOutDir = "../Count",
-                 demultiplexSummaryPrefix = "demultiplex",
-                 alignmentSummaryPrefix = "alignment",
-                 exprPrefix = "count",
-                 logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S"),
-                 overwrite = FALSE,
-                 verbose = FALSE,
-                 cores = max(1, parallel::detectCores() - 1),
-                 threads = 1)
-{
+scuff <- function(fastq,
+                  bc,
+                  index,
+                  features,
+                  bc.pos = c(6, 11),
+                  umi.pos = c(1, 5),
+                  keep = 50,
+                  bc.qual = 10,
+                  alignmentFileFormat = "BAM",
+                  demultiplexOutDir = "../Demultiplex",
+                  alignmentOutDir = "../Alignment",
+                  umiCountOutDir = "../Count",
+                  demultiplexSummaryPrefix = "demultiplex",
+                  alignmentSummaryPrefix = "alignment",
+                  exprPrefix = "count",
+                  logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S"),
+                  overwrite = FALSE,
+                  verbose = FALSE,
+                  cores = max(1, parallel::detectCores() - 1),
+                  threads = 1) {
   # run pipeline
   message(paste(Sys.time(), "Start running scuff ..."))
   message(match.call())
   
-  dem = demultiplex(
+  dem <- demultiplex(
     fastq = fastq,
     bc = bc,
     bc.pos = bc.pos,
@@ -65,9 +64,9 @@ scuff = function(fastq,
     logfile.prefix = logfile.prefix
   )
   
-  fastq.dir = dem[!(is.na(cell_num)), dir]
+  fastq.dir <- dem[!(is.na(cell_num)), dir]
   
-  ali = align.rsubread(
+  ali <- align.rsubread(
     fastq.dir = fastq.dir,
     index = index,
     format = alignmentFileFormat,
@@ -80,7 +79,7 @@ scuff = function(fastq,
     logfile.prefix = logfile.prefix
   )
   
-  expr = count.umi(
+  expr <- count.umi(
     alignment = ali,
     features = features,
     format = alignmentFileFormat,
