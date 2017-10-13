@@ -63,7 +63,7 @@ align.rsubread <- function(fastq.dir,
   print(paste(Sys.time(), "... Creating output directory", out.dir))
   dir.create(file.path(out.dir), showWarnings = FALSE, recursive = TRUE)
   
-  sink(logfile, append = TRUE)
+  #sink(logfile, append = TRUE)
   
   # parallelization
   cl <- if (verbose)
@@ -103,7 +103,7 @@ align.rsubread <- function(fastq.dir,
   
   parallel::stopCluster(cl)
   
-  sink.reset()
+  #sink.reset()
   
   print(paste(Sys.time(), paste(
     "... Write alignment summary to",
