@@ -6,7 +6,7 @@
 #' @param alignment A character vector of the directories to input alignment files.
 #' @param features Directory to the gtf reference file. For generation of TxDb objects from gtf files, please refer to \code{makeTxDbFromGFF} function in \code{GenomicFeatures} package.
 #' @param format Format of input sequence alignment files. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
-#' @param out.dir Output directory for UMI counting results. Expression table will be stored in this directory. \strong{Make sure the folder is empty.} Default is \code{"../Count"}.
+#' @param out.dir Output directory for UMI counting results. Expression table will be stored in this directory. Default is \code{"../Count"}.
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
 #' @param output.prefix Prefix for expression table filename. Default is \code{"countUMI"}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
@@ -14,87 +14,129 @@
 #' @return A expression matrix \code{data.table} containing the raw counts of unique \emph{UMI:transcript} pairs.
 #' @import data.table foreach
 #' @export
-count.umi <- function(alignment, features, format = "BAM", out.dir = "../Count", 
+count.umi <- function(alignment,
+                      features,
+                      format = "BAM",
+                      out.dir = "../Count",
                       cores = max(1, parallel::detectCores() - 1),
-                      output.prefix = "countUMI", verbose = FALSE,
+                      output.prefix = "countUMI",
+                      verbose = FALSE,
                       logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
+  
   message(paste(Sys.time(), "Start UMI counting ..."))
   
   logfile <- paste0(logfile.prefix, "_countUMI_log.txt")
   
-  log.messages(Sys.time(), "... Start UMI counting", logfile=logfile, append=FALSE)
-  log.messages(Sys.time(), alignment, logfile=logfile, append=TRUE)
-  
   if (verbose) {
+    log.messages(Sys.time(),
+                 "... Start UMI counting",
+                 logfile = logfile,
+                 append = FALSE)
+    log.messages(Sys.time(), alignment, logfile = logfile, append = TRUE)
     print("... Input alignment files:")
     print(alignment)
+  } else {
+    log.messages(Sys.time(),
+                 "... Start UMI counting",
+                 logfile = NULL,
+                 append = FALSE)
   }
   
-  log.messages(Sys.time(), "... Creating output directory", out.dir,
-               logfile=logfile, append=TRUE)
-  dir.create(file.path(out.dir), showWarnings = FALSE, recursive = T)
+  message(paste(Sys.time(),
+                "... Creating output directory",
+                out.dir))
+  dir.create(file.path(out.dir),
+             showWarnings = FALSE,
+             recursive = TRUE)
   
-  log.messages(Sys.time(), paste("... Loading TxDb file"),
-               logfile=logfile, append=TRUE)
-  features = gtf.db.read(features, logfile)
+  print(paste(Sys.time(),
+              paste("... Loading TxDb file")))
+  features <- gtf.db.read(features, logfile)
   
   # parallelization
-  cl <- if (verbose) parallel::makeCluster(cores, outfile = logfile) else parallel::makeCluster(cores)
+  cl <- if (verbose)
+    parallel::makeCluster(cores, outfile = logfile)
+  else
+    parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   
   if (format == "SAM") {
-    alignment = foreach::foreach(i = alignment, .verbose = verbose, .combine = c,
-                     .multicombine=TRUE) %dopar% {
-    convert.to.bam(i, logfile, overwrite=FALSE, index=TRUE)
-                     }
+    alignment <- foreach::foreach(
+      i = alignment,
+      .verbose = verbose,
+      .combine = c,
+      .multicombine = TRUE
+    ) %dopar% {
+      to.bam(i, logfile, overwrite = FALSE, index = TRUE)
+    }
   }
   
-  expr = foreach::foreach(i = alignment, .verbose = verbose, .combine = cbind,
-                          .multicombine=TRUE) %dopar% {
-    count.umi.unit(i, features, format, out.dir, logfile)
+  expr <- foreach::foreach(
+    i = alignment,
+    .verbose = verbose,
+    .combine = cbind,
+    .multicombine = TRUE,
+    .packages = c("BiocGenerics", "S4Vectors")
+  ) %dopar% {
+    count.umi.unit(i, features, format, out.dir, logfile, verbose)
   }
   
   parallel::stopCluster(cl)
   
-  expr = data.table::data.table(expr, keep.rownames = TRUE)
-  colnames(expr)[1] = "gene.id"
+  expr <- data.table::data.table(expr, keep.rownames = TRUE)
+  colnames(expr)[1] <- "gene.id"
   
-  print(paste(Sys.time(), paste("... Write expression table to", 
-                                file.path(out.dir, paste0(format(Sys.time(),
-                                                                 "%Y%m%d_%H%M%S"), "_",
-                                                          output.prefix, ".tab")))))
+  print(paste(Sys.time(), paste(
+    "... Write expression table to",
+    file.path(out.dir, paste0(
+      format(Sys.time(),
+             "%Y%m%d_%H%M%S"), "_",
+      output.prefix, ".tab"
+    ))
+  )))
   
-  fwrite(expr, file.path(out.dir, paste0(format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-                                           output.prefix, ".tab")), sep="\t")
+  data.table::fwrite(expr, file.path(out.dir, paste0(
+    format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+    output.prefix, ".tab"
+  )), sep = "\t")
   
   message(paste(Sys.time(), "... UMI counting done!"))
   return(expr)
 }
 
 
-count.umi.unit <- function(i, features, format, out.dir, logfile) {
-  log.messages(Sys.time(), "... UMI counting sample", i, logfile=logfile, append=TRUE)
+count.umi.unit <- function(i, features, format, out.dir, logfile, verbose) {
+  if (verbose) {
+    log.messages(Sys.time(),
+                 "... UMI counting sample",
+                 i,
+                 logfile = logfile,
+                 append = TRUE)
+  }
 
   bfl <- Rsamtools::BamFile(i)
-  bamGA <- GenomicAlignments::readGAlignments(bfl, use.names=T)
+  bamGA <- GenomicAlignments::readGAlignments(bfl, use.names = T)
   names(bamGA) <- data.table::last(data.table::tstrsplit(names(bamGA), ":"))
-  ol = GenomicAlignments::findOverlaps(features, bamGA)
-  ol.dt <- data.table(gene.id=base::names(features)[S4Vectors::queryHits(ol)],
-                      umi=base::names(bamGA)[S4Vectors::subjectHits(ol)],
-                      pos=BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)],
-                      hits=S4Vectors::subjectHits(ol))
+  ol <- GenomicAlignments::findOverlaps(features, bamGA)
+  ol.dt <- data.table(
+    gene.id = base::names(features)[S4Vectors::queryHits(ol)],
+    umi = base::names(bamGA)[S4Vectors::subjectHits(ol)],
+    pos = BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)],
+    hits = S4Vectors::subjectHits(ol)
+  )
   
   # remove ambiguous gene alignments
-  ol.dt <- ol.dt[!(base::duplicated(ol.dt, by="hits") |
-                     base::duplicated(ol.dt, by="hits", fromLast = TRUE)), ]
-  count.umi <- base::table(base::unique(ol.dt[,.(gene.id, umi)])[,gene.id])
+  ol.dt <- ol.dt[!(
+    base::duplicated(ol.dt, by = "hits") |
+      base::duplicated(ol.dt, by = "hits", fromLast = TRUE)
+  ), ]
   
-  count.umi.dt <- data.table::data.table(gene.id=names(features))
-  
+  count.umi <- base::table(unique(ol.dt[, .(gene.id, umi)])[, gene.id])
+  count.umi.dt <- data.table::data.table(gene.id = names(features))
   count.umi.dt[[basename(i)]] <- 0
   count.umi.dt[gene.id %in% names(count.umi),
                eval(basename(i)) := as.numeric(count.umi[gene.id])]
-  count.umi.dt = data.frame(count.umi.dt, row.names = 1)
+  count.umi.dt <- data.frame(count.umi.dt, row.names = 1)
   return (count.umi.dt)
 }
 

@@ -12,10 +12,10 @@ demultiplex(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
 }
 \arguments{
 \item{fastq}{Can be in one of the following formats: \enumerate{
-\item An annotation data table or data frame that contains information about input fastq files. For example, please see \code{?exampleannot}.
+\item An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
 \item The directory to fastq files. }}
 
-\item{bc}{A vector of cell barcodes determined from experimental design. For example, please see \code{?examplebc}.}
+\item{bc}{A vector of cell barcodes determined from experimental design. For example, see \code{?examplebc}.}
 
 \item{bc.pos}{An integer vector of length 2 consisting of the start and end index of barcodes (one-based numbering). Default is \code{c(6, 11)}.}
 
@@ -27,9 +27,9 @@ demultiplex(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
 
 \item{out.dir}{Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.}
 
-\item{summary.prefix}{Prefix for summary files. Default is \code{"demultiplex"}.}
+\item{summary.prefix}{Prefix for demultiplex summary file. Default is \code{"demultiplex"}.}
 
-\item{overwrite}{Whether to overwrite the output directory or not. Default is \strong{FALSE}.}
+\item{overwrite}{Overwrite the output directory. Default is \strong{FALSE}.}
 
 \item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.}
 
