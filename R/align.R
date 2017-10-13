@@ -61,8 +61,7 @@ align.rsubread <- function(fastq.dir,
     }
   }
   
-  print(Sys.time(), "... Creating output directory", out.dir, 
-        logfile = logfile, append = TRUE)
+  print(paste(Sys.time(), "... Creating output directory", out.dir))
   dir.create(file.path(out.dir), showWarnings = FALSE, recursive = TRUE)
   
   sink(logfile, append = TRUE)
