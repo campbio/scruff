@@ -42,7 +42,7 @@ align.rsubread <- function(fastq.dir,
   
   if (overwrite) {
     # delete results from previous run
-    message(paste(Sys.time(), "... Delete (if any) existing alignment results")
+    message(paste(Sys.time(), "... Delete (if any) existing alignment results"))
     unlink(file.path(out.dir), recursive = TRUE)
   } else {
     alignment.dir <- getalignmentfiledir(fastq.dir, format, out.dir)
