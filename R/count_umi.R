@@ -42,21 +42,15 @@ count.umi <- function(alignment,
                  append = FALSE)
   }
   
-  log.messages(
-    Sys.time(),
-    "... Creating output directory",
-    out.dir,
-    logfile = logfile,
-    append = TRUE
-  )
+  message(paste(Sys.time(),
+                "... Creating output directory",
+                out.dir))
   dir.create(file.path(out.dir),
              showWarnings = FALSE,
              recursive = TRUE)
   
-  log.messages(Sys.time(),
-               paste("... Loading TxDb file"),
-               logfile = logfile,
-               append = TRUE)
+  print(paste(Sys.time(),
+              paste("... Loading TxDb file")))
   features <- gtf.db.read(features, logfile)
   
   # parallelization
@@ -83,7 +77,7 @@ count.umi <- function(alignment,
     .combine = cbind,
     .multicombine = TRUE
   ) %dopar% {
-    count.umi.unit(i, features, format, out.dir, logfile)
+    count.umi.unit(i, features, format, out.dir, logfile, verbose)
   }
   
   parallel::stopCluster(cl)
@@ -110,12 +104,14 @@ count.umi <- function(alignment,
 }
 
 
-count.umi.unit <- function(i, features, format, out.dir, logfile) {
-  log.messages(Sys.time(),
-               "... UMI counting sample",
-               i,
-               logfile = logfile,
-               append = TRUE)
+count.umi.unit <- function(i, features, format, out.dir, logfile, verbose) {
+  if (verbose) {
+    log.messages(Sys.time(),
+                 "... UMI counting sample",
+                 i,
+                 logfile = logfile,
+                 append = TRUE)
+  }
 
   bfl <- Rsamtools::BamFile(i)
   bamGA <- GenomicAlignments::readGAlignments(bfl, use.names = T)

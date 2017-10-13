@@ -9,6 +9,6 @@
 GRCh38_MT
 }
 \description{
-An \strong{R} object (vector) containing GRCh38 chrMT fasta sequence.
+An vector containing GRCh38 chrMT fasta sequence.
 }
 \keyword{datasets}

@@ -38,38 +38,30 @@ align.rsubread <- function(fastq.dir,
     log.messages(Sys.time(), fastq.dir, logfile = logfile, append = TRUE)
     print("... Input fastq.dir:")
     print(fastq.dir)
-  } else {
-    log.messages(Sys.time(),
-                 "... Start alignment",
-                 logfile = NULL,
-                 append = FALSE)
   }
   
   if (overwrite) {
     # delete results from previous run
-    log.messages(Sys.time(), "... Delete (if any) existing alignment results",
-                 logfile = logfile, append = TRUE)
+    message(paste(Sys.time(), "... Delete (if any) existing alignment results")
     unlink(file.path(out.dir), recursive = TRUE)
   } else {
     alignment.dir <- getalignmentfiledir(fastq.dir, format, out.dir)
     if (any(file.exists(alignment.dir))) {
-      log.messages(
+      message(
         paste(
           "Abort.",
           alignment.dir[which(file.exists(alignment.dir) == TRUE)],
           "already exists in output directory",
           file.path(out.dir),
           "\n"
-        ),
-        logfile = logfile,
-        append = TRUE
+        )
       )
       stop("Abort. Try re-running the function by setting overwrite to TRUE\n")
     }
   }
   
-  log.messages(Sys.time(), "... Creating output directory", out.dir, 
-               logfile = logfile, append = TRUE)
+  print(Sys.time(), "... Creating output directory", out.dir, 
+        logfile = logfile, append = TRUE)
   dir.create(file.path(out.dir), showWarnings = FALSE, recursive = TRUE)
   
   sink(logfile, append = TRUE)
