@@ -29,7 +29,12 @@
 #' }
 "exampleannot"
 
-#' GRCh38 mitochondial dna fasta sequence
+#' GRCh38 mitochondrial dna fasta sequence
 #'
 #' An vector containing GRCh38 chrMT fasta sequence.
 "GRCh38_MT"
+
+#' GRCh38 mitochondrial gtf file
+#' 
+#' A \code{data.table} object of GRCh38 mitochondrial gtf file.
+"GRCh38_MT_gtf"
