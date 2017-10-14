@@ -11,7 +11,7 @@
 #' @param umi.pos An integer vector of length 2 consisting of the start and end index of umi sequences (one-based numbering). Default is \code{c(1, 5)}.
 #' @param bc.pos An integer vector of length 2 consisting of the start and end index of barcodes (one-based numbering). Default is \code{c(6, 11)}.
 #' @param keep Read length or number of nucleotides to keep for read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.
-#' @param bc.qual Minimal Phred quality score acceptable for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequences. Sequences with at least one score lower than this will be filtered out. Default is \strong{10}.
+#' @param min.qual Minimal acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.
 #' @param alignmentFileFormat Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param demultiplexOutDir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.
 #' @param alignmentOutDir Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Alignment"}.
@@ -32,7 +32,7 @@ scuff <- function(fastq,
                   bc.pos = c(6, 11),
                   umi.pos = c(1, 5),
                   keep = 50,
-                  bc.qual = 10,
+                  min.qual = 10,
                   alignmentFileFormat = "BAM",
                   demultiplexOutDir = "../Demultiplex",
                   alignmentOutDir = "../Alignment",
@@ -55,7 +55,7 @@ scuff <- function(fastq,
     bc.pos = bc.pos,
     umi.pos = umi.pos,
     keep = keep,
-    bc.qual = bc.qual,
+    min.qual = min.qual,
     out.dir = demultiplexOutDir,
     summary.prefix = demultiplexSummaryPrefix,
     overwrite = overwrite,
