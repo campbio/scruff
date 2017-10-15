@@ -5,7 +5,7 @@
 \title{Run scuff pipeline}
 \usage{
 scuff(fastq, bc, index, features, bc.pos = c(6, 11), umi.pos = c(1, 5),
-  keep = 50, bc.qual = 10, alignmentFileFormat = "BAM",
+  keep = 50, min.qual = 10, alignmentFileFormat = "BAM",
   demultiplexOutDir = "../Demultiplex", alignmentOutDir = "../Alignment",
   umiCountOutDir = "../Count", demultiplexSummaryPrefix = "demultiplex",
   alignmentSummaryPrefix = "alignment", exprPrefix = "count",
@@ -30,7 +30,7 @@ scuff(fastq, bc, index, features, bc.pos = c(6, 11), umi.pos = c(1, 5),
 
 \item{keep}{Read length or number of nucleotides to keep for read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.}
 
-\item{bc.qual}{Minimal Phred quality score acceptable for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequences. Sequences with at least one score lower than this will be filtered out. Default is \strong{10}.}
+\item{min.qual}{Minimal acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
 
 \item{alignmentFileFormat}{Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 

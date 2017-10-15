@@ -3,7 +3,7 @@
 \docType{data}
 \name{GRCh38_MT}
 \alias{GRCh38_MT}
-\title{GRCh38 mitochondial dna fasta sequence}
+\title{GRCh38 mitochondrial dna fasta sequence}
 \format{An object of class \code{character} of length 278.}
 \usage{
 GRCh38_MT

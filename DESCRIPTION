@@ -21,4 +21,8 @@ Imports: data.table,
     doParallel,
     foreach,
     BiocGenerics,
-    S4Vectors
+    S4Vectors,
+    AnnotationDbi,
+    Biostrings,
+    methods,
+    Rsubread

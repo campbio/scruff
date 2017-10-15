@@ -5,7 +5,7 @@
 \title{Demultiplex cell barcodes and assign cell specific reads}
 \usage{
 demultiplex(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
-  bc.qual = 10, out.dir = "../Demultiplex",
+  min.qual = 10, out.dir = "../Demultiplex",
   summary.prefix = "demultiplex", overwrite = FALSE, cores = max(1,
   parallel::detectCores() - 1), verbose = FALSE,
   logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
@@ -23,7 +23,7 @@ demultiplex(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
 
 \item{keep}{Read length or number of nucleotides to keep for read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.}
 
-\item{bc.qual}{Minimal Phred quality score acceptable for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequences. Sequences with at least one score lower than this will be filtered out. Default is \strong{10}.}
+\item{min.qual}{Minimal acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
 
 \item{out.dir}{Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.}
 
