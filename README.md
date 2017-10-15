@@ -7,7 +7,7 @@
 To install `scuff` using `devtools`:
 ```
 library(devtools)
-install_github("87875172/scuff")
+install_github("compbiomed/scuff")
 ```
 
 ## Package user guide
