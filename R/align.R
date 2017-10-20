@@ -45,7 +45,7 @@ align.rsubread <- function(fastq.dir,
     message(paste(Sys.time(), "... Delete (if any) existing alignment results"))
     unlink(file.path(out.dir), recursive = TRUE)
   } else {
-    alignment.dir <- getalignmentfiledir(fastq.dir, format, out.dir)
+    alignment.dir <- get.alignment.file.dir(fastq.dir, format, out.dir)
     if (any(file.exists(alignment.dir))) {
       message(
         paste(
@@ -133,7 +133,7 @@ align.rsubread.unit <- function(i, index, format, out.dir, threads, logfile) {
                i,
                logfile = logfile,
                append = TRUE)
-  filedir <- getalignmentfiledir(i, format, out.dir)
+  filedir <- get.alignment.file.dir(i, format, out.dir)
   Rsubread::align(
     index = index,
     readfile1 = i,

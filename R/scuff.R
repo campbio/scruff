@@ -12,13 +12,13 @@
 #' @param bc.pos An integer vector of length 2 consisting of the start and end index of barcodes (one-based numbering). Default is \code{c(6, 11)}.
 #' @param keep Read length or number of nucleotides to keep for read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.
 #' @param min.qual Minimal acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.
-#' @param alignmentFileFormat Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
-#' @param demultiplexOutDir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.
-#' @param alignmentOutDir Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Alignment"}.
-#' @param umiCountOutDir Output directory for UMI counting results. Expression table will be stored in this directory. Default is \code{"../Count"}.
-#' @param demultiplexSummaryPrefix Prefix for demultiplex summary file. Default is \code{"demultiplex"}.
-#' @param alignmentSummaryPrefix Prefix for alignment summary file. Default is \code{"alignment"}.
-#' @param exprPrefix Prefix for expression table filename. Default is \code{"countUMI"}.
+#' @param alignment.file.format Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
+#' @param demultiplex.out.dir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.
+#' @param alignment.out.dir Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Alignment"}.
+#' @param umi.out.dir Output directory for UMI counting results. Expression table will be stored in this directory. Default is \code{"../Count"}.
+#' @param demultiplex.summary.prefix Prefix for demultiplex summary file. Default is \code{"demultiplex"}.
+#' @param alignment.summary.prefix Prefix for alignment summary file. Default is \code{"alignment"}.
+#' @param expr.prefix Prefix for expression table filename. Default is \code{"countUMI"}.
 #' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @param overwrite Overwrite the output directory. Default is \strong{FALSE}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
@@ -33,13 +33,13 @@ scuff <- function(fastq,
                   umi.pos = c(1, 5),
                   keep = 50,
                   min.qual = 10,
-                  alignmentFileFormat = "BAM",
-                  demultiplexOutDir = "../Demultiplex",
-                  alignmentOutDir = "../Alignment",
-                  umiCountOutDir = "../Count",
-                  demultiplexSummaryPrefix = "demultiplex",
-                  alignmentSummaryPrefix = "alignment",
-                  exprPrefix = "count",
+                  alignment.file.format = "BAM",
+                  demultiplex.out.dir = "../Demultiplex",
+                  alignment.out.dir = "../Alignment",
+                  umi.out.dir = "../Count",
+                  demultiplex.summary.prefix = "demultiplex",
+                  alignment.summary.prefix = "alignment",
+                  expr.prefix = "count",
                   logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S"),
                   overwrite = FALSE,
                   verbose = FALSE,
@@ -56,8 +56,8 @@ scuff <- function(fastq,
     umi.pos = umi.pos,
     keep = keep,
     min.qual = min.qual,
-    out.dir = demultiplexOutDir,
-    summary.prefix = demultiplexSummaryPrefix,
+    out.dir = demultiplex.out.dir,
+    summary.prefix = demultiplex.summary.prefix,
     overwrite = overwrite,
     cores = cores,
     verbose = verbose,
@@ -69,11 +69,11 @@ scuff <- function(fastq,
   ali <- align.rsubread(
     fastq.dir = fastq.dir,
     index = index,
-    format = alignmentFileFormat,
-    out.dir = alignmentOutDir,
+    format = alignment.file.format,
+    out.dir = alignment.out.dir,
     cores = cores,
     threads = threads,
-    summary.prefix = alignmentSummaryPrefix,
+    summary.prefix = alignment.summary.prefix,
     overwrite = overwrite,
     verbose = verbose,
     logfile.prefix = logfile.prefix
@@ -82,10 +82,10 @@ scuff <- function(fastq,
   expr <- count.umi(
     alignment = ali,
     features = features,
-    format = alignmentFileFormat,
-    out.dir = umiCountOutDir,
+    format = alignment.file.format,
+    out.dir = umi.out.dir,
     cores = cores,
-    output.prefix = exprPrefix,
+    output.prefix = expr.prefix,
     verbose = verbose,
     logfile.prefix = logfile.prefix
   )

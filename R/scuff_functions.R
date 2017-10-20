@@ -95,7 +95,7 @@ sink.reset <- function() {
 }
 
 
-getalignmentfiledir <- function(fastq.dir, format, out.dir) {
+get.alignment.file.dir <- function(fastq.dir, format, out.dir) {
   filedir <- file.path(out.dir,
                        paste0(
                          sub(

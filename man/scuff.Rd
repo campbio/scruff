@@ -5,10 +5,11 @@
 \title{Run scuff pipeline}
 \usage{
 scuff(fastq, bc, index, features, bc.pos = c(6, 11), umi.pos = c(1, 5),
-  keep = 50, min.qual = 10, alignmentFileFormat = "BAM",
-  demultiplexOutDir = "../Demultiplex", alignmentOutDir = "../Alignment",
-  umiCountOutDir = "../Count", demultiplexSummaryPrefix = "demultiplex",
-  alignmentSummaryPrefix = "alignment", exprPrefix = "count",
+  keep = 50, min.qual = 10, alignment.file.format = "BAM",
+  demultiplex.out.dir = "../Demultiplex",
+  alignment.out.dir = "../Alignment", umi.out.dir = "../Count",
+  demultiplex.summary.prefix = "demultiplex",
+  alignment.summary.prefix = "alignment", expr.prefix = "count",
   logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"),
   overwrite = FALSE, verbose = FALSE, cores = max(1,
   parallel::detectCores() - 1), threads = 1)
@@ -32,19 +33,19 @@ scuff(fastq, bc, index, features, bc.pos = c(6, 11), umi.pos = c(1, 5),
 
 \item{min.qual}{Minimal acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
 
-\item{alignmentFileFormat}{Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
+\item{alignment.file.format}{Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 
-\item{demultiplexOutDir}{Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.}
+\item{demultiplex.out.dir}{Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.}
 
-\item{alignmentOutDir}{Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Alignment"}.}
+\item{alignment.out.dir}{Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Alignment"}.}
 
-\item{umiCountOutDir}{Output directory for UMI counting results. Expression table will be stored in this directory. Default is \code{"../Count"}.}
+\item{umi.out.dir}{Output directory for UMI counting results. Expression table will be stored in this directory. Default is \code{"../Count"}.}
 
-\item{demultiplexSummaryPrefix}{Prefix for demultiplex summary file. Default is \code{"demultiplex"}.}
+\item{demultiplex.summary.prefix}{Prefix for demultiplex summary file. Default is \code{"demultiplex"}.}
 
-\item{alignmentSummaryPrefix}{Prefix for alignment summary file. Default is \code{"alignment"}.}
+\item{alignment.summary.prefix}{Prefix for alignment summary file. Default is \code{"alignment"}.}
 
-\item{exprPrefix}{Prefix for expression table filename. Default is \code{"countUMI"}.}
+\item{expr.prefix}{Prefix for expression table filename. Default is \code{"countUMI"}.}
 
 \item{logfile.prefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 
