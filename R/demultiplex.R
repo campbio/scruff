@@ -148,7 +148,7 @@ demultiplex.unit <- function(i,
                                     sprintf("%04d", cell_num),
                                     ".fastq.gz")]
   summary.dt[, reads := 0]
-  summary.dt[, percentage := 0]
+  summary.dt[, percent_assigned := 0]
   
   # initialize summary data table
   summary.dt <- data.table::rbindlist(
@@ -159,7 +159,7 @@ demultiplex.unit <- function(i,
         barcode = c(NA, NA, NA),
         cell_fname = c("low_quality", "undetermined", "total"),
         reads = c(0, 0, 0),
-        percentage = c(0, 0, 1)
+        percent_assigned = c(0, 0, 1)
       )
     ),
     use.names = TRUE,
@@ -300,7 +300,8 @@ demultiplex.unit <- function(i,
         summary.dt[barcode == cell.barcode, reads := reads + nrow(cfq.dt)]
       }
       
-      summary.dt[!(is.na(cell_num)), dir := file.path(out.dir, id, cell_fname)]
+      summary.dt[!(is.na(cell_num)), 
+                 fastq_dir := file.path(out.dir, id, cell_fname)]
       
       undetermined.dt <- fqy.dt[!(barcode %in% barcode.dt[, barcode]), ]
       undetermined.fq.out.R1 <- ShortRead::ShortReadQ(
@@ -345,7 +346,7 @@ demultiplex.unit <- function(i,
     close(fq1)
     close(fq2)
   }
-  summary.dt[, percentage := 100 * reads /
+  summary.dt[, percent_assigned := 100 * reads /
                summary.dt[cell_fname == "total", reads]]
   
   log.messages(

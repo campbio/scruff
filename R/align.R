@@ -123,7 +123,7 @@ align.rsubread <- function(fastq.dir,
   )), sep = "\t")
   
   message(paste(Sys.time(), "... Alignment done!"))
-  return(alignmentfiledir)
+  return(res.dt)
 }
 
 

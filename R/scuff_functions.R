@@ -175,3 +175,22 @@ to.bam <- function(sam,
   ))
 }
 
+
+# collect QC metrics
+get.QC.table <- function(de, al, co) {
+  colnames(al)[c(1,3,4)] <- c("bam_dir", "mapped_reads", "percent_mapped")
+  
+  de[, basename := sub(pattern = "(.*?)\\..*$", replacement = "\\1", cell_fname)]
+  al[, basename := sub(pattern = "(.*?)\\..*$", replacement = "\\1", basename(Samples))]
+  
+  
+  setkey(de, basename)
+  setkey(al, basename)
+  
+  dt <- merge(de[,-"cell_fname"],
+              al[,.(basename, mapped_reads, percent_mapped)], all.x=TRUE)
+  
+  # get reads mapped to genes
+  
+  
+}
