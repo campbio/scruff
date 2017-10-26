@@ -4,13 +4,13 @@ plot.reads.assignment <- function(demultiplex.res) {
   for (i in demultiplex.res$id) {
     demultiplex.res[id == i,
                     cum_per := 100 - cumsum(demultiplex.res[id == i,
-                                                            percentage])]
+                                                            percent_assigned])]
   }
 
   g <- ggplot2::ggplot() +
     ggplot2::geom_bar(
       data = demultiplex.res[cell_fname != "total",],
-      ggplot2::aes(x = as.factor(id), y = percentage, group = cell_fname),
+      ggplot2::aes(x = as.factor(id), y = percent_assigned, group = cell_fname),
       stat = "identity",
       fill = "white",
       color = "black"
@@ -29,7 +29,7 @@ plot.reads.assignment <- function(demultiplex.res) {
       data = demultiplex.res[cell_fname == "total",],
       ggplot2::aes(
         as.factor(id),
-        percentage,
+        percent_assigned,
         group = cell_fname,
         label = reads
       ),
@@ -70,7 +70,7 @@ plot.total.reads <- function(demultiplex.res) {
 }
 
 
-plot.reads.mapped.genome <- function(dt) {
+plot.reads.mapped.to.genome <- function(dt) {
   g <- ggplot2::ggplot(data = dt,
                        ggplot2::aes(
                          x = as.factor(id),
