@@ -143,7 +143,7 @@ demultiplex.unit <- function(i,
   sample.meta.dt <- fastq[id == i, ]
   lanes <- unique(sample.meta.dt[, lane])
   summary.dt <- data.table::copy(barcode.dt)
-  summary.dt[, cell_fname := paste0(sample.meta.dt[, paste(unique(project), i, sep = "_")],
+  summary.dt[, filename := paste0(sample.meta.dt[, paste(unique(project), i, sep = "_")],
                                     "_cell_",
                                     sprintf("%04d", cell_num),
                                     ".fastq.gz")]
@@ -157,7 +157,7 @@ demultiplex.unit <- function(i,
       list(
         cell_num = c(NA, NA, NA),
         barcode = c(NA, NA, NA),
-        cell_fname = c("low_quality", "undetermined", "total"),
+        filename = c("low_quality", "undetermined", "total"),
         reads = c(0, 0, 0),
         percent_assigned = c(0, 0, 1)
       )
@@ -180,14 +180,14 @@ demultiplex.unit <- function(i,
     unlink(file.path(out.dir, i), recursive = TRUE)
   } else {
     if (any(file.exists(file.path(out.dir, i,
-                                  summary.dt[!(is.na(cell_num)), cell_fname])))) {
+                                  summary.dt[!(is.na(cell_num)), filename])))) {
       log.messages(
         paste(
           "Abort.",
           summary.dt[!(is.na(cell_num)), ]
           [which(file.exists(file.path(out.dir, i,
                                        summary.dt[!(is.na(cell_num)),
-                                                  cell_fname])) == TRUE), cell_fname],
+                                                  filename])) == TRUE), filename],
           "already exists in output directory",
           file.path(out.dir, i),
           "\n"
@@ -229,7 +229,7 @@ demultiplex.unit <- function(i,
       } else if (length(fqy1) == 0 & length(fqy2) == 0)
         break
       
-      summary.dt[cell_fname == "total", reads := reads + length(fqy1)]
+      summary.dt[filename == "total", reads := reads + length(fqy1)]
       
       min.base.phred1 <- min(methods::as(Biostrings::PhredQuality(paste0(
         substr(fqy1@quality@quality, umi.pos[1], umi.pos[2]),
@@ -270,7 +270,7 @@ demultiplex.unit <- function(i,
                          (max(umi.pos) - min(umi.pos) + 1) +
                          (max(bc.pos) - min(bc.pos) + 1)]
       
-      summary.dt[cell_fname == "low_quality",
+      summary.dt[filename == "low_quality",
                  reads := reads + length(fqy1) - nrow(fqy.dt)]
       
       for (k in barcode.dt[, cell_num]) {
@@ -286,7 +286,7 @@ demultiplex.unit <- function(i,
                                                         umi, ":")])
           )
           # project_id_"cell"_cellnum.fastq.gz
-          out.fname <- summary.dt[cell_num == k, cell_fname]
+          out.fname <- summary.dt[cell_num == k, filename]
           dir.create(file.path(out.dir, i), recursive = TRUE,
                      showWarnings = FALSE)
           out.full <- file.path(out.dir, i, out.fname)
@@ -301,7 +301,7 @@ demultiplex.unit <- function(i,
       }
       
       summary.dt[!(is.na(cell_num)), 
-                 fastq_dir := file.path(out.dir, id, cell_fname)]
+                 fastq_dir := file.path(out.dir, id, filename)]
       
       undetermined.dt <- fqy.dt[!(barcode %in% barcode.dt[, barcode]), ]
       undetermined.fq.out.R1 <- ShortRead::ShortReadQ(
@@ -333,7 +333,7 @@ demultiplex.unit <- function(i,
         ShortRead::writeFastq(undetermined.fq.out.R2,
                               out.full.undetermined.R2, mode = "w")
       }
-      summary.dt[cell_fname == "undetermined",
+      summary.dt[filename == "undetermined",
                  reads := reads + nrow(undetermined.dt)]
       log.messages(
         Sys.time(),
@@ -347,7 +347,7 @@ demultiplex.unit <- function(i,
     close(fq2)
   }
   summary.dt[, percent_assigned := 100 * reads /
-               summary.dt[cell_fname == "total", reads]]
+               summary.dt[filename == "total", reads]]
   
   log.messages(
     Sys.time(),
