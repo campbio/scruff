@@ -80,7 +80,7 @@ scuff <- function(fastq,
   )
   
   expr <- count.umi(
-    alignment = ali,
+    alignment = ali[, Samples],
     features = features,
     format = alignment.file.format,
     out.dir = umi.out.dir,

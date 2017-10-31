@@ -25,4 +25,7 @@ Imports: data.table,
     AnnotationDbi,
     Biostrings,
     methods,
+    ggplot2,
+    ggthemes,
+    scales,
     Rsubread

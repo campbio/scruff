@@ -24,7 +24,8 @@ align.rsubread <- function(fastq.dir,
                            summary.prefix = "alignment",
                            overwrite = FALSE,
                            verbose = FALSE,
-                           logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
+                           logfile.prefix = format(Sys.time(),
+                                                   "%Y%m%d_%H%M%S")) {
   
   message(paste(Sys.time(), "Start alignment ..."))
   
@@ -103,6 +104,8 @@ align.rsubread <- function(fastq.dir,
   
   parallel::stopCluster(cl)
   
+  res.dt <- data.table::data.table(res.dt)
+  
   #sink.reset()
   
   print(paste(Sys.time(), paste(
@@ -123,7 +126,7 @@ align.rsubread <- function(fastq.dir,
   )), sep = "\t")
   
   message(paste(Sys.time(), "... Alignment done!"))
-  return(alignmentfiledir)
+  return(res.dt)
 }
 
 

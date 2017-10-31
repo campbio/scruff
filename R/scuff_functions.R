@@ -118,18 +118,8 @@ gtf.db.read <- function(gtf.file, logfile) {
   }
   
   if (!(file.exists(gtf.db.file))) {
-    log.messages(
-      Sys.time(),
-      paste("... TxDb file", gtf.db.file, "does not exist"),
-      logfile = logfile,
-      append = TRUE
-    )
-    log.messages(
-      Sys.time(),
-      paste("... Creating TxDb object", gtf.db.file),
-      logfile = logfile,
-      append = TRUE
-    )
+    message(paste(Sys.time(), "... TxDb file", gtf.db.file, "does not exist"))
+    message(paste(Sys.time(), "... Creating TxDb object", gtf.db.file))
     gtf.db <- GenomicFeatures::makeTxDbFromGFF(file = gtf.file)
     AnnotationDbi::saveDb(gtf.db, file = gtf.db.file)
     return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
@@ -175,3 +165,34 @@ to.bam <- function(sam,
   ))
 }
 
+
+# collect QC metrics
+get.QC.table <- function(de, al, co) {
+  de <- data.table::copy(de)
+  al <- data.table::copy(al)
+  
+  colnames(al)[c(1, 3, 4)] <- c("bam_dir", "mapped_reads", "fraction_mapped")
+  
+  de[, cell := sub(pattern = "(.*?)\\..*$",
+                   replacement = "\\1", filename)]
+  al[, cell := sub(pattern = "(.*?)\\..*$",
+                   replacement = "\\1", basename(bam_dir))]
+  
+  
+  setkey(de, cell)
+  setkey(al, cell)
+  
+  qc.dt <- merge(de[,-"filename"],
+                  al[,.(cell, mapped_reads, fraction_mapped)], all.x=TRUE)
+  
+  # get reads mapped to genes
+  reads.mapped.to.genes <- colSums(count.res[,-1])
+  reads.mapped.to.genes.dt <- data.table::data.table(
+    reads_mapped_to_genes = reads.mapped.to.genes,
+    cell = names(reads.mapped.to.genes))
+  setkey(reads.mapped.to.genes.dt, cell)
+  setkey(qc.dt, cell)
+  qc.dt <- merge(qc.dt, reads.mapped.to.genes.dt, all.x = TRUE)
+  
+  return (qc.dt)
+}

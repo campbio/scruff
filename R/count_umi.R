@@ -133,9 +133,13 @@ count.umi.unit <- function(i, features, format, out.dir, logfile, verbose) {
   
   count.umi <- base::table(unique(ol.dt[, .(gene.id, umi)])[, gene.id])
   count.umi.dt <- data.table::data.table(gene.id = names(features))
-  count.umi.dt[[basename(i)]] <- 0
+  count.umi.dt[[sub(pattern = "(.*?)\\..*$",
+                    replacement = "\\1",
+                    basename(i))]] <- 0
   count.umi.dt[gene.id %in% names(count.umi),
-               eval(basename(i)) := as.numeric(count.umi[gene.id])]
+               eval(sub(pattern = "(.*?)\\..*$",
+                        replacement = "\\1",
+                        basename(i))) := as.numeric(count.umi[gene.id])]
   count.umi.dt <- data.frame(count.umi.dt, row.names = 1)
   return (count.umi.dt)
 }
