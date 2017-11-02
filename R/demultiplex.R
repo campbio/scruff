@@ -72,7 +72,7 @@ demultiplex <- function(fastq,
         fastq,
         barcode.dt,
         bc.start,
-        bc.stop
+        bc.stop,
         umi.start,
         umi.stop,
         keep,
@@ -247,7 +247,7 @@ demultiplex.unit <- function(i,
                                                        c(bc.start, umi.start),
                                                        c(bc.stop, umi.stop)),
                                                 paste,
-                                                collapse = "")
+                                                collapse = ""),
                                          "IntegerList"))
       
       #min.base.phred1 <- min(methods::as(Biostrings::PhredQuality(paste0(
