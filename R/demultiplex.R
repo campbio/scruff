@@ -5,9 +5,11 @@
 #' @param fastq Can be in one of the following formats: \enumerate{
 #'   \item An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
 #'   \item The directory to fastq files. }
-#' @param bc A vector of cell barcodes determined from experimental design. For example, see \code{?examplebc}.
-#' @param bc.pos An integer vector of length 2 consisting of the start and end index of barcodes (one-based numbering). Default is \code{c(6, 11)}.
-#' @param umi.pos An integer vector of length 2 consisting of the start and end index of umi sequences (one-based numbering). Default is \code{c(1, 5)}.
+#' @param bc A vector of pre-determined cell barcodes. If having multiple barcodes for each read, the barcodes have to be separated by \code{"_"}. For example, see \code{?examplebc}.
+#' @param bc.start Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).
+#' @param bc.stop Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).
+#' @param umi.start Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.
+#' @param umi.stop Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.
 #' @param keep Read length or number of nucleotides to keep for read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.
 #' @param min.qual Minimal acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.
 #' @param out.dir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.
@@ -21,8 +23,10 @@
 #' @export
 demultiplex <- function(fastq,
                         bc,
-                        bc.pos = c(6, 11),
-                        umi.pos = c(1, 5),
+                        bc.start = 6,
+                        bc.stop = 11,
+                        umi.start = 1,
+                        umi.stop = 5,
                         keep = 50,
                         min.qual = 10,
                         out.dir = "../Demultiplex",
@@ -67,8 +71,10 @@ demultiplex <- function(fastq,
         i,
         fastq,
         barcode.dt,
-        bc.pos,
-        umi.pos,
+        bc.start,
+        bc.stop
+        umi.start,
+        umi.stop,
         keep,
         min.qual,
         out.dir,
@@ -82,8 +88,10 @@ demultiplex <- function(fastq,
           i,
           fastq,
           barcode.dt,
-          bc.pos,
-          umi.pos,
+          bc.start,
+          bc.stop,
+          umi.start,
+          umi.stop,
           keep,
           min.qual,
           out.dir,
@@ -125,8 +133,10 @@ demultiplex <- function(fastq,
 demultiplex.unit <- function(i,
                              fastq,
                              barcode.dt,
-                             bc.pos,
-                             umi.pos,
+                             bc.start,
+                             bc.stop,
+                             umi.start,
+                             umi.stop,
                              keep,
                              min.qual,
                              out.dir,
@@ -183,7 +193,7 @@ demultiplex.unit <- function(i,
                                   summary.dt[!(is.na(cell_num)), filename])))) {
       log.messages(
         paste(
-          "Abort.",
+          "Stop.",
           summary.dt[!(is.na(cell_num)), ]
           [which(file.exists(file.path(out.dir, i,
                                        summary.dt[!(is.na(cell_num)),
@@ -195,7 +205,7 @@ demultiplex.unit <- function(i,
         logfile = logfile,
         append = TRUE
       )
-      stop("Abort. Try re-running the function by setting overwrite to TRUE\n")
+      stop("Stop. Try re-running the function by setting overwrite to TRUE\n")
     }
   }
   
@@ -218,7 +228,7 @@ demultiplex.unit <- function(i,
       {
         log.messages(
           Sys.time(),
-          "Abort. Unequal read lengths between read1 and read2 fastq files:",
+          "Stop. Unequal read lengths between read1 and read2 fastq files:",
           f1,
           f2,
           logfile = logfile,
@@ -231,10 +241,19 @@ demultiplex.unit <- function(i,
       
       summary.dt[filename == "total", reads := reads + length(fqy1)]
       
-      min.base.phred1 <- min(methods::as(Biostrings::PhredQuality(paste0(
-        substr(fqy1@quality@quality, umi.pos[1], umi.pos[2]),
-        substr(fqy1@quality@quality, bc.pos[1], bc.pos[2])
-      )), "IntegerList"))
+      min.base.phred1 <- min(methods::as(Biostrings::PhredQuality(),
+                                         sapply(lapply(fqy1@quality@quality,
+                                                       substring,
+                                                       c(bc.start, umi.start),
+                                                       c(bc.stop, umi.stop)),
+                                                paste,
+                                                collapse = "")
+                                         "IntegerList"))
+      
+      #min.base.phred1 <- min(methods::as(Biostrings::PhredQuality(paste0(
+      #  substr(fqy1@quality@quality, umi.pos[1], umi.pos[2]),
+      #  substr(fqy1@quality@quality, bc.pos[1], bc.pos[2])
+      #)), "IntegerList"))
       
       fqy.dt <- data.table::data.table(
         rname1 = data.table::tstrsplit(fqy1@id, " ")[[1]],
@@ -245,30 +264,42 @@ demultiplex.unit <- function(i,
         qtring2 = substr(fqy2@quality@quality, 1, keep),
         min.phred1 = min.base.phred1,
         length1 = S4Vectors::width(fqy1),
-        umi = substr(fqy1@sread, umi.pos[1], umi.pos[2]),
-        barcode = substr(fqy1@sread, bc.pos[1], bc.pos[2])
+        #umi = substr(fqy1@sread, umi.pos[1], umi.pos[2]),
+        umi = paste(substring(fqy1@sread, umi.start, umi.stop),
+                    collapse = "_"),
+        #barcode = substr(fqy1@sread, bc.pos[1], bc.pos[2])
+        
+        # barcodes are separated by "_"
+        barcode = paste(substring(fqy1@sread, bc.start, bc.stop),
+                        collapse = "_")
       )
       
       if (!(all(fqy.dt[, rname1] == fqy.dt[, rname2]))) {
         log.messages(
           Sys.time(),
-          "Abort. Read1 and read2 have different ids in files:",
+          "Stop. Read1 and read2 have different ids in files:",
           f1,
           f2,
           logfile = logfile,
           append = TRUE
         )
         stop(paste(
-          "Abort. Read1 and read2 have different ids in files:",
+          "Stop. Read1 and read2 have different ids in files:",
           f1,
           "and",
           f2
         ))
       }
       
-      fqy.dt <- fqy.dt[min.phred1 >= min.qual & length1 >=
-                         (max(umi.pos) - min(umi.pos) + 1) +
-                         (max(bc.pos) - min(bc.pos) + 1)]
+      # remove low quality and short reads
+      
+      #fqy.dt <- fqy.dt[min.phred1 >= min.qual & length1 >=
+      #                   (max(umi.pos) - min(umi.pos) + 1) +
+      #                   (max(bc.pos) - min(bc.pos) + 1)]
+      
+      fqy.dt <- fqy.dt[min.phred1 >= min.qual &
+                         length1 >= sum(bc.stop - bc.start) + length(bc.start) +
+                         sum(umi.stop - umi.start) + length(umi.start), ]
       
       summary.dt[filename == "low_quality",
                  reads := reads + length(fqy1) - nrow(fqy.dt)]
