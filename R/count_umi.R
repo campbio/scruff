@@ -76,7 +76,8 @@ count.umi <- function(alignment,
     .verbose = verbose,
     .combine = cbind,
     .multicombine = TRUE,
-    .packages = c("BiocGenerics", "S4Vectors")
+    .packages = c("BiocGenerics", "S4Vectors",
+                  "GenomicFeatures", "GenomicAlignments")
   ) %dopar% {
     count.umi.unit(i, features, format, out.dir, logfile, verbose)
   }

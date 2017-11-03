@@ -4,8 +4,8 @@
 \alias{demultiplex}
 \title{Demultiplex cell barcodes and assign cell specific reads}
 \usage{
-demultiplex(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
-  min.qual = 10, out.dir = "../Demultiplex",
+demultiplex(fastq, bc, bc.start = 6, bc.stop = 11, umi.start = 1,
+  umi.stop = 5, keep = 50, min.qual = 10, out.dir = "../Demultiplex",
   summary.prefix = "demultiplex", overwrite = FALSE, cores = max(1,
   parallel::detectCores() - 1), verbose = FALSE,
   logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
@@ -15,11 +15,15 @@ demultiplex(fastq, bc, bc.pos = c(6, 11), umi.pos = c(1, 5), keep = 50,
 \item An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
 \item The directory to fastq files. }}
 
-\item{bc}{A vector of cell barcodes determined from experimental design. For example, see \code{?examplebc}.}
+\item{bc}{A vector of pre-determined cell barcodes. If having multiple barcodes for each read, the barcodes have to be separated by \code{"_"}. For example, see \code{?examplebc}.}
 
-\item{bc.pos}{An integer vector of length 2 consisting of the start and end index of barcodes (one-based numbering). Default is \code{c(6, 11)}.}
+\item{bc.start}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
 
-\item{umi.pos}{An integer vector of length 2 consisting of the start and end index of umi sequences (one-based numbering). Default is \code{c(1, 5)}.}
+\item{bc.stop}{Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).}
+
+\item{umi.start}{Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.}
+
+\item{umi.stop}{Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.}
 
 \item{keep}{Read length or number of nucleotides to keep for read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.}
 

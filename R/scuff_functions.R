@@ -178,21 +178,23 @@ get.QC.table <- function(de, al, co) {
   al[, cell := sub(pattern = "(.*?)\\..*$",
                    replacement = "\\1", basename(bam_dir))]
   
+  data.table::setkey(de, cell)
+  data.table::setkey(al, cell)
   
-  setkey(de, cell)
-  setkey(al, cell)
-  
-  qc.dt <- merge(de[,-"filename"],
-                  al[,.(cell, mapped_reads, fraction_mapped)], all.x=TRUE)
+  qc.dt <- base::merge(de[,-"filename"],
+                       al[,.(cell, mapped_reads, fraction_mapped)], all.x=TRUE)
   
   # get reads mapped to genes
-  reads.mapped.to.genes <- colSums(count.res[,-1])
-  reads.mapped.to.genes.dt <- data.table::data.table(
-    reads_mapped_to_genes = reads.mapped.to.genes,
-    cell = names(reads.mapped.to.genes))
-  setkey(reads.mapped.to.genes.dt, cell)
-  setkey(qc.dt, cell)
-  qc.dt <- merge(qc.dt, reads.mapped.to.genes.dt, all.x = TRUE)
+  
+  # transcript::UMI pairs
+  transcript <- base::colSums(count.res[,-1])
+  transcript <- data.table::data.table(
+    transcript = transcript,
+    cell = names(transcript))
+  data.table::setkey(transcript, cell)
+  data.table::setkey(qc.dt, cell)
+  qc.dt <- base::merge(qc.dt, transcript, all.x = TRUE)
+  
   
   return (qc.dt)
 }
