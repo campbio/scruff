@@ -241,14 +241,45 @@ demultiplex.unit <- function(i,
       
       summary.dt[filename == "total", reads := reads + length(fqy1)]
       
-      min.base.phred1 <- min(methods::as(Biostrings::PhredQuality(),
-                                         sapply(lapply(fqy1@quality@quality,
-                                                       substring,
-                                                       c(bc.start, umi.start),
-                                                       c(bc.stop, umi.stop)),
-                                                paste,
-                                                collapse = ""),
+      #min.base.phred1 <- min(methods::as(Biostrings::PhredQuality(),
+      #                                   sapply(lapply(fqy1@quality@quality,
+      #                                                 substring,
+      #                                                 c(bc.start, umi.start),
+      #                                                 c(bc.stop, umi.stop)),
+      #                                          paste,
+      #                                          collapse = ""),
+      #                                   "IntegerList"))
+      
+      
+      umi.bc.qual <- ""
+      umi.seq <- ""
+      bc.seq <- ""
+      for (k in seq_len(length(umi.start))) {
+        umi.bc.qual <- paste0(umi.bc.qual,
+                              substr(fqy1@quality@quality,
+                                     umi.start[k],
+                                     umi.stop[k]))
+        umi.seq <- paste(umi.seq, substr(fqy1@sread,
+                                         umi.start[k],
+                                         umi.stop[k]), sep = "_")
+        umi.seq <- strip.leading.underscore(umi.seq)
+      }
+      
+      for (k in seq_len(length(bc.start))) {
+        umi.bc.qual <- paste0(umi.bc.qual, 
+                              substr(fqy1@quality@quality,
+                                     bc.start[k],
+                                     bc.stop[k]))
+        bc.seq <- paste(bc.seq, substr(fqy1@sread,
+                                       bc.start[k],
+                                       bc.stop[k]), sep = "_")
+        bc.seq <- strip.leading.underscore(bc.seq)
+      }
+      
+      min.base.phred1 <- min(methods::as(Biostrings::PhredQuality(umi.bc.qual),
                                          "IntegerList"))
+      
+      
       
       #min.base.phred1 <- min(methods::as(Biostrings::PhredQuality(paste0(
       #  substr(fqy1@quality@quality, umi.pos[1], umi.pos[2]),
@@ -265,13 +296,11 @@ demultiplex.unit <- function(i,
         min.phred1 = min.base.phred1,
         length1 = S4Vectors::width(fqy1),
         #umi = substr(fqy1@sread, umi.pos[1], umi.pos[2]),
-        umi = paste(substring(fqy1@sread, umi.start, umi.stop),
-                    collapse = "_"),
+        umi = umi.seq,
         #barcode = substr(fqy1@sread, bc.pos[1], bc.pos[2])
         
         # barcodes are separated by "_"
-        barcode = paste(substring(fqy1@sread, bc.start, bc.stop),
-                        collapse = "_")
+        barcode = bc.seq
       )
       
       if (!(all(fqy.dt[, rname1] == fqy.dt[, rname2]))) {

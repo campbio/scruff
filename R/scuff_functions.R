@@ -88,6 +88,9 @@ parse.fastq <- function(fastq) {
 }
 
 
+strip.leading.underscore <- function (x)  sub("^\\_+", "", x)
+
+
 sink.reset <- function() {
   for (i in seq_len(sink.number())) {
     sink(NULL)
