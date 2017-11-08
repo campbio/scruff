@@ -14,7 +14,7 @@ plot.reads.assignment <- function(qc.dt) {
                 theme_Publication()
   }
   
-  qc <- data.table::copy(qc.dt[order(qc.dt$reads, decreasing = TRUE), ])
+  qc <- data.table::copy(qc.dt)
   
   return (gridExtra::arrangeGrob(grobs = lapply(X = qc.dt[,unique(id)],
                                                 plot.reads.assignment.id,
@@ -41,7 +41,7 @@ plot.total.reads <- function(qc.dt) {
     ggplot2::ggtitle("Total reads") +
     ggplot2::scale_y_continuous(labels = scales::comma) +
     theme_Publication() +
-    ggplot2::theme(axis.title.y = element_blank())
+    ggplot2::theme(axis.title.y = ggplot2::element_blank())
   return (g)
 }
 
@@ -52,7 +52,7 @@ plot.reads.mapped.to.genome <- function(qc.dt) {
                                                           "undetermined"))),
                        ggplot2::aes(
                          x = as.factor(id),
-                         y = mapped_reads,
+                         y = reads_mapped_to_genome,
                          group = as.factor(id)
                        )) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
@@ -91,11 +91,12 @@ plot.reads.mapped.to.genes <- function(qc.dt) {
 }
 
 
-plot.aligned.reads.fraction <- function(qc.dt) {
+plot.genome.reads.fraction <- function(qc.dt) {
   g <- ggplot2::ggplot(data = subset(qc.dt, !(cell %in% c("low_quality",
                                                           "total",
                                                           "undetermined"))),
-                       ggplot2::aes(x = as.factor(id), y = fraction_mapped,
+                       ggplot2::aes(x = as.factor(id),
+                                    y = reads_mapped_to_genome/reads,
                                     group = as.factor(id))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(color = "#424242",
@@ -104,7 +105,7 @@ plot.aligned.reads.fraction <- function(qc.dt) {
                         size = 1) +
     ggplot2::xlab("Sample ID") +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of aligned reads") +
+    ggplot2::ggtitle("Fraction of reads mapped to genome") +
     theme_Publication() + 
     ggplot2::theme(axis.title.y = ggplot2::element_blank())
     
@@ -112,12 +113,12 @@ plot.aligned.reads.fraction <- function(qc.dt) {
 }
 
 
-plot.reads.gene.to.aligned <- function(qc.dt) {
+plot.gene.to.genome.fraction <- function(qc.dt) {
   g <- ggplot2::ggplot(data = subset(qc.dt, !(cell %in% c("low_quality",
                                                           "total",
                                                           "undetermined"))),
                        ggplot2::aes(x = as.factor(id),
-                                    y = reads_mapped_to_genes/mapped_reads,
+                                    y = reads_mapped_to_genes/reads_mapped_to_genome,
                                     group = as.factor(id))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(color = "#424242",
@@ -126,14 +127,14 @@ plot.reads.gene.to.aligned <- function(qc.dt) {
                         size = 1) +
     ggplot2::xlab("Sample ID") +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of reads mapped to genes relative to aligned reads") +
+    ggplot2::ggtitle("Fraction of gene reads to genome reads") +
     theme_Publication() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank())
   return (g)
 }
 
 
-plot.reads.gene.to.total <- function(qc.dt) {
+plot.gene.to.total.fraction <- function(qc.dt) {
   g <- ggplot2::ggplot(data = subset(qc.dt, !(cell %in% c("low_quality",
                                                           "total",
                                                           "undetermined"))),
@@ -167,7 +168,7 @@ plot.transcripts <- function(qc.dt) {
                                                             height = 0),
                         size = 1) +
     ggplot2::xlab("Sample ID") +
-    ggplot2::ggtitle("Unique transcript:UMI pairs") +
+    ggplot2::ggtitle("UMI filtered transcripts") +
     theme_Publication() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank())
   return (g)

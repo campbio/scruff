@@ -90,6 +90,11 @@ parse.fastq <- function(fastq) {
 
 strip.leading.underscore <- function (x)  sub("^\\_+", "", x)
 
+remove.last.extension <- function(x) {
+  return (sub(pattern = "\\.[^\\.]*$",
+              replacement = "\\1",
+              basename(x)))
+}
 
 sink.reset <- function() {
   for (i in seq_len(sink.number())) {
@@ -171,33 +176,45 @@ to.bam <- function(sam,
 
 # collect QC metrics
 get.QC.table <- function(de, al, co) {
-  de <- data.table::copy(de)
-  al <- data.table::copy(al)
+  de <- data.table::copy(data.table::data.table(de))
+  al <- data.table::copy(data.table::data.table(al))
+  co <- data.table::copy(data.table::data.table(co))
   
-  colnames(al)[c(1, 3, 4)] <- c("bam_dir", "mapped_reads", "fraction_mapped")
+  colnames(al)[c(1, 3)] <- c("bam_dir",
+                             "total_mapped_reads")
   
   de[, cell := sub(pattern = "(.*?)\\..*$",
-                   replacement = "\\1", filename)]
-  al[, cell := sub(pattern = "(.*?)\\..*$",
-                   replacement = "\\1", basename(bam_dir))]
+                 replacement = "\\1", filename)]
+  al[, cell := remove.last.extension(basename(bam_dir))]
   
   data.table::setkey(de, cell)
   data.table::setkey(al, cell)
   
   qc.dt <- base::merge(de[,-"filename"],
-                       al[,.(cell, mapped_reads, fraction_mapped)], all.x=TRUE)
+                       al[, .(cell,
+                              total_mapped_reads)],
+                       all.x=TRUE)
   
-  # get reads mapped to genes
+  # get reads mapped to genome
+  rmtgenome <- co[gene.id == "reads_mapped_to_genome", -1]
+  rmtgenome <- data.table::data.table(cell = colnames(rmtgenome),
+                                      reads_mapped_to_genome = as.numeric(rmtgenome))
+  qc.dt <- base::merge(qc.dt, rmtgenome, all.x=TRUE)
+  
+  # reads mapped to genes
+  rmtgene <- co[gene.id == "reads_mapped_to_genes", -1]
+  rmtgene <- data.table::data.table(cell = colnames(rmtgene),
+                                    reads_mapped_to_genes = as.numeric(rmtgene))
+  qc.dt <- base::merge(qc.dt, rmtgene, all.x=TRUE)
   
   # transcript::UMI pairs
-  transcript <- base::colSums(count.res[,-1])
+  transcript <- base::colSums(co[!(gene.id %in% c("reads_mapped_to_genome",
+                                                  "reads_mapped_to_genes")) &
+                                   !grepl("ERCC", co[,gene.id]), -1])
   transcript <- data.table::data.table(
-    transcript = transcript,
-    cell = names(transcript))
-  data.table::setkey(transcript, cell)
-  data.table::setkey(qc.dt, cell)
+    cell = names(transcript),
+    transcript = as.numeric(transcript))
   qc.dt <- base::merge(qc.dt, transcript, all.x = TRUE)
-  
   
   return (qc.dt)
 }
