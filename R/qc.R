@@ -1,49 +1,26 @@
 
-#percentage of assigned reads
+# assigned reads
 plot.reads.assignment <- function(qc.dt) {
-  qc.dt <- data.table::copy(qc.dt)
-  for (i in qc.dt$id) {
-    qc.dt[id == i & cell != "total",
-          cum_per := 100 - cumsum(qc.dt[id == i & cell != "total",
-                                        percent_assigned])]
+  
+  plot.reads.assignment.id <- function (i, qc) {
+    qc.i <- qc[!is.na(cell_num) & id == i, ]
+    qc.i <- qc.i[order(qc.i$reads, decreasing = TRUE), ]
+    ggplot2::ggplot(qc.i) +
+                ggplot2::geom_bar(ggplot2::aes(x = seq(nrow(qc.i)), y = reads),
+                                  stat="identity") +
+                ggplot2::xlab("cell") +
+                ggplot2::ylab("Reads") +
+                ggplot2::scale_y_continuous(labels = scales::comma) +
+                theme_Publication()
   }
-
-  g <- ggplot2::ggplot() +
-    ggplot2::geom_bar(
-      data = qc.dt[cell != "total",],
-      ggplot2::aes(x = as.factor(id), y = percent_assigned, group = cell),
-      stat = "identity",
-      fill = "white",
-      color = "black"
-    ) +
-    ggplot2::geom_text(
-      data = qc.dt[cell %in% c("undetermined",
-                                   "low_quality"),],
-      ggplot2::aes(as.factor(id),
-                   cum_per,
-                   group = cell,
-                   label = cell),
-      size = 4,
-      position = ggplot2::position_nudge(x = 0, y = 2.5)
-    ) +
-    ggplot2::geom_text(
-      data = qc.dt[cell == "total",],
-      ggplot2::aes(
-        as.factor(id),
-        percent_assigned,
-        group = cell,
-        label = reads
-      ),
-      size = 4,
-      position = ggplot2::position_nudge(x = 0, y = 2.5)
-    ) +
-    ggplot2::xlab("Sample ID") +
-    ggplot2::ylab("Percentage (%)") +
-    ggplot2::ggtitle("Percentage of reads per cell for each sample ID") +
-    ggplot2::scale_y_continuous(labels = scales::comma) +
-    ggplot2::coord_cartesian(ylim = c(0, 100)) +
-    theme_Publication()
-  return (g)
+  
+  qc <- data.table::copy(qc.dt[order(qc.dt$reads, decreasing = TRUE), ])
+  
+  return (gridExtra::arrangeGrob(grobs = lapply(X = qc.dt[,unique(id)],
+                                                plot.reads.assignment.id,
+                                                qc = qc.dt),
+                                 ncol = 2,
+                                 top = grid::textGrob("Reads per cell")))
 }
 
 
