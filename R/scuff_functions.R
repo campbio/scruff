@@ -174,6 +174,53 @@ to.bam <- function(sam,
 }
 
 
+# get gene names from biomart
+get.gene.annot <- function(co,
+                           host = "www.ensembl.org",
+                           biomart = "ENSEMBL_MART_ENSEMBL",
+                           dataset = "hsapiens_gene_ensembl",
+                           GRCh = NULL) {
+  ######### Feature annotation
+  gene.id <- co[!(gene.id %in% c("reads_mapped_to_genome",
+                                 "reads_mapped_to_genes")) &
+                  !grepl("ERCC", co[,gene.id]), gene.id]
+  # Use Ensembl version 74 (December 2013, hg19)
+  #biomart.host <- "dec2013.archive.ensembl.org"
+  
+  # Initialize featureData slot of ExpressionSet
+  #gene.type <- data.frame(row.names = fnames)
+  
+  # Get feature annotation data
+  ensembl <- biomaRt::useEnsembl(biomart = biomart,
+                                 dataset = dataset,
+                                 host = host,
+                                 GRCh = GRCh)
+  biomart.result <- data.table::data.table(getBM(
+    attributes=c("ensembl_gene_id", "external_gene_name",
+                 "hgnc_symbol", "gene_biotype", "chromosome_name"),
+    filters="ensembl_gene_id",
+    values=gene.id,
+    mart=ensembl
+  ))
+  
+  # Collapse table by Ensembl Gene ID
+  biomart.result <- aggregate(biomart.result[,-1],
+                              by=biomart.result[,.(ensembl_gene_id)],
+                              FUN=unique)
+  # Replace hgnc_symbol column with a column of comma-delimited gene symbols
+  biomart.result$hgnc_symbol <- sapply(biomart.result$hgnc_symbol, paste, collapse=", ")
+  # Reorder/insert rows so that rows of Biomart query result match 
+  # rows of the expression matrix
+  biomart.result <- biomart.result[match(fnames[[1]],
+                                         biomart.result$ensembl_gene_id),]
+  biomart.result <- data.table(biomart.result)
+  # Copy the annotation columns into the featureData slot of the ExpressionSet
+  #fData(dataset)[c("ID", "Symbol", "Biotype")] <-
+  #  biomart.result[c("external_gene_id", "hgnc_symbol", "gene_biotype")]
+  return (biomart.result)
+}
+
+
 # collect QC metrics
 get.QC.table <- function(de, al, co) {
   de <- data.table::copy(data.table::data.table(de))
