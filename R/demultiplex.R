@@ -303,22 +303,22 @@ demultiplex.unit <- function(i,
         barcode = bc.seq
       )
       
-      if (!(all(fqy.dt[, rname1] == fqy.dt[, rname2]))) {
-        log.messages(
-          Sys.time(),
-          "Stop. Read1 and read2 have different ids in files:",
-          f1,
-          f2,
-          logfile = logfile,
-          append = TRUE
-        )
-        stop(paste(
-          "Stop. Read1 and read2 have different ids in files:",
-          f1,
-          "and",
-          f2
-        ))
-      }
+      #if (!(all(fqy.dt[, rname1] == fqy.dt[, rname2]))) {
+        #log.messages(
+          #Sys.time(),
+          #"Stop. Read1 and read2 have different ids in files:",
+          #f1,
+          #f2,
+          #logfile = logfile,
+          #append = TRUE
+        #)
+        #stop(paste(
+          #"Stop. Read1 and read2 have different ids in files:",
+          #f1,
+          #"and",
+          #f2
+        #))
+      #}
       
       # remove low quality and short reads
       
