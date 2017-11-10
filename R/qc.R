@@ -175,3 +175,8 @@ plot.transcripts <- function(qc.dt) {
 }
 
 
+plot.MT.transcripts <- function() {
+  
+}
+
+

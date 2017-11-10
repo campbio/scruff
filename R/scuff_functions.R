@@ -195,7 +195,7 @@ get.gene.annot <- function(co,
                                  dataset = dataset,
                                  host = host,
                                  GRCh = GRCh)
-  biomart.result <- data.table::data.table(getBM(
+  biomart.result <- data.table::data.table(biomaRt::getBM(
     attributes=c("ensembl_gene_id", "external_gene_name",
                  "hgnc_symbol", "gene_biotype", "chromosome_name"),
     filters="ensembl_gene_id",
@@ -222,7 +222,7 @@ get.gene.annot <- function(co,
 
 
 # collect QC metrics
-get.QC.table <- function(de, al, co) {
+get.QC.table <- function(de, al, co, biomart.result.dt) {
   de <- data.table::copy(data.table::data.table(de))
   al <- data.table::copy(data.table::data.table(al))
   co <- data.table::copy(data.table::data.table(co))
@@ -257,11 +257,37 @@ get.QC.table <- function(de, al, co) {
   # transcript::UMI pairs
   transcript <- base::colSums(co[!(gene.id %in% c("reads_mapped_to_genome",
                                                   "reads_mapped_to_genes")) &
-                                   !grepl("ERCC", co[,gene.id]), -1])
+                                   !grepl("ERCC", co[,gene.id]), -"gene.id"])
   transcript <- data.table::data.table(
     cell = names(transcript),
     transcript = as.numeric(transcript))
   qc.dt <- base::merge(qc.dt, transcript, all.x = TRUE)
+  
+  # MT transcript
+  mt.transcript <- base::colSums(co[gene.id %in% 
+                                      biomart.result.dt[chromosome_name == "MT",
+                                                        ensembl_gene_id],
+                                    -"gene.id"])
+  mt.transcript <- data.table::data.table(
+    cell = names(mt.transcript),
+    mt.transcript = as.numeric(mt.transcript))
+  qc.dt <- base::merge(qc.dt, mt.transcript, all.x = TRUE)
+  
+  # expressed genes
+  cells <- colnames(co[,-"gene.id"])
+  gene <- sapply(cells, function(cells) nrow(co[!(gene.id %in%
+                                                    c("reads_mapped_to_genome",
+                                                      "reads_mapped_to_genes")) &
+                                                  eval(parse(text=cells)) != 0,
+                                                cells, with = FALSE]))
+  
+  gene <- data.table::data.table(
+    cell = names(gene),
+    gene = as.numeric(gene))
+  qc.dt <- base::merge(qc.dt, gene, all.x = TRUE)
+  
+  # protein coding genes
+  
   
   return (qc.dt)
 }
