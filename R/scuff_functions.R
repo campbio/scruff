@@ -228,7 +228,7 @@ get.gene.annot <- function(co,
 #' @param de Demultiplex result. Table returned from \code{demultiplex} function.
 #' @param al Alignment result. Table returned from \code{align.rsubread} function.
 #' @param co Count matrix. Table returned from \code{count.umi} function.
-#' @param biomart.result Gene information table generated from running \code{biomaRt} query on gene IDs.
+#' @param biomart.result.dt Gene information table generated from running \code{biomaRt} query on gene IDs.
 #' @return QC table
 #' @export
 get.QC.table <- function(de, al, co, biomart.result.dt = NA) {

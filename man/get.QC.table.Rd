@@ -13,7 +13,7 @@ get.QC.table(de, al, co, biomart.result.dt = NA)
 
 \item{co}{Count matrix. Table returned from \code{count.umi} function.}
 
-\item{biomart.result}{Gene information table generated from running \code{biomaRt} query on gene IDs.}
+\item{biomart.result.dt}{Gene information table generated from running \code{biomaRt} query on gene IDs.}
 }
 \value{
 QC table
