@@ -18,8 +18,8 @@ log.messages <- function(...,
 
 
 # parse fastq filenames (in Illumina Fastq naming convention)
-# in this order: project-ID_number_lane_read_001.fastq.gz
-# extract project name, sample ID, sample number, lane, and read
+# in this order: project-cohort_number_lane_read_001.fastq.gz
+# extract project name, cohort, sample number, lane, and read
 # Example fastq names:
 # GD-0802-04_S4_L002_R1_001.fastq.gz
 # GD-0802-04_S4_L002_R2_001.fastq.gz
@@ -31,7 +31,7 @@ parse.fname <- function(fastq_filename) {
   if (length(fsplit) == 5) {
     pr <- strsplit(fsplit[1], "-")[[1]]
     project <- paste(head(pr, length(pr) - 1), collapse = "-")
-    id <- tail(pr, 1)
+    cohort <- tail(pr, 1)
     num <- fsplit[2]
     lane <- fsplit[3]
     read <- fsplit[4]
@@ -41,7 +41,7 @@ parse.fname <- function(fastq_filename) {
   return (
     data.table::data.table(
       project = project,
-      id = id,
+      cohort = cohort,
       num = num,
       lane = lane,
       read = read,
@@ -77,7 +77,7 @@ parse.fastq <- function(fastq) {
                                        use.names = T,
                                        fill = F)
     }
-    meta.dt <- meta.dt[order(id), ]
+    meta.dt <- meta.dt[order(cohort), ]
     return (meta.dt)
   } else {
     stop(
@@ -222,7 +222,7 @@ get.gene.annot <- function(co,
 
 
 # collect QC metrics
-get.QC.table <- function(de, al, co, biomart.result.dt) {
+get.QC.table <- function(de, al, co, biomart.result.dt = NA) {
   de <- data.table::copy(data.table::data.table(de))
   al <- data.table::copy(data.table::data.table(al))
   co <- data.table::copy(data.table::data.table(co))
@@ -243,41 +243,44 @@ get.QC.table <- function(de, al, co, biomart.result.dt) {
                        all.x=TRUE)
   
   # get reads mapped to genome
-  rmtgenome <- co[gene.id == "reads_mapped_to_genome", -1]
+  rmtgenome <- co[gene.id == "reads_mapped_to_genome", -"gene.id"]
   rmtgenome <- data.table::data.table(cell = colnames(rmtgenome),
                                       reads_mapped_to_genome = as.numeric(rmtgenome))
   qc.dt <- base::merge(qc.dt, rmtgenome, all.x=TRUE)
   
   # reads mapped to genes
-  rmtgene <- co[gene.id == "reads_mapped_to_genes", -1]
+  rmtgene <- co[gene.id == "reads_mapped_to_genes", -"gene.id"]
   rmtgene <- data.table::data.table(cell = colnames(rmtgene),
                                     reads_mapped_to_genes = as.numeric(rmtgene))
   qc.dt <- base::merge(qc.dt, rmtgene, all.x=TRUE)
   
-  # transcript::UMI pairs
+  # UMI filtered transcripts
   transcript <- base::colSums(co[!(gene.id %in% c("reads_mapped_to_genome",
                                                   "reads_mapped_to_genes")) &
                                    !grepl("ERCC", co[,gene.id]), -"gene.id"])
   transcript <- data.table::data.table(
     cell = names(transcript),
-    transcript = as.numeric(transcript))
+    transcripts = as.numeric(transcript))
   qc.dt <- base::merge(qc.dt, transcript, all.x = TRUE)
   
   # MT transcript
-  mt.transcript <- base::colSums(co[gene.id %in% 
-                                      biomart.result.dt[chromosome_name == "MT",
-                                                        ensembl_gene_id],
-                                    -"gene.id"])
-  mt.transcript <- data.table::data.table(
-    cell = names(mt.transcript),
-    mt.transcript = as.numeric(mt.transcript))
-  qc.dt <- base::merge(qc.dt, mt.transcript, all.x = TRUE)
+  if (!all(is.na(biomart.result.dt))) {
+    mt.transcript <- base::colSums(co[gene.id %in% 
+                                        biomart.result.dt[chromosome_name == "MT",
+                                                          ensembl_gene_id],
+                                      -"gene.id"])
+    mt.transcript <- data.table::data.table(
+      cell = names(mt.transcript),
+      mt_transcripts = as.numeric(mt.transcript))
+    qc.dt <- base::merge(qc.dt, mt.transcript, all.x = TRUE)
+  }
   
   # expressed genes
   cells <- colnames(co[,-"gene.id"])
   gene <- sapply(cells, function(cells) nrow(co[!(gene.id %in%
                                                     c("reads_mapped_to_genome",
                                                       "reads_mapped_to_genes")) &
+                                                  !grepl("ERCC", co[,gene.id]) &
                                                   eval(parse(text=cells)) != 0,
                                                 cells, with = FALSE]))
   
@@ -287,7 +290,27 @@ get.QC.table <- function(de, al, co, biomart.result.dt) {
   qc.dt <- base::merge(qc.dt, gene, all.x = TRUE)
   
   # protein coding genes
-  
+  if (!all(is.na(biomart.result.dt))) {
+    pro.coding.gene <- biomart.result.dt[gene_biotype == "protein_coding",
+                                         ensembl_gene_id]
+    pro.gene <- sapply(cells, function(cells) nrow(
+      co[gene.id %in% pro.coding.gene &
+           eval(parse(text=cells)) != 0,
+         cells, with = FALSE]))
+    
+    pro.gene <- data.table::data.table(
+      cell = names(pro.gene),
+      protein_coding_genes = as.numeric(pro.gene))
+    qc.dt <- base::merge(qc.dt, pro.gene, all.x = TRUE)
+    
+    # protein coding transcripts
+    pro.transcript <- base::colSums(co[gene.id %in% pro.coding.gene,
+                                       cells, with = FALSE])
+    pro.transcript <- data.table::data.table(
+      cell = names(pro.transcript),
+      protein_coding_transcripts = as.numeric(pro.transcript))
+    qc.dt <- base::merge(qc.dt, pro.transcript, all.x = TRUE)
+  }
   
   return (qc.dt)
 }

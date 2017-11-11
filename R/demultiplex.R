@@ -2,16 +2,14 @@
 #' 
 #' Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory
 #' 
-#' @param fastq Can be in one of the following formats: \enumerate{
-#'   \item An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
-#'   \item The directory to fastq files. }
-#' @param bc A vector of pre-determined cell barcodes. If having multiple barcodes for each read, the barcodes have to be separated by \code{"_"}. For example, see \code{?examplebc}.
+#' @param fastq An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
+#' @param bc A vector of pre-determined cell barcodes. For example, see \code{?examplebc}.
 #' @param bc.start Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).
 #' @param bc.stop Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).
 #' @param umi.start Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.
 #' @param umi.stop Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.
-#' @param keep Read length or number of nucleotides to keep for read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.
-#' @param min.qual Minimal acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.
+#' @param keep Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.
+#' @param min.qual Minimally acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.
 #' @param out.dir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.
 #' @param summary.prefix Prefix for demultiplex summary file. Default is \code{"demultiplex"}.
 #' @param overwrite Overwrite the output directory. Default is \strong{FALSE}.
@@ -48,7 +46,7 @@ demultiplex <- function(fastq,
   fastq.annot.dt <- parse.fastq(fastq)
   barcode.dt <- data.table::data.table("cell_num" = seq_len(length(bc)),
                                        "barcode" = bc)
-  sample.id <- fastq.annot.dt[, unique(id)]
+  sample.id <- fastq.annot.dt[, unique(cohort)]
   
   # parallelization
   cl <- if (verbose)
@@ -150,7 +148,7 @@ demultiplex.unit <- function(i,
                logfile = logfile,
                append = FALSE)
   
-  sample.meta.dt <- fastq[id == i, ]
+  sample.meta.dt <- fastq[cohort == i, ]
   lanes <- unique(sample.meta.dt[, lane])
   summary.dt <- data.table::copy(barcode.dt)
   summary.dt[, filename := paste0(sample.meta.dt[, paste(unique(project), i, sep = "_")],
@@ -176,7 +174,7 @@ demultiplex.unit <- function(i,
     fill = TRUE,
     idcol = FALSE
   )
-  summary.dt[, id := i]
+  summary.dt[, cohort := i]
   
   if (overwrite) {
     # delete existing results
@@ -303,23 +301,6 @@ demultiplex.unit <- function(i,
         barcode = bc.seq
       )
       
-      if (!(all(fqy.dt[, rname1] == fqy.dt[, rname2]))) {
-        log.messages(
-          Sys.time(),
-          "Stop. Read1 and read2 have different ids in files:",
-          f1,
-          f2,
-          logfile = logfile,
-          append = TRUE
-        )
-        stop(paste(
-          "Stop. Read1 and read2 have different ids in files:",
-          f1,
-          "and",
-          f2
-        ))
-      }
-      
       # remove low quality and short reads
       
       #fqy.dt <- fqy.dt[min.phred1 >= min.qual & length1 >=
@@ -345,7 +326,7 @@ demultiplex.unit <- function(i,
             id = Biostrings::BStringSet(cfq.dt[, paste0(rname2, ":UMI:",
                                                         umi, ":")])
           )
-          # project_id_"cell"_cellnum.fastq.gz
+          # project_cohort_"cell"_cellnum.fastq.gz
           out.fname <- summary.dt[cell_num == k, filename]
           dir.create(file.path(out.dir, i), recursive = TRUE,
                      showWarnings = FALSE)
@@ -361,7 +342,7 @@ demultiplex.unit <- function(i,
       }
       
       summary.dt[!(is.na(cell_num)), 
-                 fastq_dir := file.path(out.dir, id, filename)]
+                 fastq_dir := file.path(out.dir, cohort, filename)]
       
       undetermined.dt <- fqy.dt[!(barcode %in% barcode.dt[, barcode]), ]
       undetermined.fq.out.R1 <- ShortRead::ShortReadQ(

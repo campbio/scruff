@@ -1,6 +1,6 @@
 
 exampleannot <- data.table::data.table(project="Example",
-                    id=c(rep("01", 2), rep("02", 2)),
+                    cohort=c(rep("01", 2), rep("02", 2)),
                     num=c(rep("S1", 2), rep("S2", 2)),
                     lane=c(rep("L001", 4)),
                     read=rep(paste0("R", 1:2), 2),
