@@ -29,4 +29,6 @@ Imports: data.table,
     ggthemes,
     scales,
     Rsubread,
-    biomaRt
+    biomaRt,
+    grid,
+    gridExtra
