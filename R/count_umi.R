@@ -51,7 +51,7 @@ count.umi <- function(alignment,
   
   print(paste(Sys.time(),
               paste("... Loading TxDb file")))
-  features <- gtf.db.read(features, logfile)
+  features <- suppressPackageStartupMessages(gtf.db.read(features, logfile))
   
   # parallelization
   cl <- if (verbose)
@@ -117,6 +117,11 @@ count.umi.unit <- function(i, features, format, out.dir, logfile, verbose) {
 
   bfl <- Rsamtools::BamFile(i)
   bamGA <- GenomicAlignments::readGAlignments(bfl, use.names = T)
+  
+  # get reads mapped to genome from bamGA
+  reads.mapped.to.genome <- length(bamGA[!grepl("ERCC",
+                                                GenomeInfoDb::seqnames(bamGA))])
+  
   names(bamGA) <- data.table::last(data.table::tstrsplit(names(bamGA), ":"))
   ol <- GenomicAlignments::findOverlaps(features, bamGA)
   ol.dt <- data.table(
@@ -127,20 +132,29 @@ count.umi.unit <- function(i, features, format, out.dir, logfile, verbose) {
   )
   
   # remove ambiguous gene alignments
+  # reads mapped to genes
   ol.dt <- ol.dt[!(
     base::duplicated(ol.dt, by = "hits") |
       base::duplicated(ol.dt, by = "hits", fromLast = TRUE)
   ), ]
   
+  # umi filtering
   count.umi <- base::table(unique(ol.dt[, .(gene.id, umi)])[, gene.id])
-  count.umi.dt <- data.table::data.table(gene.id = names(features))
-  count.umi.dt[[sub(pattern = "(.*?)\\..*$",
-                    replacement = "\\1",
-                    basename(i))]] <- 0
+  
+  # clean up
+  count.umi.dt <- data.table::data.table(gene.id = c(names(features),
+                                                     "reads_mapped_to_genome",
+                                                     "reads_mapped_to_genes"))
+  cell <- remove.last.extension(i)
+  count.umi.dt[[cell]] <- 0
+  count.umi.dt[gene.id == "reads_mapped_to_genome",
+               cell] <- reads.mapped.to.genome
+  count.umi.dt[gene.id == "reads_mapped_to_genes",
+               cell] <- nrow(ol.dt[!grepl("ERCC",
+                                          ol.dt[,gene.id]),
+                                   ])
   count.umi.dt[gene.id %in% names(count.umi),
-               eval(sub(pattern = "(.*?)\\..*$",
-                        replacement = "\\1",
-                        basename(i))) := as.numeric(count.umi[gene.id])]
+               eval(cell) := as.numeric(count.umi[gene.id])]
   count.umi.dt <- data.frame(count.umi.dt, row.names = 1)
   return (count.umi.dt)
 }

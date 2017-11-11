@@ -3,6 +3,7 @@
 export(align.rsubread)
 export(count.umi)
 export(demultiplex)
+export(get.QC.table)
 export(scuff)
 import(data.table)
 import(foreach)

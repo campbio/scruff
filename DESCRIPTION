@@ -28,4 +28,9 @@ Imports: data.table,
     ggplot2,
     ggthemes,
     scales,
-    Rsubread
+    Rsubread,
+    biomaRt,
+    grid,
+    gridExtra,
+    GenomeInfoDb,
+    stats

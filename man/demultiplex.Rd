@@ -11,11 +11,9 @@ demultiplex(fastq, bc, bc.start = 6, bc.stop = 11, umi.start = 1,
   logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
-\item{fastq}{Can be in one of the following formats: \enumerate{
-\item An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
-\item The directory to fastq files. }}
+\item{fastq}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.}
 
-\item{bc}{A vector of pre-determined cell barcodes. If having multiple barcodes for each read, the barcodes have to be separated by \code{"_"}. For example, see \code{?examplebc}.}
+\item{bc}{A vector of pre-determined cell barcodes. For example, see \code{?examplebc}.}
 
 \item{bc.start}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
 
@@ -25,9 +23,9 @@ demultiplex(fastq, bc, bc.start = 6, bc.stop = 11, umi.start = 1,
 
 \item{umi.stop}{Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.}
 
-\item{keep}{Read length or number of nucleotides to keep for read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.}
+\item{keep}{Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.}
 
-\item{min.qual}{Minimal acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
+\item{min.qual}{Minimally acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
 
 \item{out.dir}{Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.}
 

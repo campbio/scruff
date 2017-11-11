@@ -18,8 +18,8 @@ log.messages <- function(...,
 
 
 # parse fastq filenames (in Illumina Fastq naming convention)
-# in this order: project-ID_number_lane_read_001.fastq.gz
-# extract project name, sample ID, sample number, lane, and read
+# in this order: project-cohort_number_lane_read_001.fastq.gz
+# extract project name, cohort, sample number, lane, and read
 # Example fastq names:
 # GD-0802-04_S4_L002_R1_001.fastq.gz
 # GD-0802-04_S4_L002_R2_001.fastq.gz
@@ -31,7 +31,7 @@ parse.fname <- function(fastq_filename) {
   if (length(fsplit) == 5) {
     pr <- strsplit(fsplit[1], "-")[[1]]
     project <- paste(head(pr, length(pr) - 1), collapse = "-")
-    id <- tail(pr, 1)
+    cohort <- tail(pr, 1)
     num <- fsplit[2]
     lane <- fsplit[3]
     read <- fsplit[4]
@@ -41,7 +41,7 @@ parse.fname <- function(fastq_filename) {
   return (
     data.table::data.table(
       project = project,
-      id = id,
+      cohort = cohort,
       num = num,
       lane = lane,
       read = read,
@@ -77,7 +77,7 @@ parse.fastq <- function(fastq) {
                                        use.names = T,
                                        fill = F)
     }
-    meta.dt <- meta.dt[order(id), ]
+    meta.dt <- meta.dt[order(cohort), ]
     return (meta.dt)
   } else {
     stop(
@@ -90,6 +90,11 @@ parse.fastq <- function(fastq) {
 
 strip.leading.underscore <- function (x)  sub("^\\_+", "", x)
 
+remove.last.extension <- function(x) {
+  return (sub(pattern = "\\.[^\\.]*$",
+              replacement = "\\1",
+              basename(x)))
+}
 
 sink.reset <- function() {
   for (i in seq_len(sink.number())) {
@@ -169,35 +174,152 @@ to.bam <- function(sam,
 }
 
 
-# collect QC metrics
-get.QC.table <- function(de, al, co) {
-  de <- data.table::copy(de)
-  al <- data.table::copy(al)
+# get gene names from biomart
+get.gene.annot <- function(co,
+                           host = "www.ensembl.org",
+                           biomart = "ENSEMBL_MART_ENSEMBL",
+                           dataset = "hsapiens_gene_ensembl",
+                           GRCh = NULL) {
+  ######### Feature annotation
+  gene.id <- co[!(gene.id %in% c("reads_mapped_to_genome",
+                                 "reads_mapped_to_genes")) &
+                  !grepl("ERCC", co[,gene.id]), gene.id]
+  # Use Ensembl version 74 (December 2013, hg19)
+  #biomart.host <- "dec2013.archive.ensembl.org"
   
-  colnames(al)[c(1, 3, 4)] <- c("bam_dir", "mapped_reads", "fraction_mapped")
+  # Initialize featureData slot of ExpressionSet
+  #gene.type <- data.frame(row.names = fnames)
+  
+  # Get feature annotation data
+  ensembl <- biomaRt::useEnsembl(biomart = biomart,
+                                 dataset = dataset,
+                                 host = host,
+                                 GRCh = GRCh)
+  biomart.result <- data.table::data.table(biomaRt::getBM(
+    attributes=c("ensembl_gene_id", "external_gene_name",
+                 "hgnc_symbol", "gene_biotype", "chromosome_name"),
+    filters="ensembl_gene_id",
+    values=gene.id,
+    mart=ensembl
+  ))
+  
+  # Collapse table by Ensembl Gene ID
+  biomart.result <- stats::aggregate(biomart.result[,-1],
+                              by=biomart.result[,.(ensembl_gene_id)],
+                              FUN=unique)
+  # Replace hgnc_symbol column with a column of comma-delimited gene symbols
+  biomart.result$hgnc_symbol <- sapply(biomart.result$hgnc_symbol, paste, collapse=", ")
+  # Reorder/insert rows so that rows of Biomart query result match 
+  # rows of the expression matrix
+  biomart.result <- biomart.result[match(fnames[[1]],
+                                         biomart.result$ensembl_gene_id),]
+  biomart.result <- data.table(biomart.result)
+  # Copy the annotation columns into the featureData slot of the ExpressionSet
+  #fData(dataset)[c("ID", "Symbol", "Biotype")] <-
+  #  biomart.result[c("external_gene_id", "hgnc_symbol", "gene_biotype")]
+  return (biomart.result)
+}
+
+
+#' Collect QC metrics
+#' 
+#' Collect QC metrics from demultiplexing, alignment, and counting results. Return a \code{data.table} object containing reads, transcripts, and genes information.
+#' 
+#' @param de Demultiplex result. Table returned from \code{demultiplex} function.
+#' @param al Alignment result. Table returned from \code{align.rsubread} function.
+#' @param co Count matrix. Table returned from \code{count.umi} function.
+#' @param biomart.result.dt Gene information table generated from running \code{biomaRt} query on gene IDs.
+#' @return QC table
+#' @export
+get.QC.table <- function(de, al, co, biomart.result.dt = NA) {
+  de <- data.table::copy(data.table::data.table(de))
+  al <- data.table::copy(data.table::data.table(al))
+  co <- data.table::copy(data.table::data.table(co))
+  
+  colnames(al)[c(1, 3)] <- c("bam_dir",
+                             "total_mapped_reads")
   
   de[, cell := sub(pattern = "(.*?)\\..*$",
-                   replacement = "\\1", filename)]
-  al[, cell := sub(pattern = "(.*?)\\..*$",
-                   replacement = "\\1", basename(bam_dir))]
+                 replacement = "\\1", filename)]
+  al[, cell := remove.last.extension(basename(bam_dir))]
   
   data.table::setkey(de, cell)
   data.table::setkey(al, cell)
   
   qc.dt <- base::merge(de[,-"filename"],
-                       al[,.(cell, mapped_reads, fraction_mapped)], all.x=TRUE)
+                       al[, .(cell,
+                              total_mapped_reads)],
+                       all.x=TRUE)
   
-  # get reads mapped to genes
+  # get reads mapped to genome
+  rmtgenome <- co[gene.id == "reads_mapped_to_genome", -"gene.id"]
+  rmtgenome <- data.table::data.table(cell = colnames(rmtgenome),
+                                      reads_mapped_to_genome = as.numeric(rmtgenome))
+  qc.dt <- base::merge(qc.dt, rmtgenome, all.x=TRUE)
   
-  # transcript::UMI pairs
-  transcript <- base::colSums(count.res[,-1])
+  # reads mapped to genes
+  rmtgene <- co[gene.id == "reads_mapped_to_genes", -"gene.id"]
+  rmtgene <- data.table::data.table(cell = colnames(rmtgene),
+                                    reads_mapped_to_genes = as.numeric(rmtgene))
+  qc.dt <- base::merge(qc.dt, rmtgene, all.x=TRUE)
+  
+  # UMI filtered transcripts
+  transcript <- base::colSums(co[!(gene.id %in% c("reads_mapped_to_genome",
+                                                  "reads_mapped_to_genes")) &
+                                   !grepl("ERCC", co[,gene.id]), -"gene.id"])
   transcript <- data.table::data.table(
-    transcript = transcript,
-    cell = names(transcript))
-  data.table::setkey(transcript, cell)
-  data.table::setkey(qc.dt, cell)
+    cell = names(transcript),
+    transcripts = as.numeric(transcript))
   qc.dt <- base::merge(qc.dt, transcript, all.x = TRUE)
   
+  # MT transcript
+  if (!all(is.na(biomart.result.dt))) {
+    mt.transcript <- base::colSums(co[gene.id %in% 
+                                        biomart.result.dt[chromosome_name == "MT",
+                                                          ensembl_gene_id],
+                                      -"gene.id"])
+    mt.transcript <- data.table::data.table(
+      cell = names(mt.transcript),
+      mt_transcripts = as.numeric(mt.transcript))
+    qc.dt <- base::merge(qc.dt, mt.transcript, all.x = TRUE)
+  }
+  
+  # expressed genes
+  cells <- colnames(co[,-"gene.id"])
+  gene <- sapply(cells, function(cells) nrow(co[!(gene.id %in%
+                                                    c("reads_mapped_to_genome",
+                                                      "reads_mapped_to_genes")) &
+                                                  !grepl("ERCC", co[,gene.id]) &
+                                                  eval(parse(text=cells)) != 0,
+                                                cells, with = FALSE]))
+  
+  gene <- data.table::data.table(
+    cell = names(gene),
+    gene = as.numeric(gene))
+  qc.dt <- base::merge(qc.dt, gene, all.x = TRUE)
+  
+  # protein coding genes
+  if (!all(is.na(biomart.result.dt))) {
+    pro.coding.gene <- biomart.result.dt[gene_biotype == "protein_coding",
+                                         ensembl_gene_id]
+    pro.gene <- sapply(cells, function(cells) nrow(
+      co[gene.id %in% pro.coding.gene &
+           eval(parse(text=cells)) != 0,
+         cells, with = FALSE]))
+    
+    pro.gene <- data.table::data.table(
+      cell = names(pro.gene),
+      protein_coding_genes = as.numeric(pro.gene))
+    qc.dt <- base::merge(qc.dt, pro.gene, all.x = TRUE)
+    
+    # protein coding transcripts
+    pro.transcript <- base::colSums(co[gene.id %in% pro.coding.gene,
+                                       cells, with = FALSE])
+    pro.transcript <- data.table::data.table(
+      cell = names(pro.transcript),
+      protein_coding_transcripts = as.numeric(pro.transcript))
+    qc.dt <- base::merge(qc.dt, pro.transcript, all.x = TRUE)
+  }
   
   return (qc.dt)
 }
