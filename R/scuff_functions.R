@@ -204,7 +204,7 @@ get.gene.annot <- function(co,
   ))
   
   # Collapse table by Ensembl Gene ID
-  biomart.result <- aggregate(biomart.result[,-1],
+  biomart.result <- stats::aggregate(biomart.result[,-1],
                               by=biomart.result[,.(ensembl_gene_id)],
                               FUN=unique)
   # Replace hgnc_symbol column with a column of comma-delimited gene symbols
@@ -221,7 +221,16 @@ get.gene.annot <- function(co,
 }
 
 
-# collect QC metrics
+#' Collect QC metrics
+#' 
+#' Collect QC metrics from demultiplexing, alignment, and counting results. Return a \code{data.table} object containing reads, transcripts, and genes information.
+#' 
+#' @param de Demultiplex result. Table returned from \code{demultiplex} function.
+#' @param al Alignment result. Table returned from \code{align.rsubread} function.
+#' @param co Count matrix. Table returned from \code{count.umi} function.
+#' @param biomart.result Gene information table generated from running \code{biomaRt} query on gene IDs.
+#' @return QC table
+#' @export
 get.QC.table <- function(de, al, co, biomart.result.dt = NA) {
   de <- data.table::copy(data.table::data.table(de))
   al <- data.table::copy(data.table::data.table(al))

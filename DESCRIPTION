@@ -31,4 +31,6 @@ Imports: data.table,
     Rsubread,
     biomaRt,
     grid,
-    gridExtra
+    gridExtra,
+    GenomeInfoDb,
+    stats
