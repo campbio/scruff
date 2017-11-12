@@ -79,7 +79,7 @@ count.umi <- function(alignment,
     .packages = c("BiocGenerics", "S4Vectors",
                   "GenomicFeatures", "GenomicAlignments")
   ) %dopar% {
-    count.umi.unit(i, features, format, out.dir, logfile, verbose)
+    count.umi.unit(i, features, format, logfile, verbose)
   }
   
   parallel::stopCluster(cl)
@@ -106,7 +106,7 @@ count.umi <- function(alignment,
 }
 
 
-count.umi.unit <- function(i, features, format, out.dir, logfile, verbose) {
+count.umi.unit <- function(i, features, format, logfile, verbose) {
   if (verbose) {
     log.messages(Sys.time(),
                  "... UMI counting sample",
@@ -124,7 +124,7 @@ count.umi.unit <- function(i, features, format, out.dir, logfile, verbose) {
   
   names(bamGA) <- data.table::last(data.table::tstrsplit(names(bamGA), ":"))
   ol <- GenomicAlignments::findOverlaps(features, bamGA)
-  ol.dt <- data.table(
+  ol.dt <- data.table::data.table(
     gene.id = base::names(features)[S4Vectors::queryHits(ol)],
     umi = base::names(bamGA)[S4Vectors::subjectHits(ol)],
     pos = BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)],
@@ -155,7 +155,10 @@ count.umi.unit <- function(i, features, format, out.dir, logfile, verbose) {
                                    ])
   count.umi.dt[gene.id %in% names(count.umi),
                eval(cell) := as.numeric(count.umi[gene.id])]
-  count.umi.dt <- data.frame(count.umi.dt, row.names = 1)
+  count.umi.dt <- data.frame(count.umi.dt,
+                             row.names = 1,
+                             check.names = FALSE,
+                             fix.empty.names = FALSE)
   return (count.umi.dt)
 }
 

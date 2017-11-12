@@ -197,26 +197,23 @@ get.gene.annot <- function(co,
                                  GRCh = GRCh)
   biomart.result <- data.table::data.table(biomaRt::getBM(
     attributes=c("ensembl_gene_id", "external_gene_name",
-                 "hgnc_symbol", "gene_biotype", "chromosome_name"),
+                 "gene_biotype", "chromosome_name"),
     filters="ensembl_gene_id",
     values=gene.id,
     mart=ensembl
   ))
   
-  # Collapse table by Ensembl Gene ID
-  biomart.result <- stats::aggregate(biomart.result[,-1],
-                              by=biomart.result[,.(ensembl_gene_id)],
-                              FUN=unique)
-  # Replace hgnc_symbol column with a column of comma-delimited gene symbols
-  biomart.result$hgnc_symbol <- sapply(biomart.result$hgnc_symbol, paste, collapse=", ")
+  biomart.result <- biomart.result[!base::duplicated(biomart.result,
+                                                     by = "ensembl_gene_id"), ]
+  
   # Reorder/insert rows so that rows of Biomart query result match 
   # rows of the expression matrix
-  biomart.result <- biomart.result[match(fnames[[1]],
-                                         biomart.result$ensembl_gene_id),]
-  biomart.result <- data.table(biomart.result)
-  # Copy the annotation columns into the featureData slot of the ExpressionSet
-  #fData(dataset)[c("ID", "Symbol", "Biotype")] <-
-  #  biomart.result[c("external_gene_id", "hgnc_symbol", "gene_biotype")]
+  biomart.result <- data.table::data.table(biomart.result[
+    match(co[!(gene.id %in% c("reads_mapped_to_genome",
+                              "reads_mapped_to_genes")) &
+               !grepl("ERCC", co[, gene.id]), gene.id],
+          biomart.result$ensembl_gene_id),])
+  
   return (biomart.result)
 }
 
@@ -234,7 +231,7 @@ get.gene.annot <- function(co,
 get.QC.table <- function(de, al, co, biomart.result.dt = NA) {
   de <- data.table::copy(data.table::data.table(de))
   al <- data.table::copy(data.table::data.table(al))
-  co <- data.table::copy(data.table::data.table(co))
+  al <- data.table::copy(data.table::data.table(al))
   
   colnames(al)[c(1, 3)] <- c("bam_dir",
                              "total_mapped_reads")
