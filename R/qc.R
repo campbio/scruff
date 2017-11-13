@@ -27,7 +27,8 @@ plot.reads.assignment <- function(qc.dt) {
     qc.i <- qc[!is.na(cell_num) & cohort == i, ]
     qc.i <- qc.i[order(qc.i$reads, decreasing = TRUE), ]
     ggplot2::ggplot(qc.i) +
-      ggplot2::geom_bar(ggplot2::aes(x = seq(nrow(qc.i)), y = reads),
+      ggplot2::geom_bar(ggplot2::aes(x = seq(nrow(qc.i)),
+                                     y = reads),
                         stat="identity") +
       ggplot2::ggtitle(i) +
       ggplot2::scale_y_continuous(labels = scales::comma) +
@@ -53,7 +54,8 @@ plot.total.reads <- function(qc.dt) {
   g <- ggplot2::ggplot(data = qc.dt[!(is.na(cell_num)), ],
                        ggplot2::aes(
                          x = as.factor(cohort),
-                         y = reads,
+                         y = log10(reads),
+                         #y = reads,
                          group = as.factor(cohort)
                        )) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
@@ -62,11 +64,12 @@ plot.total.reads <- function(qc.dt) {
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 1
     ) +
+    ggplot2::ylab(expression(Log[10]*"reads")) +
     ggplot2::ggtitle("Total reads") +
-    ggplot2::scale_y_continuous(labels = scales::comma) +
+    ggplot2::scale_y_continuous(labels = scales::comma,
+                                limits = c(0, NA)) +
     theme_Publication() +
-    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
-                   axis.title.x = ggplot2::element_blank())
+    ggplot2::theme(axis.title.x = ggplot2::element_blank())
   return (g)
 }
 
@@ -77,7 +80,7 @@ plot.reads.mapped.to.genome <- function(qc.dt) {
                                                           "undetermined"))),
                        ggplot2::aes(
                          x = as.factor(cohort),
-                         y = reads_mapped_to_genome,
+                         y = log10(reads_mapped_to_genome),
                          group = as.factor(cohort)
                        )) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
@@ -86,11 +89,12 @@ plot.reads.mapped.to.genome <- function(qc.dt) {
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 1
     ) +
+    ggplot2::ylab(expression(Log[10]*"reads")) +
     ggplot2::ggtitle("Reads mapped to genome") +
-    ggplot2::scale_y_continuous(labels = scales::comma) +
+    ggplot2::scale_y_continuous(labels = scales::comma,
+                                limits = c(0, NA)) +
     theme_Publication() +
-    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
-                   axis.title.x = ggplot2::element_blank())
+    ggplot2::theme(axis.title.x = ggplot2::element_blank())
     
   return (g)
 }
@@ -100,17 +104,19 @@ plot.reads.mapped.to.genes <- function(qc.dt) {
   g <- ggplot2::ggplot(data = subset(qc.dt, !(cell %in% c("low_quality",
                                                           "total",
                                                           "undetermined"))),
-                       ggplot2::aes(x = as.factor(cohort), y = reads_mapped_to_genes,
+                       ggplot2::aes(x = as.factor(cohort),
+                                    y = log10(reads_mapped_to_genes),
                                     group = as.factor(cohort))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(color = "#424242",
                position = ggplot2::position_jitter(width = 0.3, height = 0),
                size = 1) +
+    ggplot2::ylab(expression(Log[10]*"reads")) +
     ggplot2::ggtitle("Reads mapped to genes") +
-    ggplot2::scale_y_continuous(labels = scales::comma) +
+    ggplot2::scale_y_continuous(labels = scales::comma,
+                                limits = c(0, NA)) +
     theme_Publication() +
-    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
-                   axis.title.x = ggplot2::element_blank())
+    ggplot2::theme(axis.title.x = ggplot2::element_blank())
     
   return (g)
 }
@@ -129,7 +135,7 @@ plot.genome.reads.fraction <- function(qc.dt) {
                                                             height = 0),
                         size = 1) +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of reads mapped to genome") +
+    ggplot2::ggtitle("Fraction of mapped reads to total reads") +
     theme_Publication() + 
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
                    axis.title.x = ggplot2::element_blank())
@@ -151,7 +157,7 @@ plot.gene.to.genome.fraction <- function(qc.dt) {
                                                             height = 0),
                         size = 1) +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of gene reads to genome reads") +
+    ggplot2::ggtitle("Fraction of reads mapped to genes to reads mapped to genome") +
     theme_Publication() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
                    axis.title.x = ggplot2::element_blank())
@@ -172,7 +178,7 @@ plot.gene.to.total.fraction <- function(qc.dt) {
                                                             height = 0),
                         size = 1) +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of reads mapped to genes relative to total reads") +
+    ggplot2::ggtitle("Fraction of reads mapped to genes to total reads") +
     theme_Publication() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
                    axis.title.x = ggplot2::element_blank())
@@ -185,17 +191,19 @@ plot.transcripts <- function(qc.dt) {
                                                           "total",
                                                           "undetermined"))),
                        ggplot2::aes(x = as.factor(cohort),
-                                    y = transcripts,
+                                    y = log10(transcripts),
                                     group = as.factor(cohort))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(color = "#424242",
                         position = ggplot2::position_jitter(width = 0.3,
                                                             height = 0),
                         size = 1) +
+    ggplot2::ylab(expression(Log[10]*"transcripts")) +
     ggplot2::ggtitle("UMI filtered transcripts") +
+    ggplot2::scale_y_continuous(labels = scales::comma,
+                                limits = c(0, NA)) +
     theme_Publication() +
-    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
-                   axis.title.x = ggplot2::element_blank())
+    ggplot2::theme(axis.title.x = ggplot2::element_blank())
   return (g)
 }
 
@@ -205,17 +213,19 @@ plot.MT.transcripts <- function(qc.dt) {
                                                           "total",
                                                           "undetermined"))),
                        ggplot2::aes(x = as.factor(cohort),
-                                    y = mt_transcripts,
+                                    y = log10(mt_transcripts),
                                     group = as.factor(cohort))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(color = "#424242",
                         position = ggplot2::position_jitter(width = 0.3,
                                                             height = 0),
                         size = 1) +
+    ggplot2::ylab(expression(Log[10]*"transcripts")) +
     ggplot2::ggtitle("Mitochondrial transcripts") +
+    ggplot2::scale_y_continuous(labels = scales::comma,
+                                limits = c(0, NA)) +
     theme_Publication() +
-    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
-                   axis.title.x = ggplot2::element_blank())
+    ggplot2::theme(axis.title.x = ggplot2::element_blank())
   return (g)
 }
 
