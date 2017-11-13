@@ -10,9 +10,14 @@ qc.plot <- function(qc.dt) {
   g7 <- plot.gene.to.total.fraction(qc.dt)
   g8 <- plot.transcripts(qc.dt)
   g9 <- plot.MT.transcripts(qc.dt)
+  g10 <- plot.MT.transcripts.fraction(qc.dt)
+  g11 <- plot.genes(qc.dt)
+  g12 <- plot.frac.protein.coding.genes(qc.dt)
+  g13 <- plot.frac.protein.coding.transcripts(qc.dt)
+  g14 <- plot.genes.per.million.reads(qc.dt)
   return (list(g1,
                gridExtra::marrangeGrob(
-                 list(g2,g3,g4,g5,g6,g7,g8,g9),
+                 list(g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14),
                  ncol = 1,
                  nrow = 2,
                  top = NULL,
@@ -62,7 +67,7 @@ plot.total.reads <- function(qc.dt) {
     ggplot2::geom_point(
       color = "#424242",
       position = ggplot2::position_jitter(width = 0.3, height = 0),
-      size = 1
+      size = 0.5
     ) +
     ggplot2::ylab(expression(Log[10]*"reads")) +
     ggplot2::ggtitle("Total reads") +
@@ -87,7 +92,7 @@ plot.reads.mapped.to.genome <- function(qc.dt) {
     ggplot2::geom_point(
       color = "#424242",
       position = ggplot2::position_jitter(width = 0.3, height = 0),
-      size = 1
+      size = 0.5
     ) +
     ggplot2::ylab(expression(Log[10]*"reads")) +
     ggplot2::ggtitle("Reads mapped to genome") +
@@ -110,7 +115,7 @@ plot.reads.mapped.to.genes <- function(qc.dt) {
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(color = "#424242",
                position = ggplot2::position_jitter(width = 0.3, height = 0),
-               size = 1) +
+               size = 0.5) +
     ggplot2::ylab(expression(Log[10]*"reads")) +
     ggplot2::ggtitle("Reads mapped to genes") +
     ggplot2::scale_y_continuous(labels = scales::comma,
@@ -133,7 +138,7 @@ plot.genome.reads.fraction <- function(qc.dt) {
     ggplot2::geom_point(color = "#424242",
                         position = ggplot2::position_jitter(width = 0.3,
                                                             height = 0),
-                        size = 1) +
+                        size = 0.5) +
     ggplot2::ylim(0, 1) +
     ggplot2::ggtitle("Fraction of mapped reads to total reads") +
     theme_Publication() + 
@@ -155,7 +160,7 @@ plot.gene.to.genome.fraction <- function(qc.dt) {
     ggplot2::geom_point(color = "#424242",
                         position = ggplot2::position_jitter(width = 0.3,
                                                             height = 0),
-                        size = 1) +
+                        size = 0.5) +
     ggplot2::ylim(0, 1) +
     ggplot2::ggtitle("Fraction of reads mapped to genes to reads mapped to genome") +
     theme_Publication() +
@@ -176,7 +181,7 @@ plot.gene.to.total.fraction <- function(qc.dt) {
     ggplot2::geom_point(color = "#424242",
                         position = ggplot2::position_jitter(width = 0.3,
                                                             height = 0),
-                        size = 1) +
+                        size = 0.5) +
     ggplot2::ylim(0, 1) +
     ggplot2::ggtitle("Fraction of reads mapped to genes to total reads") +
     theme_Publication() +
@@ -197,7 +202,7 @@ plot.transcripts <- function(qc.dt) {
     ggplot2::geom_point(color = "#424242",
                         position = ggplot2::position_jitter(width = 0.3,
                                                             height = 0),
-                        size = 1) +
+                        size = 0.5) +
     ggplot2::ylab(expression(Log[10]*"transcripts")) +
     ggplot2::ggtitle("UMI filtered transcripts") +
     ggplot2::scale_y_continuous(labels = scales::comma,
@@ -219,7 +224,7 @@ plot.MT.transcripts <- function(qc.dt) {
     ggplot2::geom_point(color = "#424242",
                         position = ggplot2::position_jitter(width = 0.3,
                                                             height = 0),
-                        size = 1) +
+                        size = 0.5) +
     ggplot2::ylab(expression(Log[10]*"transcripts")) +
     ggplot2::ggtitle("Mitochondrial transcripts") +
     ggplot2::scale_y_continuous(labels = scales::comma,
@@ -229,4 +234,111 @@ plot.MT.transcripts <- function(qc.dt) {
   return (g)
 }
 
+
+plot.MT.transcripts.fraction <- function(qc.dt) {
+  g <- ggplot2::ggplot(data = subset(qc.dt, !(cell %in% c("low_quality",
+                                                          "total",
+                                                          "undetermined"))),
+                       ggplot2::aes(x = as.factor(cohort),
+                                    y = mt_transcripts/transcripts,
+                                    group = as.factor(cohort))) +
+    ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
+    ggplot2::geom_point(color = "#424242",
+                        position = ggplot2::position_jitter(width = 0.3,
+                                                            height = 0),
+                        size = 0.5) +
+    ggplot2::ylim(0, 1) +
+    ggplot2::ggtitle("Fraction of mitochondrial transcripts") +
+    theme_Publication() +
+    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+                   axis.title.x = ggplot2::element_blank())
+  return (g)
+}
+
+
+plot.genes <- function(qc.dt) {
+  g <- ggplot2::ggplot(data = subset(qc.dt, !(cell %in% c("low_quality",
+                                                          "total",
+                                                          "undetermined"))),
+                       ggplot2::aes(x = as.factor(cohort),
+                                    y = log10(genes),
+                                    group = as.factor(cohort))) +
+    ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
+    ggplot2::geom_point(color = "#424242",
+                        position = ggplot2::position_jitter(width = 0.3,
+                                                            height = 0),
+                        size = 0.5) +
+    ggplot2::ylab(expression(Log[10]*"Genes")) +
+    ggplot2::ggtitle("Genes") +
+    ggplot2::scale_y_continuous(labels = scales::comma,
+                                limits = c(0, NA)) +
+    theme_Publication() +
+    ggplot2::theme(axis.title.x = ggplot2::element_blank())
+  return (g)
+}
+
+
+plot.frac.protein.coding.genes <- function(qc.dt) {
+  g <- ggplot2::ggplot(data = subset(qc.dt, !(cell %in% c("low_quality",
+                                                          "total",
+                                                          "undetermined"))),
+                       ggplot2::aes(x = as.factor(cohort),
+                                    y = protein_coding_genes/genes,
+                                    group = as.factor(cohort))) +
+    ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
+    ggplot2::geom_point(color = "#424242",
+                        position = ggplot2::position_jitter(width = 0.3,
+                                                            height = 0),
+                        size = 0.5) +
+    ggplot2::ylim(0, 1) +
+    ggplot2::ggtitle("Fraction of protein coding genes") +
+    theme_Publication() +
+    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+                   axis.title.x = ggplot2::element_blank())
+  return (g)
+}
+
+
+plot.frac.protein.coding.transcripts <- function(qc.dt) {
+  g <- ggplot2::ggplot(data = subset(qc.dt, !(cell %in% c("low_quality",
+                                                          "total",
+                                                          "undetermined"))),
+                       ggplot2::aes(x = as.factor(cohort),
+                                    y = protein_coding_transcripts/transcripts,
+                                    group = as.factor(cohort))) +
+    ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
+    ggplot2::geom_point(color = "#424242",
+                        position = ggplot2::position_jitter(width = 0.3,
+                                                            height = 0),
+                        size = 0.5) +
+    ggplot2::ylim(0, 1) +
+    ggplot2::ggtitle("Fraction of protein coding transcripts") +
+    theme_Publication() +
+    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+                   axis.title.x = ggplot2::element_blank())
+  return (g)
+}
+
+
+plot.genes.per.million.reads <- function(qc.dt) {
+  g <- ggplot2::ggplot(data = subset(qc.dt, !(cell %in% c("low_quality",
+                                                          "total",
+                                                          "undetermined"))),
+                       ggplot2::aes(x = as.factor(cohort),
+                                    y = log10(genes %x% 1000000/reads),
+                                    group = as.factor(cohort))) +
+    ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
+    ggplot2::geom_point(color = "#424242",
+                        position = ggplot2::position_jitter(width = 0.3,
+                                                            height = 0),
+                        size = 0.5) +
+    ggplot2::ylab(expression(paste(Log[10],
+                                   "(Genes x 1000000 / total reads)"))) +
+    ggplot2::ggtitle("Genes detected divided by total number of reads sequenced per million") +
+    ggplot2::scale_y_continuous(labels = scales::comma,
+                                limits = c(0, NA)) +
+    theme_Publication() +
+    ggplot2::theme(axis.title.x = ggplot2::element_blank())
+  return (g)
+}
 

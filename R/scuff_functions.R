@@ -283,7 +283,7 @@ get.QC.table <- function(de, al, co, biomart.result.dt = NA) {
   
   # expressed genes
   cells <- colnames(co[,-"gene.id"])
-  gene <- sapply(cells, function(cells) nrow(
+  genes <- sapply(cells, function(cells) nrow(
     co[!(gene.id %in%
            c("reads_mapped_to_genome",
              "reads_mapped_to_genes")) &
@@ -293,10 +293,10 @@ get.QC.table <- function(de, al, co, biomart.result.dt = NA) {
                                   "`"))) != 0,
        cells, with = FALSE]))
   
-  gene <- data.table::data.table(
-    cell = names(gene),
-    gene = as.numeric(gene))
-  qc.dt <- base::merge(qc.dt, gene, all.x = TRUE)
+  genes <- data.table::data.table(
+    cell = names(genes),
+    genes = as.numeric(genes))
+  qc.dt <- base::merge(qc.dt, genes, all.x = TRUE)
   
   # protein coding genes
   if (!all(is.na(biomart.result.dt))) {
