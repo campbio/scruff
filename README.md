@@ -16,4 +16,5 @@ An introduction to `scuff` package is available within the package as a vignette
 ```
 vignette("scuff")
 ```
+Note: the vignette has not been updated and is out of date.
 
