@@ -283,12 +283,15 @@ get.QC.table <- function(de, al, co, biomart.result.dt = NA) {
   
   # expressed genes
   cells <- colnames(co[,-"gene.id"])
-  gene <- sapply(cells, function(cells) nrow(co[!(gene.id %in%
-                                                    c("reads_mapped_to_genome",
-                                                      "reads_mapped_to_genes")) &
-                                                  !grepl("ERCC", co[,gene.id]) &
-                                                  eval(parse(text=cells)) != 0,
-                                                cells, with = FALSE]))
+  gene <- sapply(cells, function(cells) nrow(
+    co[!(gene.id %in%
+           c("reads_mapped_to_genome",
+             "reads_mapped_to_genes")) &
+         !grepl("ERCC", co[,gene.id]) &
+         eval(parse(text = paste0("`",
+                                  cells,
+                                  "`"))) != 0,
+       cells, with = FALSE]))
   
   gene <- data.table::data.table(
     cell = names(gene),
@@ -301,7 +304,7 @@ get.QC.table <- function(de, al, co, biomart.result.dt = NA) {
                                          ensembl_gene_id]
     pro.gene <- sapply(cells, function(cells) nrow(
       co[gene.id %in% pro.coding.gene &
-           eval(parse(text=cells)) != 0,
+           eval(parse(text = paste0("`", cells, "`"))) != 0,
          cells, with = FALSE]))
     
     pro.gene <- data.table::data.table(

@@ -30,7 +30,7 @@ demultiplex <- function(fastq,
                         out.dir = "../Demultiplex",
                         summary.prefix = "demultiplex",
                         overwrite = FALSE,
-                        cores = max(1, parallel::detectCores() - 1),
+                        cores = max(1, parallel::detectCores() - 2),
                         verbose = FALSE,
                         logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
   
@@ -333,8 +333,7 @@ demultiplex.unit <- function(i,
           out.full <- file.path(out.dir, i, out.fname)
           if (file.exists(out.full)) {
             ShortRead::writeFastq(fq.out, out.full, mode = "a")
-          }
-          else {
+          } else {
             ShortRead::writeFastq(fq.out, out.full, mode = "w")
           }
         }
@@ -387,6 +386,7 @@ demultiplex.unit <- function(i,
     close(fq1)
     close(fq2)
   }
+  
   summary.dt[, percent_assigned := 100 * reads /
                summary.dt[filename == "total", reads]]
   
