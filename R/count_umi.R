@@ -79,7 +79,7 @@ count.umi <- function(alignment,
     .packages = c("BiocGenerics", "S4Vectors",
                   "GenomicFeatures", "GenomicAlignments")
   ) %dopar% {
-    count.umi.unit(i, features, format, out.dir, logfile, verbose)
+    count.umi.unit(i, features, format, logfile, verbose)
   }
   
   parallel::stopCluster(cl)
@@ -106,7 +106,7 @@ count.umi <- function(alignment,
 }
 
 
-count.umi.unit <- function(i, features, format, out.dir, logfile, verbose) {
+count.umi.unit <- function(i, features, format, logfile, verbose) {
   if (verbose) {
     log.messages(Sys.time(),
                  "... UMI counting sample",
@@ -118,28 +118,44 @@ count.umi.unit <- function(i, features, format, out.dir, logfile, verbose) {
   bfl <- Rsamtools::BamFile(i)
   bamGA <- GenomicAlignments::readGAlignments(bfl, use.names = T)
   
-  # get reads mapped to genome from bamGA
-  reads.mapped.to.genome <- length(bamGA[!grepl("ERCC",
-                                                GenomeInfoDb::seqnames(bamGA))])
+  genome.reads <- data.table::data.table(
+    name = names(bamGA),
+    seqnames = as.vector(GenomicAlignments::seqnames(bamGA)))
   
-  names(bamGA) <- data.table::last(data.table::tstrsplit(names(bamGA), ":"))
+  if (length(unique(genome.reads[, name])) != nrow(genome.reads)) {
+    stop (paste0("Corrupt BAM file ",
+                 i,
+                 ". Duplicate read names detected.",
+                 " Try rerunning demultiplexing and alignment functions",
+                 " with appropriate number of cores."))
+  }
+  
+  # reads mapped to genome
+  reads.mapped.to.genome <- nrow(
+    genome.reads[!grepl("ERCC", genome.reads[, seqnames]), .(name)])
+
+  # umi filtering
   ol <- GenomicAlignments::findOverlaps(features, bamGA)
-  ol.dt <- data.table(
+  
+  ol.dt <- data.table::data.table(
     gene.id = base::names(features)[S4Vectors::queryHits(ol)],
-    umi = base::names(bamGA)[S4Vectors::subjectHits(ol)],
-    pos = BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)],
-    hits = S4Vectors::subjectHits(ol)
+    name = base::names(bamGA)[S4Vectors::subjectHits(ol)],
+    pos = BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)]
   )
   
-  # remove ambiguous gene alignments
-  # reads mapped to genes
+  ol.dt[, umi := data.table::last(data.table::tstrsplit(name, ":"))]
+  
+  # remove ambiguous gene alignments (union mode filtering)
   ol.dt <- ol.dt[!(
-    base::duplicated(ol.dt, by = "hits") |
-      base::duplicated(ol.dt, by = "hits", fromLast = TRUE)
+    base::duplicated(ol.dt, by = "name") |
+      base::duplicated(ol.dt, by = "name", fromLast = TRUE)
   ), ]
   
+  # reads mapped to genes
+  reads.mapped.to.genes <- nrow(ol.dt[!grepl("ERCC", ol.dt[, gene.id ]), ])
+  
   # umi filtering
-  count.umi <- base::table(unique(ol.dt[, .(gene.id, umi)])[, gene.id])
+  count.umi <- base::table(unique(ol.dt[, .(gene.id, umi, pos)])[, gene.id])
   
   # clean up
   count.umi.dt <- data.table::data.table(gene.id = c(names(features),
@@ -150,12 +166,15 @@ count.umi.unit <- function(i, features, format, out.dir, logfile, verbose) {
   count.umi.dt[gene.id == "reads_mapped_to_genome",
                cell] <- reads.mapped.to.genome
   count.umi.dt[gene.id == "reads_mapped_to_genes",
-               cell] <- nrow(ol.dt[!grepl("ERCC",
-                                          ol.dt[,gene.id]),
-                                   ])
+               cell] <- reads.mapped.to.genes
   count.umi.dt[gene.id %in% names(count.umi),
                eval(cell) := as.numeric(count.umi[gene.id])]
-  count.umi.dt <- data.frame(count.umi.dt, row.names = 1)
+  
+  # coerce to data frame to keep rownames for cbind combination
+  count.umi.dt <- data.frame(count.umi.dt,
+                             row.names = 1,
+                             check.names = FALSE,
+                             fix.empty.names = FALSE)
   return (count.umi.dt)
 }
 

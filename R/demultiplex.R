@@ -13,7 +13,7 @@
 #' @param out.dir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.
 #' @param summary.prefix Prefix for demultiplex summary file. Default is \code{"demultiplex"}.
 #' @param overwrite Overwrite the output directory. Default is \strong{FALSE}.
-#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
+#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 2)}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @return Demultiplexed annotation \code{data.table}.
@@ -30,7 +30,7 @@ demultiplex <- function(fastq,
                         out.dir = "../Demultiplex",
                         summary.prefix = "demultiplex",
                         overwrite = FALSE,
-                        cores = max(1, parallel::detectCores() - 1),
+                        cores = max(1, parallel::detectCores() - 2),
                         verbose = FALSE,
                         logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
   
@@ -333,8 +333,7 @@ demultiplex.unit <- function(i,
           out.full <- file.path(out.dir, i, out.fname)
           if (file.exists(out.full)) {
             ShortRead::writeFastq(fq.out, out.full, mode = "a")
-          }
-          else {
+          } else {
             ShortRead::writeFastq(fq.out, out.full, mode = "w")
           }
         }
@@ -387,6 +386,7 @@ demultiplex.unit <- function(i,
     close(fq1)
     close(fq2)
   }
+  
   summary.dt[, percent_assigned := 100 * reads /
                summary.dt[filename == "total", reads]]
   
