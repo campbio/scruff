@@ -44,8 +44,10 @@ Now the fastq files are saved in current working directory and are ready to be d
 demultiplex.res <- demultiplex(
   exampleannot,
   examplebc,
-  bc.pos = c(6, 11),
-  umi.pos = c(1, 5),
+  bc.start = 6,
+  bc.stop = 11,
+  umi.start = 1,
+  umi.stop = 5,
   keep = 50,
   min.qual = 10,
   out.dir = "../Demultiplex",
@@ -106,7 +108,7 @@ gtf.file <- "GRCh38_MT.gtf"
 fwrite(GRCh38_MT_gtf, gtf.file, sep = "\t", col.names = FALSE)
 
 expr = count.umi(
-  align.res,
+  align.res[,1],
   gtf.file,
   format = "BAM",
   out.dir = "../Count",
