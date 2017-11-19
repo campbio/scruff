@@ -10,6 +10,7 @@
 #' @param umi.stop Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.
 #' @param keep Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.
 #' @param min.qual Minimally acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.
+#' @param yield.reads The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. Default is \strong{1e6}.
 #' @param out.dir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.
 #' @param summary.prefix Prefix for demultiplex summary file. Default is \code{"demultiplex"}.
 #' @param overwrite Overwrite the output directory. Default is \strong{FALSE}.
@@ -19,7 +20,7 @@
 #' @return Demultiplexed annotation \code{data.table}.
 #' @import data.table foreach
 #' @export
-demultiplex <- function(fastq,
+demultiplex <- function(fastq.annot,
                         bc,
                         bc.start = 6,
                         bc.stop = 11,
@@ -27,6 +28,7 @@ demultiplex <- function(fastq,
                         umi.stop = 5,
                         keep = 50,
                         min.qual = 10,
+                        yield.reads = 1e6,
                         out.dir = "../Demultiplex",
                         summary.prefix = "demultiplex",
                         overwrite = FALSE,
@@ -35,18 +37,24 @@ demultiplex <- function(fastq,
                         logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
   
   message(paste(Sys.time(), "Start demultiplexing ..."))
-  
+  if (overwrite) {
+    message(paste(Sys.time(), "All files in", out.dir,  "will be deleted ..."))
+  }
   if (verbose) {
-    cat("Input fastq type:", class(fastq), "\n")
-    print(fastq)
+    cat("Input fastq type:", class(fastq.annot), "\n")
+    print(fastq.annot)
   }
   
   logfile <- paste0(logfile.prefix, "_demultiplex_log.txt")
   
-  fastq.annot.dt <- parse.fastq(fastq)
+  fastq.annot.dt <- data.table::data.table(fastq.annot)
   barcode.dt <- data.table::data.table("cell_num" = seq_len(length(bc)),
                                        "barcode" = bc)
-  sample.id <- fastq.annot.dt[, unique(cohort)]
+  sample.id <- fastq.annot.dt[, unique(sample)]
+  
+  # disable threading in ShortRead package
+  nthreads <- .Call(ShortRead:::.set_omp_threads, 1L)
+  on.exit(.Call(ShortRead:::.set_omp_threads, nthreads))
   
   # parallelization
   cl <- if (verbose)
@@ -67,7 +75,7 @@ demultiplex <- function(fastq,
       logfile <- paste0(logfile.prefix, "_sample_", i, "_log.txt")
       demultiplex.unit(
         i,
-        fastq,
+        fastq.annot.dt,
         barcode.dt,
         bc.start,
         bc.stop,
@@ -75,6 +83,7 @@ demultiplex <- function(fastq,
         umi.stop,
         keep,
         min.qual,
+        yield.reads,
         out.dir,
         summary.prefix,
         overwrite,
@@ -84,7 +93,7 @@ demultiplex <- function(fastq,
       suppressMessages(
         demultiplex.unit(
           i,
-          fastq,
+          fastq.annot.dt,
           barcode.dt,
           bc.start,
           bc.stop,
@@ -92,6 +101,7 @@ demultiplex <- function(fastq,
           umi.stop,
           keep,
           min.qual,
+          yield.reads,
           out.dir,
           summary.prefix,
           overwrite,
@@ -137,6 +147,7 @@ demultiplex.unit <- function(i,
                              umi.stop,
                              keep,
                              min.qual,
+                             yield.reads,
                              out.dir,
                              summary.prefix,
                              overwrite,
@@ -148,13 +159,15 @@ demultiplex.unit <- function(i,
                logfile = logfile,
                append = FALSE)
   
-  sample.meta.dt <- fastq[cohort == i, ]
+  sample.meta.dt <- fastq[sample == i, ]
   lanes <- unique(sample.meta.dt[, lane])
   summary.dt <- data.table::copy(barcode.dt)
-  summary.dt[, filename := paste0(sample.meta.dt[, paste(unique(project), i, sep = "_")],
-                                    "_cell_",
-                                    sprintf("%04d", cell_num),
-                                    ".fastq.gz")]
+  summary.dt[, filename := paste0(sample.meta.dt[,
+                                                 paste(unique(project),
+                                                       i, sep = "_")],
+                                  "_cell_",
+                                  sprintf("%04d", cell_num),
+                                  ".fastq.gz")]
   summary.dt[, reads := 0]
   summary.dt[, percent_assigned := 0]
   
@@ -174,7 +187,7 @@ demultiplex.unit <- function(i,
     fill = TRUE,
     idcol = FALSE
   )
-  summary.dt[, cohort := i]
+  summary.dt[, sample := i]
   
   if (overwrite) {
     # delete existing results
@@ -210,15 +223,11 @@ demultiplex.unit <- function(i,
   for (j in lanes) {
     log.messages(Sys.time(), "... Processing Lane", j,
                  logfile = logfile, append=TRUE)
-    if (is.na(j)) {
-      f1 <- sample.meta.dt[read == "R1", dir]
-      f2 <- sample.meta.dt[read == "R2", dir]
-    } else {
-      f1 <- sample.meta.dt[lane == j & read == "R1", dir]
-      f2 <- sample.meta.dt[lane == j & read == "R2", dir]
-    }
-    fq1 <- ShortRead::FastqStreamer(f1)
-    fq2 <- ShortRead::FastqStreamer(f2)
+    
+    f1 <- sample.meta.dt[lane == j, read1_path]
+    f2 <- sample.meta.dt[lane == j, read2_path]
+    fq1 <- ShortRead::FastqStreamer(f1, n = yield.reads)
+    fq2 <- ShortRead::FastqStreamer(f2, n = yield.reads)
     repeat {
       fqy1 <- ShortRead::yield(fq1)
       fqy2 <- ShortRead::yield(fq2)
@@ -320,13 +329,13 @@ demultiplex.unit <- function(i,
         
         # if barcode exists in fastq reads
         if (nrow(cfq.dt) != 0) {
-          fq.out <- ShortReadQ(
+          fq.out <- ShortRead::ShortReadQ(
             sread = Biostrings::DNAStringSet(cfq.dt[, read2]),
             quality = Biostrings::BStringSet(cfq.dt[, qtring2]),
             id = Biostrings::BStringSet(cfq.dt[, paste0(rname2, ":UMI:",
                                                         umi, ":")])
           )
-          # project_cohort_"cell"_cellnum.fastq.gz
+          # project_sample_"cell"_cellnum.fastq.gz
           out.fname <- summary.dt[cell_num == k, filename]
           dir.create(file.path(out.dir, i), recursive = TRUE,
                      showWarnings = FALSE)
@@ -341,7 +350,7 @@ demultiplex.unit <- function(i,
       }
       
       summary.dt[!(is.na(cell_num)), 
-                 fastq_dir := file.path(out.dir, cohort, filename)]
+                 fastq_dir := file.path(out.dir, sample, filename)]
       
       undetermined.dt <- fqy.dt[!(barcode %in% barcode.dt[, barcode]), ]
       undetermined.fq.out.R1 <- ShortRead::ShortReadQ(
@@ -354,8 +363,12 @@ demultiplex.unit <- function(i,
         quality = Biostrings::BStringSet(undetermined.dt[, qtring2]),
         id = Biostrings::BStringSet(undetermined.dt[, rname2])
       )
-      out.full.undetermined.R1 <- file.path(out.dir, i, "Undetermined_R1.fastq.gz")
-      out.full.undetermined.R2 <- file.path(out.dir, i, "Undetermined_R2.fastq.gz")
+      out.full.undetermined.R1 <- file.path(out.dir,
+                                            i,
+                                            "Undetermined_R1.fastq.gz")
+      out.full.undetermined.R2 <- file.path(out.dir,
+                                            i,
+                                            "Undetermined_R2.fastq.gz")
       if (file.exists(out.full.undetermined.R1)) {
         ShortRead::writeFastq(undetermined.fq.out.R1,
                               out.full.undetermined.R1, mode = "a")
