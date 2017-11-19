@@ -70,7 +70,7 @@ plot.total.reads <- function(qc.dt) {
       size = 0.5
     ) +
     ggplot2::ylab(expression(Log[10]*"reads")) +
-    ggplot2::ggtitle("Total reads") +
+    ggplot2::ggtitle("Number of total reads") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +
     theme_Publication() +
@@ -95,7 +95,7 @@ plot.reads.mapped.to.genome <- function(qc.dt) {
       size = 0.5
     ) +
     ggplot2::ylab(expression(Log[10]*"reads")) +
-    ggplot2::ggtitle("Reads mapped to genome") +
+    ggplot2::ggtitle("Number of aligned reads") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +
     theme_Publication() +
@@ -117,7 +117,7 @@ plot.reads.mapped.to.genes <- function(qc.dt) {
                position = ggplot2::position_jitter(width = 0.3, height = 0),
                size = 0.5) +
     ggplot2::ylab(expression(Log[10]*"reads")) +
-    ggplot2::ggtitle("Reads mapped to genes") +
+    ggplot2::ggtitle("Number of reads aligned to an gene") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +
     theme_Publication() +
@@ -140,7 +140,7 @@ plot.genome.reads.fraction <- function(qc.dt) {
                                                             height = 0),
                         size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of mapped reads to total reads") +
+    ggplot2::ggtitle("Fraction of aligned reads to total reads") +
     theme_Publication() + 
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
                    axis.title.x = ggplot2::element_blank())
@@ -162,7 +162,7 @@ plot.gene.to.genome.fraction <- function(qc.dt) {
                                                             height = 0),
                         size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of reads mapped to genes to reads mapped to genome") +
+    ggplot2::ggtitle("Fraction of reads aligned to an gene out of total number of aligned reads") +
     theme_Publication() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
                    axis.title.x = ggplot2::element_blank())
@@ -183,7 +183,7 @@ plot.gene.to.total.fraction <- function(qc.dt) {
                                                             height = 0),
                         size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of reads mapped to genes to total reads") +
+    ggplot2::ggtitle("Fraction of reads aligned to an gene out of tatal number of reads") +
     theme_Publication() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
                    axis.title.x = ggplot2::element_blank())
@@ -204,7 +204,7 @@ plot.transcripts <- function(qc.dt) {
                                                             height = 0),
                         size = 0.5) +
     ggplot2::ylab(expression(Log[10]*"transcripts")) +
-    ggplot2::ggtitle("UMI filtered transcripts") +
+    ggplot2::ggtitle("Total number of transcripts after UMI correction") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +
     theme_Publication() +
@@ -226,7 +226,7 @@ plot.MT.transcripts <- function(qc.dt) {
                                                             height = 0),
                         size = 0.5) +
     ggplot2::ylab(expression(Log[10]*"transcripts")) +
-    ggplot2::ggtitle("Mitochondrial transcripts") +
+    ggplot2::ggtitle("Number of mitochondrial transcripts after UMI correction") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +
     theme_Publication() +
@@ -248,7 +248,7 @@ plot.MT.transcripts.fraction <- function(qc.dt) {
                                                             height = 0),
                         size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of mitochondrial transcripts") +
+    ggplot2::ggtitle("Fraction of mitochondrial transcripts after UMI correction") +
     theme_Publication() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
                    axis.title.x = ggplot2::element_blank())
@@ -269,7 +269,7 @@ plot.genes <- function(qc.dt) {
                                                             height = 0),
                         size = 0.5) +
     ggplot2::ylab(expression(Log[10]*"Genes")) +
-    ggplot2::ggtitle("Genes") +
+    ggplot2::ggtitle("Number of genes") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +
     theme_Publication() +
@@ -312,7 +312,7 @@ plot.frac.protein.coding.transcripts <- function(qc.dt) {
                                                             height = 0),
                         size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of protein coding transcripts") +
+    ggplot2::ggtitle("Fraction of protein coding transcripts after UMI correction") +
     theme_Publication() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
                    axis.title.x = ggplot2::element_blank())
