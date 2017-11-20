@@ -1,3 +1,6 @@
+########################################
+####### parsing helper functions #######
+########################################
 
 log.messages <- function(...,
                          sep = " ",
@@ -118,6 +121,10 @@ get.alignment.file.dir <- function(fastq.dir, format, out.dir) {
 }
 
 
+########################################
+##### procedural helper functions ######
+########################################
+
 # read gtf database and return feature GRangesList by gene ID
 gtf.db.read <- function(gtf.file, logfile) {
   gtf.db.file <- paste0(gtf.file, ".sqlite")
@@ -146,6 +153,52 @@ gtf.db.read <- function(gtf.file, logfile) {
   )
   return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
 }
+
+
+# correct barcode mismatch 
+# implements memoization (closure)
+bc.correct.fast <- function() {
+  res <- list()
+  mem.bc.correct <- function(bc, ref.barcodes, max.edit.dist) {
+    if (bc %in% names(res))
+      return (res[[bc]])
+    
+    sdm <- stringdist::stringdistmatrix(bc, ref.barcodes)
+    min.dist <- min(sdm)
+    if (min.dist <= max.edit.dist) {
+      ind <- which(sdm == min.dist)
+      if (length(ind) == 1) {
+        res[[bc]] <<- ref.barcodes[ind]
+        return (res[[bc]])
+      }
+    }
+    res[[bc]] <<- bc
+    return (res[[bc]])
+  }
+  return (mem.bc.correct)
+}
+
+
+# deprecated
+bc.correct.fast2 <- local({
+  res <- list()
+  
+  f <- function(bc, ref.barcodes, max.edit.dist) {
+    if (bc %in% names(res))
+      return (res[[bc]])
+    sdm <- stringdist::stringdistmatrix(bc, ref.barcodes)
+    min.dist <- min(sdm)
+    if (min.dist <= max.edit.dist) {
+      ind <- which(sdm == min.dist)
+      if (length(ind) == 1) {
+        res[[bc]] <<- ref.barcodes[ind]
+        return (res[[bc]])
+      }
+    }
+    res[[bc]] <<- bc
+    return (res[[bc]])
+  }
+})
 
 
 to.bam <- function(sam,

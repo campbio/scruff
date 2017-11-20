@@ -33,4 +33,5 @@ Imports: data.table,
     grid,
     gridExtra,
     GenomeInfoDb,
-    stats
+    stats,
+    stringdist
