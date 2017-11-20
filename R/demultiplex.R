@@ -2,7 +2,7 @@
 #' 
 #' Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory
 #' 
-#' @param fastq An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
+#' @param fastq.annot An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
 #' @param bc A vector of pre-determined cell barcodes. For example, see \code{?examplebc}.
 #' @param bc.start Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).
 #' @param bc.stop Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).
