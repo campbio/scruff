@@ -6,6 +6,7 @@
 #' @param bc A vector of pre-determined cell barcodes. For example, see \code{?examplebc}.
 #' @param bc.start Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).
 #' @param bc.stop Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).
+#' @param bc.edit Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the predetermined barcode list.
 #' @param umi.start Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.
 #' @param umi.stop Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.
 #' @param keep Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.
@@ -24,6 +25,7 @@ demultiplex <- function(fastq.annot,
                         bc,
                         bc.start = 6,
                         bc.stop = 11,
+                        bc.edit = 1,
                         umi.start = 1,
                         umi.stop = 5,
                         keep = 50,
@@ -56,6 +58,9 @@ demultiplex <- function(fastq.annot,
   nthreads <- .Call(ShortRead:::.set_omp_threads, 1L)
   on.exit(.Call(ShortRead:::.set_omp_threads, nthreads))
   
+  # initialize barcode correction function
+  correct.bc <- bc.correct.fast()
+  
   # parallelization
   cl <- if (verbose)
     parallel::makeCluster(cores, outfile = logfile)
@@ -79,6 +84,7 @@ demultiplex <- function(fastq.annot,
         barcode.dt,
         bc.start,
         bc.stop,
+        bc.edit,
         umi.start,
         umi.stop,
         keep,
@@ -97,6 +103,7 @@ demultiplex <- function(fastq.annot,
           barcode.dt,
           bc.start,
           bc.stop,
+          bc.edit,
           umi.start,
           umi.stop,
           keep,
@@ -143,6 +150,7 @@ demultiplex.unit <- function(i,
                              barcode.dt,
                              bc.start,
                              bc.stop,
+                             bc.edit,
                              umi.start,
                              umi.stop,
                              keep,
@@ -287,7 +295,6 @@ demultiplex.unit <- function(i,
                                          "IntegerList"))
       
       
-      
       #min.base.phred1 <- min(methods::as(Biostrings::PhredQuality(paste0(
       #  substr(fqy1@quality@quality, umi.pos[1], umi.pos[2]),
       #  substr(fqy1@quality@quality, bc.pos[1], bc.pos[2])
@@ -310,6 +317,11 @@ demultiplex.unit <- function(i,
         barcode = bc.seq
       )
       
+      fqy.dt[, bc_correct := sapply(barcode,
+                                    correct.bc,
+                                    barcode.dt[, barcode],
+                                    bc.edit)]
+      
       # remove low quality and short reads
       
       #fqy.dt <- fqy.dt[min.phred1 >= min.qual & length1 >=
@@ -325,7 +337,7 @@ demultiplex.unit <- function(i,
       
       for (k in barcode.dt[, cell_num]) {
         cell.barcode <- barcode.dt[cell_num == k, barcode]
-        cfq.dt <- fqy.dt[barcode == cell.barcode, ]
+        cfq.dt <- fqy.dt[bc_correct == cell.barcode, ]
         
         # if barcode exists in fastq reads
         if (nrow(cfq.dt) != 0) {
@@ -352,7 +364,7 @@ demultiplex.unit <- function(i,
       summary.dt[!(is.na(cell_num)), 
                  fastq_dir := file.path(out.dir, sample, filename)]
       
-      undetermined.dt <- fqy.dt[!(barcode %in% barcode.dt[, barcode]), ]
+      undetermined.dt <- fqy.dt[!(bc_correct %in% barcode.dt[, barcode]), ]
       undetermined.fq.out.R1 <- ShortRead::ShortReadQ(
         sread = Biostrings::DNAStringSet(undetermined.dt[, read1]),
         quality = Biostrings::BStringSet(undetermined.dt[, qtring1]),

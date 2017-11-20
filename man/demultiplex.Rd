@@ -4,12 +4,12 @@
 \alias{demultiplex}
 \title{Demultiplex cell barcodes and assign cell specific reads}
 \usage{
-demultiplex(fastq.annot, bc, bc.start = 6, bc.stop = 11, umi.start = 1,
-  umi.stop = 5, keep = 50, min.qual = 10, yield.reads = 1e+06,
-  out.dir = "../Demultiplex", summary.prefix = "demultiplex",
-  overwrite = FALSE, cores = max(1, parallel::detectCores() - 2),
-  verbose = FALSE, logfile.prefix = format(Sys.time(),
-  "\%Y\%m\%d_\%H\%M\%S"))
+demultiplex(fastq.annot, bc, bc.start = 6, bc.stop = 11, bc.edit = 1,
+  umi.start = 1, umi.stop = 5, keep = 50, min.qual = 10,
+  yield.reads = 1e+06, out.dir = "../Demultiplex",
+  summary.prefix = "demultiplex", overwrite = FALSE, cores = max(1,
+  parallel::detectCores() - 2), verbose = FALSE,
+  logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
 \item{fastq.annot}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.}
@@ -19,6 +19,8 @@ demultiplex(fastq.annot, bc, bc.start = 6, bc.stop = 11, umi.start = 1,
 \item{bc.start}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
 
 \item{bc.stop}{Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).}
+
+\item{bc.edit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the predetermined barcode list.}
 
 \item{umi.start}{Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.}
 
