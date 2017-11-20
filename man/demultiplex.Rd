@@ -12,6 +12,8 @@ demultiplex(fastq.annot, bc, bc.start = 6, bc.stop = 11, umi.start = 1,
   "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
+\item{fastq.annot}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.}
+
 \item{bc}{A vector of pre-determined cell barcodes. For example, see \code{?examplebc}.}
 
 \item{bc.start}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
@@ -39,8 +41,6 @@ demultiplex(fastq.annot, bc, bc.start = 6, bc.stop = 11, umi.start = 1,
 \item{verbose}{Print log messages. Useful for debugging. Default to \strong{FALSE}.}
 
 \item{logfile.prefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
-
-\item{fastq}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.}
 }
 \value{
 Demultiplexed annotation \code{data.table}.
