@@ -225,10 +225,10 @@ get.gene.annot <- function(co,
 #' @param de Demultiplex result. Table returned from \code{demultiplex} function.
 #' @param al Alignment result. Table returned from \code{align.rsubread} function.
 #' @param co Count matrix. Table returned from \code{count.umi} function.
-#' @param biomart.result.dt Gene information table generated from running \code{biomaRt} query on gene IDs.
-#' @return QC table
+#' @param biomart.annot.dt Gene information table generated from running \code{biomaRt} query on gene IDs. Must contain \emph{ensembl_gene_id} and \emph{gene_biotype}.
+#' @return QC metrics table
 #' @export
-get.QC.table <- function(de, al, co, biomart.result.dt = NA) {
+collect.qc <- function(de, al, co, biomart.annot.dt = NA) {
   de <- data.table::copy(data.table::data.table(de))
   al <- data.table::copy(data.table::data.table(al))
   al <- data.table::copy(data.table::data.table(al))
@@ -270,9 +270,9 @@ get.QC.table <- function(de, al, co, biomart.result.dt = NA) {
   qc.dt <- base::merge(qc.dt, transcript, all.x = TRUE)
   
   # MT transcript
-  if (!all(is.na(biomart.result.dt))) {
+  if (!all(is.na(biomart.annot.dt))) {
     mt.transcript <- base::colSums(co[gene.id %in% 
-                                        biomart.result.dt[chromosome_name == "MT",
+                                        biomart.annot.dt[chromosome_name == "MT",
                                                           ensembl_gene_id],
                                       -"gene.id"])
     mt.transcript <- data.table::data.table(
@@ -283,7 +283,7 @@ get.QC.table <- function(de, al, co, biomart.result.dt = NA) {
   
   # expressed genes
   cells <- colnames(co[,-"gene.id"])
-  gene <- sapply(cells, function(cells) nrow(
+  genes <- sapply(cells, function(cells) nrow(
     co[!(gene.id %in%
            c("reads_mapped_to_genome",
              "reads_mapped_to_genes")) &
@@ -293,14 +293,14 @@ get.QC.table <- function(de, al, co, biomart.result.dt = NA) {
                                   "`"))) != 0,
        cells, with = FALSE]))
   
-  gene <- data.table::data.table(
-    cell = names(gene),
-    gene = as.numeric(gene))
-  qc.dt <- base::merge(qc.dt, gene, all.x = TRUE)
+  genes <- data.table::data.table(
+    cell = names(genes),
+    genes = as.numeric(genes))
+  qc.dt <- base::merge(qc.dt, genes, all.x = TRUE)
   
   # protein coding genes
-  if (!all(is.na(biomart.result.dt))) {
-    pro.coding.gene <- biomart.result.dt[gene_biotype == "protein_coding",
+  if (!all(is.na(biomart.annot.dt))) {
+    pro.coding.gene <- biomart.annot.dt[gene_biotype == "protein_coding",
                                          ensembl_gene_id]
     pro.gene <- sapply(cells, function(cells) nrow(
       co[gene.id %in% pro.coding.gene &

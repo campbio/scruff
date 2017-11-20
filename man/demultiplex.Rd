@@ -4,14 +4,15 @@
 \alias{demultiplex}
 \title{Demultiplex cell barcodes and assign cell specific reads}
 \usage{
-demultiplex(fastq, bc, bc.start = 6, bc.stop = 11, umi.start = 1,
-  umi.stop = 5, keep = 50, min.qual = 10, out.dir = "../Demultiplex",
-  summary.prefix = "demultiplex", overwrite = FALSE, cores = max(1,
-  parallel::detectCores() - 2), verbose = FALSE,
-  logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
+demultiplex(fastq.annot, bc, bc.start = 6, bc.stop = 11, umi.start = 1,
+  umi.stop = 5, keep = 50, min.qual = 10, yield.reads = 1e+06,
+  out.dir = "../Demultiplex", summary.prefix = "demultiplex",
+  overwrite = FALSE, cores = max(1, parallel::detectCores() - 2),
+  verbose = FALSE, logfile.prefix = format(Sys.time(),
+  "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
-\item{fastq}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.}
+\item{fastq.annot}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.}
 
 \item{bc}{A vector of pre-determined cell barcodes. For example, see \code{?examplebc}.}
 
@@ -26,6 +27,8 @@ demultiplex(fastq, bc, bc.start = 6, bc.stop = 11, umi.start = 1,
 \item{keep}{Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.}
 
 \item{min.qual}{Minimally acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
+
+\item{yield.reads}{The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. Default is \strong{1e6}.}
 
 \item{out.dir}{Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.}
 

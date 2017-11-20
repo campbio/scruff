@@ -4,19 +4,18 @@
 \name{exampleannot}
 \alias{exampleannot}
 \title{Example annotation table}
-\format{A \code{data.table} with 6 columns:
+\format{A \code{data.table} with 5 columns:
 \describe{
 \item{\code{project}}{Project name}
-\item{\code{id}}{Sample ID}
-\item{\code{num}}{Sample number based on the order that samples are listed during fastq generation}
-\item{\code{lane}}{Lane number}
-\item{\code{read}}{The read. R1 means Read 1 and R2 means Read 2}
-\item{\code{dir}}{Directory to the fastq file}
+\item{\code{sample}}{Sample name}
+\item{\code{lane}}{Flow cell lane number}
+\item{\code{read1_path}}{Path to read1 fastq file}
+\item{\code{read2_path}}{Path to read2 fastq file}
 }}
 \usage{
 exampleannot
 }
 \description{
-A \code{data.table} object of example annotation table.
+A \code{data.table} object of the annotation table for example data.
 }
 \keyword{datasets}

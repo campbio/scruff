@@ -2,7 +2,7 @@
 #' 
 #' Run the \code{scuff} pipeline including \code{demultiplex}, \code{align.rsubread}, and \code{count.umi}. Write expression table in output directory.
 #' 
-#' @param fastq Can be in one of the following formats: \enumerate{
+#' @param fastq.annot Can be in one of the following formats: \enumerate{
 #'   \item An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
 #'   \item The directory to fastq files. }
 #' @param bc A vector of cell barcodes determined from experimental design. For example, see \code{?examplebc}.
@@ -25,7 +25,7 @@
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
 #' @param threads Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}.
 #' @export
-scuff <- function(fastq,
+scuff <- function(fastq.annot,
                   bc,
                   index,
                   features,
@@ -50,7 +50,7 @@ scuff <- function(fastq,
   message(match.call(expand.dots = TRUE))
   
   dem <- demultiplex(
-    fastq = fastq,
+    fastq = fastq.annot,
     bc = bc,
     bc.pos = bc.pos,
     umi.pos = umi.pos,

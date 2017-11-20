@@ -4,8 +4,8 @@
 \alias{scuff}
 \title{Run scuff pipeline}
 \usage{
-scuff(fastq, bc, index, features, bc.pos = c(6, 11), umi.pos = c(1, 5),
-  keep = 50, min.qual = 10, alignment.file.format = "BAM",
+scuff(fastq.annot, bc, index, features, bc.pos = c(6, 11), umi.pos = c(1,
+  5), keep = 50, min.qual = 10, alignment.file.format = "BAM",
   demultiplex.out.dir = "../Demultiplex",
   alignment.out.dir = "../Alignment", umi.out.dir = "../Count",
   demultiplex.summary.prefix = "demultiplex",
@@ -15,7 +15,7 @@ scuff(fastq, bc, index, features, bc.pos = c(6, 11), umi.pos = c(1, 5),
   parallel::detectCores() - 1), threads = 1)
 }
 \arguments{
-\item{fastq}{Can be in one of the following formats: \enumerate{
+\item{fastq.annot}{Can be in one of the following formats: \enumerate{
 \item An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
 \item The directory to fastq files. }}
 
