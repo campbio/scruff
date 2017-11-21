@@ -7,7 +7,7 @@
 #' @param features Directory to the gtf reference file. For generation of TxDb objects from gtf files, please refer to \code{makeTxDbFromGFF} function in \code{GenomicFeatures} package.
 #' @param format Format of input sequence alignment files. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param out.dir Output directory for UMI counting results. Expression table will be stored in this directory. Default is \code{"../Count"}.
-#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
+#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.
 #' @param output.prefix Prefix for expression table filename. Default is \code{"countUMI"}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
@@ -18,7 +18,7 @@ count.umi <- function(alignment,
                       features,
                       format = "BAM",
                       out.dir = "../Count",
-                      cores = max(1, parallel::detectCores() - 1),
+                      cores = max(1, parallel::detectCores() / 2),
                       output.prefix = "countUMI",
                       verbose = FALSE,
                       logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {

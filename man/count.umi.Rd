@@ -5,7 +5,7 @@
 \title{Count the number of UMIs for each transcript and output expression matrix}
 \usage{
 count.umi(alignment, features, format = "BAM", out.dir = "../Count",
-  cores = max(1, parallel::detectCores() - 1), output.prefix = "countUMI",
+  cores = max(1, parallel::detectCores()/2), output.prefix = "countUMI",
   verbose = FALSE, logfile.prefix = format(Sys.time(),
   "\%Y\%m\%d_\%H\%M\%S"))
 }
@@ -18,7 +18,7 @@ count.umi(alignment, features, format = "BAM", out.dir = "../Count",
 
 \item{out.dir}{Output directory for UMI counting results. Expression table will be stored in this directory. Default is \code{"../Count"}.}
 
-\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.}
+\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.}
 
 \item{output.prefix}{Prefix for expression table filename. Default is \code{"countUMI"}.}
 

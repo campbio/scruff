@@ -157,6 +157,7 @@ gtf.db.read <- function(gtf.file, logfile) {
 
 # correct barcode mismatch 
 # implements memoization (closure)
+# deprecated
 bc.correct.fast <- function() {
   res <- list()
   mem.bc.correct <- function(bc, ref.barcodes, max.edit.dist) {
@@ -179,8 +180,8 @@ bc.correct.fast <- function() {
 }
 
 
-# deprecated
-bc.correct.fast2 <- local({
+# correct barcode mismatch using memoization
+bc.correct.mem <- local({
   res <- list()
   
   f <- function(bc, ref.barcodes, max.edit.dist) {
