@@ -5,7 +5,7 @@
 \title{A wrapper to \code{Rsubread} read alignment}
 \usage{
 align.rsubread(fastq.dir, index, format = "BAM", out.dir = "../Alignment",
-  cores = max(1, parallel::detectCores() - 1), threads = 1,
+  cores = max(1, parallel::detectCores()/2), threads = 1,
   summary.prefix = "alignment", overwrite = FALSE, verbose = FALSE,
   logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
@@ -18,7 +18,7 @@ align.rsubread(fastq.dir, index, format = "BAM", out.dir = "../Alignment",
 
 \item{out.dir}{Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Alignment"}.}
 
-\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.}
+\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.}
 
 \item{threads}{Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}.}
 

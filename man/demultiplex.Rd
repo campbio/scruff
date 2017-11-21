@@ -8,7 +8,7 @@ demultiplex(fastq.annot, bc, bc.start = 6, bc.stop = 11, bc.edit = 1,
   umi.start = 1, umi.stop = 5, keep = 50, min.qual = 10,
   yield.reads = 1e+06, out.dir = "../Demultiplex",
   summary.prefix = "demultiplex", overwrite = FALSE, cores = max(1,
-  parallel::detectCores() - 2), verbose = FALSE,
+  parallel::detectCores()/2), verbose = FALSE,
   logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
@@ -38,7 +38,7 @@ demultiplex(fastq.annot, bc, bc.start = 6, bc.stop = 11, bc.edit = 1,
 
 \item{overwrite}{Overwrite the output directory. Default is \strong{FALSE}.}
 
-\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 2)}.}
+\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.}
 
 \item{verbose}{Print log messages. Useful for debugging. Default to \strong{FALSE}.}
 
