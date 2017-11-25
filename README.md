@@ -16,5 +16,4 @@ An introduction to `scruff` package is available within the package as a vignett
 ```
 vignette("scruff")
 ```
-Note: the vignette has not been updated and is out of date.
 
