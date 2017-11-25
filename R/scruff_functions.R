@@ -106,18 +106,18 @@ sink.reset <- function() {
 }
 
 
-get.alignment.file.dir <- function(fastq.dir, format, out.dir) {
-  filedir <- file.path(out.dir,
+get.alignment.file.paths <- function(fastq.paths, format, out.dir) {
+  file.paths <- file.path(out.dir,
                        paste0(
                          sub(
                            pattern = "(.*?)\\..*$",
                            replacement = "\\1",
-                           basename(fastq.dir)
+                           basename(fastq.paths)
                          ),
                          ".",
                          format
                        ))
-  return (filedir)
+  return (file.paths)
 }
 
 

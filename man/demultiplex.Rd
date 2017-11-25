@@ -20,7 +20,7 @@ demultiplex(fastq.annot, bc, bc.start = 6, bc.stop = 11, bc.edit = 1,
 
 \item{bc.stop}{Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).}
 
-\item{bc.edit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the predetermined barcode list.}
+\item{bc.edit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list.}
 
 \item{umi.start}{Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.}
 
