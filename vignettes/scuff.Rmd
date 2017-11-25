@@ -47,7 +47,7 @@ demultiplex.res <- demultiplex(
   bc.pos = c(6, 11),
   umi.pos = c(1, 5),
   keep = 50,
-  bc.qual = 10,
+  min.qual = 10,
   out.dir = "../Demultiplex",
   cores = 2,
   verbose = TRUE,
@@ -65,7 +65,7 @@ index <- "GRCh38_MT"
 
 library(data.table)
 # write reference sequence to "./Homo_sapiens.GRCh38.dna.chromosome.MT.fa".
-fwrite(GRCh38_MT, ref, quote = FALSE, sep = "\t")
+write.table(GRCh38_MT, ref, quote = FALSE, sep = "\t",row.names = FALSE,col.names=FALSE)
 
 # NOTE: Rsubread package does not support Windows environment.
 library(Rsubread)
