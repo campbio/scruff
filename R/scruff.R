@@ -1,6 +1,6 @@
-#' Run scuff pipeline
+#' Run scruff pipeline
 #' 
-#' Run the \code{scuff} pipeline including \code{demultiplex}, \code{align.rsubread}, and \code{count.umi}. Write expression table in output directory.
+#' Run the \code{scruff} pipeline including \code{demultiplex}, \code{align.rsubread}, and \code{count.umi}. Write expression table in output directory.
 #' 
 #' @param fastq.annot Can be in one of the following formats: \enumerate{
 #'   \item An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
@@ -25,7 +25,7 @@
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 1)}.
 #' @param threads Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}.
 #' @export
-scuff <- function(fastq.annot,
+scruff <- function(fastq.annot,
                   bc,
                   index,
                   features,
@@ -46,7 +46,7 @@ scuff <- function(fastq.annot,
                   cores = max(1, parallel::detectCores() - 1),
                   threads = 1) {
   # run pipeline
-  message(paste(Sys.time(), "Start running scuff ..."))
+  message(paste(Sys.time(), "Start running scruff ..."))
   message(match.call(expand.dots = TRUE))
   
   dem <- demultiplex(
@@ -90,7 +90,7 @@ scuff <- function(fastq.annot,
     logfile.prefix = logfile.prefix
   )
   
-  message(paste(Sys.time(), "Finished running scuff ..."))
+  message(paste(Sys.time(), "Finished running scruff ..."))
   
   return (expr)
 }
