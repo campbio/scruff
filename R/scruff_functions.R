@@ -282,7 +282,7 @@ get.gene.annot <- function(co,
 #' @param biomart.annot.dt Gene information table generated from running \code{biomaRt} query on gene IDs. Must contain \emph{ensembl_gene_id} and \emph{gene_biotype}.
 #' @return QC metrics table
 #' @export
-collect.qc <- function(de, al, co, biomart.annot.dt = NA) {
+collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   de <- data.table::copy(data.table::data.table(de))
   al <- data.table::copy(data.table::data.table(al))
   al <- data.table::copy(data.table::data.table(al))

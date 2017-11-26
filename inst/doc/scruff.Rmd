@@ -177,15 +177,15 @@ biomart.result <- data.table::data.table(biomart.result[
 
 ## Visualization of QC metrics
 
-In order to plots data quality, a QC metrics table needs to be generated. `collect.qc` function collects and summarizes data quality information from results from previous steps and returns a QC metrics table for plotting purpose.
+In order to plots data quality, a QC metrics table needs to be generated. `collectqc` function collects and summarizes data quality information from results from previous steps and returns a QC metrics table for plotting purpose.
 
 ```{r eval = FALSE}
-qc <- collect.qc(demultiplex.res, align.res, expr, biomart.result)
+qc <- collectqc(demultiplex.res, align.res, expr, biomart.result)
 ```
 
-QC metrics can be visualized by running `plot.qc` function.
+QC metrics can be visualized by running `qcplot` function.
 
 ```{r warning = FALSE, message = FALSE}
-plot.qc(qc)
+qcplot(qc)
 ```
 

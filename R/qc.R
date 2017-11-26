@@ -6,7 +6,7 @@
 #' @param qc.dt An QC metrics table returnd from \code{collect.qc} function.
 #' @return A list of \code{grobs} objects
 #' @export
-plot.qc <- function(qc.dt) {
+qcplot <- function(qc.dt) {
   g1 <- plot.reads.assignment(qc.dt)
   g2 <- plot.total.reads(qc.dt)
   g3 <- plot.reads.mapped.to.genome(qc.dt)
