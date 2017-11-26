@@ -4,15 +4,15 @@
 \alias{align.rsubread}
 \title{A wrapper to \code{Rsubread} read alignment}
 \usage{
-align.rsubread(fastq.dir, index, format = "BAM", out.dir = "../Alignment",
+align.rsubread(fastq.paths, index, format = "BAM", out.dir = "../Alignment",
   cores = max(1, parallel::detectCores()/2), threads = 1,
   summary.prefix = "alignment", overwrite = FALSE, verbose = FALSE,
   logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
-\item{fastq.dir}{A vcector containing directories to input fastq files.}
+\item{fastq.paths}{A vcector containing the paths to input fastq files.}
 
-\item{index}{Directory to the \code{Rsubread} index of reference sequences. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
+\item{index}{Path to the \code{Rsubread} index of reference sequences. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
 
 \item{format}{Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 
@@ -31,7 +31,7 @@ align.rsubread(fastq.dir, index, format = "BAM", out.dir = "../Alignment",
 \item{logfile.prefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 }
 \value{
-A character vector of the directories to output alignment files.
+A character vector of the paths to output alignment files.
 }
 \description{
 Align cell specific reads to reference genome and write sequence alignment results to output directory. A wrapper to the \code{align} function in \code{Rsubread} package. For details please refer to \code{Rsubread} manual.

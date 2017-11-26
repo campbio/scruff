@@ -10,9 +10,9 @@ count.umi(alignment, features, format = "BAM", out.dir = "../Count",
   "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
-\item{alignment}{A character vector of the directories to input alignment files.}
+\item{alignment}{A character vector of the paths to input alignment files.}
 
-\item{features}{Directory to the gtf reference file. For generation of TxDb objects from gtf files, please refer to \code{makeTxDbFromGFF} function in \code{GenomicFeatures} package.}
+\item{features}{Path to the gtf reference file. For generation of TxDb objects from gtf files, please refer to \code{makeTxDbFromGFF} function in \code{GenomicFeatures} package.}
 
 \item{format}{Format of input sequence alignment files. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 

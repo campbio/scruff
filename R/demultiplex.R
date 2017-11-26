@@ -6,7 +6,7 @@
 #' @param bc A vector of pre-determined cell barcodes. For example, see \code{?examplebc}.
 #' @param bc.start Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).
 #' @param bc.stop Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).
-#' @param bc.edit Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the predetermined barcode list.
+#' @param bc.edit Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list.
 #' @param umi.start Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.
 #' @param umi.stop Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.
 #' @param keep Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.
@@ -359,7 +359,7 @@ demultiplex.unit <- function(i,
       }
       
       summary.dt[!(is.na(cell_num)), 
-                 fastq_dir := file.path(out.dir, sample, filename)]
+                 fastq_path := file.path(out.dir, sample, filename)]
       
       undetermined.dt <- fqy.dt[!(bc_correct %in% barcode.dt[, barcode]), ]
       undetermined.fq.out.R1 <- ShortRead::ShortReadQ(

@@ -3,8 +3,8 @@
 #' 
 #' Count unique \emph{UMI:transcript} pairs for single cell RNA-sequencing alignment files. Write resulting table to output directory. Columns are samples (cells) and rows are transcript IDs.
 #' 
-#' @param alignment A character vector of the directories to input alignment files.
-#' @param features Directory to the gtf reference file. For generation of TxDb objects from gtf files, please refer to \code{makeTxDbFromGFF} function in \code{GenomicFeatures} package.
+#' @param alignment A character vector of the paths to input alignment files.
+#' @param features Path to the gtf reference file. For generation of TxDb objects from gtf files, please refer to \code{makeTxDbFromGFF} function in \code{GenomicFeatures} package.
 #' @param format Format of input sequence alignment files. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param out.dir Output directory for UMI counting results. Expression table will be stored in this directory. Default is \code{"../Count"}.
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.
