@@ -130,7 +130,7 @@ count.umi.unit <- function(i, features, format, logfile, verbose) {
                  " with appropriate number of cores."))
   }
   
-  # reads mapped to genome
+  # reads mapped to genome (exclude ERCC spike-in)
   reads.mapped.to.genome <- nrow(
     genome.reads[!grepl("ERCC", genome.reads[, seqnames]), .(name)])
 

@@ -288,7 +288,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   al <- data.table::copy(data.table::data.table(al))
   
   colnames(al)[c(1, 3)] <- c("bam_dir",
-                             "total_mapped_reads")
+                             "total_mapped_reads_incl_ercc")
   
   de[, cell := sub(pattern = "(.*?)\\..*$",
                  replacement = "\\1", filename)]
@@ -299,7 +299,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   
   qc.dt <- base::merge(de[,-"filename"],
                        al[, .(cell,
-                              total_mapped_reads)],
+                              total_mapped_reads_incl_ercc)],
                        all.x=TRUE)
   
   # get reads mapped to genome
