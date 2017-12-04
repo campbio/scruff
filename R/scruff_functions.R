@@ -285,7 +285,6 @@ get.gene.annot <- function(co,
 collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   de <- data.table::copy(data.table::data.table(de))
   al <- data.table::copy(data.table::data.table(al))
-  al <- data.table::copy(data.table::data.table(al))
   
   colnames(al)[c(1, 3)] <- c("bam_dir",
                              "total_mapped_reads_incl_ercc")
@@ -377,3 +376,5 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   
   return (qc.dt)
 }
+
+
