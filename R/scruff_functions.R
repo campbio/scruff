@@ -285,10 +285,9 @@ get.gene.annot <- function(co,
 collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   de <- data.table::copy(data.table::data.table(de))
   al <- data.table::copy(data.table::data.table(al))
-  al <- data.table::copy(data.table::data.table(al))
   
   colnames(al)[c(1, 3)] <- c("bam_dir",
-                             "total_mapped_reads")
+                             "total_mapped_reads_incl_ercc")
   
   de[, cell := sub(pattern = "(.*?)\\..*$",
                  replacement = "\\1", filename)]
@@ -299,7 +298,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   
   qc.dt <- base::merge(de[,-"filename"],
                        al[, .(cell,
-                              total_mapped_reads)],
+                              total_mapped_reads_incl_ercc)],
                        all.x=TRUE)
   
   # get reads mapped to genome
@@ -378,6 +377,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   return (qc.dt)
 }
 
+                       
 #' Visualize stepping levels
 #' 
 #' Calculate the stepping levels for single cell RNA-sequencing data.Visualize the data using ggplot2 and ggbio

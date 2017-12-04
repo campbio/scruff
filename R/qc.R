@@ -222,7 +222,7 @@ plot.gene.to.total.fraction <- function(qc.dt) {
                                                             height = 0),
                         size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of reads aligned to an gene out of tatal number of reads") +
+    ggplot2::ggtitle("Fraction of reads aligned to an gene out of total number of reads") +
     theme_Publication() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
                    axis.title.x = ggplot2::element_blank())
