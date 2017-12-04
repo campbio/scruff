@@ -397,5 +397,3 @@ stepping <- function(bamGA,chr,start,end){
   g+ ggplot2::theme(axis.text=element_text(size=12),
                     axis.title=element_text(size=14,face="bold"))
 }
-devtools::use_package("ggbio")
-devtools::document()
