@@ -3,8 +3,10 @@ title: "Process Single Cell RNA-Seq reads using _scruff_"
 author: "Zhe Wang"
 date: '`r Sys.Date()`'
 output: pdf_document
-vignette: |
-  %\VignetteIndexEntry{Process Single Cell RNA-Seq reads using _scruff_} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
+vignette: >
+  %\VignetteIndexEntry{Process Single Cell RNA-Seq reads using _scruff_}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 
