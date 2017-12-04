@@ -16,4 +16,11 @@ An introduction to `scruff` package is available within the package as a vignett
 ```
 vignette("scruff")
 ```
+## Example QC plots
+
+The following figures are generated using data from [Van den Brink et al. 2017](https://www.nature.com/articles/nmeth.4437).
+
+![Alt text](data-raw/figure/to/20171204_qc_reads_assigned_excl_bulk_Page_8.png?raw=true "Optional Title")
+
+
 
