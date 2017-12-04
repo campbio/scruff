@@ -382,18 +382,20 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
 #' 
 #' Calculate the stepping levels for single cell RNA-sequencing data.Visualize the data using ggplot2 and ggbio
 #' 
-#' @param A GenomicAlignment object load a toy "BAM" file
-#' @param Chromosome name or vector of the chromosome names need to check
-#' @param A integer of start position which need to check
-#' @param A integer of end position which need to check
+#' @param bamGA A GenomicAlignment object load a toy "BAM" file
+#' @param chr Chromosome name or vector of the chromosome names need to check
+#' @param start A integer of start position which need to check
+#' @param end A integer of end position which need to check
 #' @return A plot of stepping levels
 #' @import ggbio
 #' @export
 stepping <- function(bamGA,chr,start,end){
-  bamGA <- bamGA[start(bamGA) > start&end(bamGA)<end]
+  bamGA <- bamGA[BiocGenerics::start(bamGA) > start&BiocGenerics::end(bamGA)<end]
   a <- GenomicRanges::GRanges(bamGA)
   gr <- a[seqnames(a) == chr]
   g = ggplot2::ggplot(gr) + ggbio::stat_stepping(xlab = "segment",ylab = "stepping")
   g+ ggplot2::theme(axis.text=element_text(size=12),
                     axis.title=element_text(size=14,face="bold"))
 }
+devtools::use_package("ggbio")
+devtools::document()
