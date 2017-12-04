@@ -319,7 +319,7 @@ demultiplex.unit <- function(i,
                                     barcode.dt[, barcode],
                                     bc.edit)]
       
-      # remove low quality and short reads
+      # remove low quality and short R1 reads
       
       #fqy.dt <- fqy.dt[min.phred1 >= min.qual & length1 >=
       #                   (max(umi.pos) - min(umi.pos) + 1) +
