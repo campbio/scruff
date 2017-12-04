@@ -90,7 +90,7 @@ plot.reads.assignment <- function(qc.dt) {
     ncol = 1, nrow = 2,
     top = grid::textGrob("Reads per cell"),
     left = grid::textGrob("Reads", rot = 90),
-    bottom = grid::textGrob("Cells in descending order")))
+    bottom = grid::textGrob("Cell indices in descending order")))
 }
 
 
