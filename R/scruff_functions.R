@@ -376,7 +376,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   
   return (qc.dt)
 }
-
+BiocGenerics::
 
 #' Visualize stepping levels
 #' 
@@ -390,9 +390,9 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
 #' @import ggbio
 #' @export
 stepping <- function(bamGA,chr,start,end){
-  bamGA <- bamGA[BiocGenerics::start(bamGA) > start & BiocGenerics::end(bamGA)<end]
+  bamGA <- bamGA[GenomicAlignments::start(bamGA) > start & GenomicAlignments::end(bamGA)<end]
   a <- GenomicRanges::GRanges(bamGA)
-  gr <- a[seqnames.db::seqnames(a) == chr]
+  gr <- a[GenomicRanges::seqnames(a) == chr]
   g = ggplot2::ggplot(gr) + ggbio::stat_stepping(xlab = "segment",ylab = "stepping")
   g+ ggplot2::theme(axis.text=ggplot2::element_text(size=12),
                     axis.title=ggplot2::element_text(size=14,face="bold"))
