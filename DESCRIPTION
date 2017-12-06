@@ -34,4 +34,6 @@ Imports: data.table,
     gridExtra,
     GenomeInfoDb,
     stats,
-    stringdist
+    stringdist,
+    ggbio,
+    GenomicRanges
