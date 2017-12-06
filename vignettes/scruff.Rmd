@@ -2,7 +2,7 @@
 title: "Process Single Cell RNA-Seq reads using _scruff_"
 author: "Zhe Wang"
 date: '`r Sys.Date()`'
-output: pdf_document
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Process Single Cell RNA-Seq reads using _scruff_}
   %\VignetteEngine{knitr::rmarkdown}
