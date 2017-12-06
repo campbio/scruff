@@ -376,7 +376,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   
   return (qc.dt)
 }
-BiocGenerics::
+
 
 #' Visualize stepping levels
 #' 
