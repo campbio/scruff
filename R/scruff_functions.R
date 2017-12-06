@@ -391,7 +391,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
 #' @export
 stepping <- function(bamGA, chr, start, end){
   bamGA <- bamGA[BiocGenerics::start(bamGA) > start & BiocGenerics::end(bamGA) < end]
-  a <- GenomicRanges::GRanges(bamGA)
+  a <- GenomicRanges::granges(bamGA)
   gr <- a[GenomeInfoDb::seqnames(a) == chr]
   g <- ggplot2::ggplot(gr) + ggbio::stat_stepping(xlab = "segment",ylab = "stepping")
   g+ ggplot2::theme(axis.text=ggplot2::element_text(size=12),
