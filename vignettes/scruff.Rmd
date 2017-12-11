@@ -20,10 +20,62 @@ vignette: >
 # For generation of these files, please refer to Stepwise Tutorial.
 
 library(scruff)
-expr <- scruff(exampleannot,
-              examplebc,
-              "GRCh38_MT",
-              "GRCh38_MT.gtf")
+
+# Export example fastq files
+dir.create("./scruff_example/examplefastq",
+           showWarnings = FALSE,
+           recursive = TRUE)
+setwd("./scruff_example")
+
+# write fastg.gz files to folder "examplefastq" in working directory
+for (i in seq_len(length(examplefastq))) {
+  ShortRead::writeFastq(examplefastq[[i]],
+             paste0("examplefastq/", names(examplefastq)[i]),
+             mode = "w")
+}
+
+# Build Rsubread alignment index
+fasta <- "GRCm38_MT.fa"
+index_prefix <- "GRCh38_MT"
+
+write.table(GRCm38_MT_fa,
+            fasta,
+            quote = FALSE,
+            sep = "\t",
+            row.names = FALSE,
+            col.names = TRUE)
+
+# NOTE: Rsubread package does not support Windows environment.
+library(Rsubread)
+# Create index files for GRCh38_MT. For details, please refer to Rsubread user manual.
+buildindex(
+  basename = index_prefix,
+  reference = fasta,
+  indexSplit = FALSE
+  )
+
+# Export example gene annotation file
+gtf <- "GRCm38_MT.gtf"
+write.table(GRCm38_MT_gtf,
+            gtf,
+            quote = FALSE,
+            sep = "\t",
+            row.names = FALSE,
+            col.names = FALSE)
+
+# Run scruff
+# Returns a list of demultiplex information, alignment information,
+# and expression tables
+result <- scruff(fastq.annot = exampleannot,
+               bc = examplebc,
+               index = index_prefix,
+               features = gtf,
+               bc.start = 1,
+               bc.stop = 8,
+               umi.start = 9,
+               umi.stop = 12,
+               keep = 75,
+               cores = 2)
 ```
 
 # Stepwise Tutorial
@@ -34,10 +86,16 @@ The `scruff` package contains a example single cell RNA-seq dataset `examplefast
 
 ```{r eval=FALSE}
 library(scruff)
+dir.create("./scruff_example/examplefastq",
+           showWarnings = FALSE,
+           recursive = TRUE)
+setwd("./scruff_example")
 
-# write fastg.gz files to working directory
+# write fastg.gz files to folder "examplefastq" in working directory
 for (i in seq_len(length(examplefastq))) {
-  writeFastq(examplefastq[[i]], names(examplefastq)[i], mode = "w")
+  ShortRead::writeFastq(examplefastq[[i]],
+             paste0("examplefastq/", names(examplefastq)[i]),
+             mode = "w")
 }
 ```
 
@@ -46,22 +104,19 @@ for (i in seq_len(length(examplefastq))) {
 Now the fastq files are saved in current working directory and are ready to be demultiplexed. `scruff` package provides built-in predetermined sample annotating table `exampleannot` and barcodes `examplebc` for demultiplexing the example dataset. In the example fastq files, the barcode sequence of each read starts at base 6 and ends at base 11. The UMI sequence starts at base 1 and ends at base 5. They can be set via `bc.start`, `bc.stop`, and `umi.start`, `umi.stop` parameters. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example fastq reads and trims reads longer than 50 nucleotides. The command returns a summary `data.table` containing the sample barcodes, filenames, number of reads, sample name, file paths, etc. By default, the cell specific demultiplexed fastq.gz files are stored in `../Demultiplex` folder.
 
 ```{r eval=FALSE}
-demultiplex.res <- demultiplex(
-  exampleannot,
-  examplebc,
-  bc.start = 6,
-  bc.stop = 11,
-  bc.edit = 1,
-  umi.start = 1,
-  umi.stop = 5,
-  keep = 50,
-  min.qual = 10,
-  yield.reads = 1e+06,
-  out.dir = "../Demultiplex",
-  cores = 2,
-  overwrite = TRUE,
-  verbose = TRUE
-  )
+de <- demultiplex(exampleannot,
+                  examplebc,
+                  bc.start = 1,
+                  bc.stop = 8,
+                  bc.edit = 1,
+                  umi.start = 9,
+                  umi.stop = 12,
+                  keep = 75,
+                  min.qual = 10,
+                  yield.reads = 1e+06,
+                  cores = 2,
+                  verbose = TRUE,
+                  overwrite = TRUE)
 ```
 
 ## Alignment
@@ -69,25 +124,24 @@ demultiplex.res <- demultiplex(
 `scruff` has a wrapper function `align.rsubread` which is a wrapper function to `align` in `Rsubread` package. It aligns the reads to reference sequence index and outputs sequence alignment map files. For demonstration purpose, the built-in mitochondrial DNA sequence from GRCh38 reference assembly `GRCh38_MT` will be used to map the reads. First, a `Rsubread` index for the reference sequence needs to be generated.
 
 ```{r eval=FALSE}
-ref <- "Homo_sapiens.GRCh38.dna.chromosome.MT.fa"
-index <- "GRCh38_MT"
+fasta <- "GRCm38_MT.fa"
+index_prefix <- "GRCh38_MT"
 
-# write reference sequence to "./Homo_sapiens.GRCh38.dna.chromosome.MT.fa".
-write.table(GRCh38_MT,
-            ref,
+# write reference sequence to "./GRCm38_MT.fa".
+write.table(GRCm38_MT_fa,
+            fasta,
             quote = FALSE,
             sep = "\t",
             row.names = FALSE,
-            col.names=FALSE)
+            col.names = TRUE)
 
 # NOTE: Rsubread package does not support Windows environment.
 library(Rsubread)
 # Create index files for GRCh38_MT. For details, please refer to Rsubread user manual.
 buildindex(
-  basename = index,
-  reference = ref,
-  indexSplit = FALSE,
-  memory = 16000
+  basename = index_prefix,
+  reference = fasta,
+  indexSplit = FALSE
   )
 ```
 
@@ -95,15 +149,14 @@ The following command maps the fastq files to GRCh38 mitochondrial reference seq
 
 ```{r eval=FALSE}
 # get the paths to demultiplexed fastq.gz files
-fastq.paths <- demultiplex.res[!(is.na(cell_num)), fastq_path]
+fastq.paths <- de[!(is.na(cell_num)), fastq_path]
 
 # map the reads
-align.res <- align.rsubread(
+al <- align.rsubread(
   fastq.paths,
-  index,
+  index_prefix,
   format = "BAM",
-  out.dir = "../Alignment",
-  cores = 4,
+  cores = 2,
   overwrite = TRUE,
   verbose = TRUE
   )
@@ -115,19 +168,18 @@ Example GTF file `GRCh38_MT_gtf` will be used for feature counting. Currently, `
 
 ```{r eval=FALSE}
 # first write example GTF file to working directory
-gtf.file <- "GRCh38_MT.gtf"
-write.table(GRCh38_MT_gtf,
-            gtf.file,
+gtf <- "GRCm38_MT.gtf"
+write.table(GRCm38_MT_gtf,
+            gtf,
             quote = FALSE,
             sep = "\t",
             row.names = FALSE,
             col.names = FALSE)
 
-expr = count.umi(
-  align.res$Samples,
-  gtf.file,
+co = count.umi(
+  al$Samples,
+  gtf,
   format = "BAM",
-  out.dir = "../Count",
   cores = 2,
   verbose = TRUE
   )
@@ -135,26 +187,25 @@ expr = count.umi(
 
 ## Collect gene annotation information from Biomart
 
-Gene annotation information is needed before visualization of the data quality. In this tutorial, Ensembl Biomart database is used for the query and collection of gene annotation information. The following codes retrieve human gene names, biotypes, and chromosome names from latest version of biomart database.
+Gene annotation information is needed before the visualization of data quality. In this tutorial, Ensembl Biomart database is used for the query and collection of gene annotation information. The following codes retrieve mouse gene names, biotypes, and chromosome names from latest version of biomart database.
 
 ```{r eval=FALSE}
 # get gene names, biotypes, and chromosome names from biomart
 host = "www.ensembl.org"
 biomart = "ENSEMBL_MART_ENSEMBL"
-dataset = "hsapiens_gene_ensembl"
-GRCh = NULL
+#dataset = "hsapiens_gene_ensembl"
+dataset = "mmusculus_gene_ensembl"
 
 # get gene IDs
 # exclude ERCC spike-ins and last two rows in expression table 
-geneID <- expr[!(gene.id %in% c("reads_mapped_to_genome",
+geneID <- co[!(gene.id %in% c("reads_mapped_to_genome",
                                "reads_mapped_to_genes")) &
-                !grepl("ERCC", expr[,gene.id]), gene.id]
+                !grepl("ERCC", co[,gene.id]), gene.id]
 
 # Get feature annotation data
 ensembl <- biomaRt::useEnsembl(biomart = biomart,
                                dataset = dataset,
-                               host = host,
-                               GRCh = GRCh)
+                               host = host)
 
 biomart.result <- data.table::data.table(biomaRt::getBM(
   attributes = c("ensembl_gene_id", "external_gene_name",
@@ -170,9 +221,9 @@ biomart.result <- biomart.result[!base::duplicated(biomart.result,
 # Reorder/insert rows so that rows of Biomart query result match 
 # rows of the expression matrix
 biomart.result <- data.table::data.table(biomart.result[
-  match(expr[!(gene.id %in% c("reads_mapped_to_genome",
+  match(co[!(gene.id %in% c("reads_mapped_to_genome",
                             "reads_mapped_to_genes")) &
-             !grepl("ERCC", expr[, gene.id]), gene.id],
+             !grepl("ERCC", co[, gene.id]), gene.id],
         biomart.result$ensembl_gene_id),])
 
 ```
@@ -182,12 +233,12 @@ biomart.result <- data.table::data.table(biomart.result[
 In order to plots data quality, a QC metrics table needs to be generated. `collectqc` function collects and summarizes data quality information from results from previous steps and returns a QC metrics table for plotting purpose.
 
 ```{r eval = FALSE}
-qc <- collectqc(demultiplex.res, align.res, expr, biomart.result)
+qc <- collectqc(de, al, co, biomart.result)
 ```
 
 QC metrics can be visualized by running `qcplot` function.
 
-```{r warning = FALSE, message = FALSE}
+```{r eval = FALSE, warning = FALSE, message = FALSE}
 qcplot(qc)
 ```
 

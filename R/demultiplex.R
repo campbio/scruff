@@ -23,15 +23,15 @@
 #' @export
 demultiplex <- function(fastq.annot,
                         bc,
-                        bc.start = 6,
-                        bc.stop = 11,
+                        bc.start,
+                        bc.stop,
                         bc.edit = 1,
-                        umi.start = 1,
-                        umi.stop = 5,
+                        umi.start,
+                        umi.stop,
                         keep = 50,
                         min.qual = 10,
                         yield.reads = 1e6,
-                        out.dir = "../Demultiplex",
+                        out.dir = "./Demultiplex",
                         summary.prefix = "demultiplex",
                         overwrite = FALSE,
                         cores = max(1, parallel::detectCores() / 2),
@@ -336,6 +336,14 @@ demultiplex.unit <- function(i,
         cell.barcode <- barcode.dt[cell_num == k, barcode]
         cfq.dt <- fqy.dt[bc_correct == cell.barcode, ]
         
+        dir.create(file.path(out.dir, i),
+                   recursive = TRUE,
+                   showWarnings = FALSE)
+        # project_sample_"cell"_cellnum.fastq.gz
+        out.fname <- summary.dt[cell_num == k, filename]
+        out.full <- file.path(out.dir, i, out.fname)
+        file.create(out.full, showWarnings = FALSE)
+        
         # if barcode exists in fastq reads
         if (nrow(cfq.dt) != 0) {
           fq.out <- ShortRead::ShortReadQ(
@@ -344,16 +352,8 @@ demultiplex.unit <- function(i,
             id = Biostrings::BStringSet(cfq.dt[, paste0(rname2, ":UMI:",
                                                         umi, ":")])
           )
-          # project_sample_"cell"_cellnum.fastq.gz
-          out.fname <- summary.dt[cell_num == k, filename]
-          dir.create(file.path(out.dir, i), recursive = TRUE,
-                     showWarnings = FALSE)
-          out.full <- file.path(out.dir, i, out.fname)
-          if (file.exists(out.full)) {
-            ShortRead::writeFastq(fq.out, out.full, mode = "a")
-          } else {
-            ShortRead::writeFastq(fq.out, out.full, mode = "w")
-          }
+          # write reads to output file
+          ShortRead::writeFastq(fq.out, out.full, mode = "a")
         }
         summary.dt[barcode == cell.barcode, reads := reads + nrow(cfq.dt)]
       }
@@ -378,23 +378,14 @@ demultiplex.unit <- function(i,
       out.full.undetermined.R2 <- file.path(out.dir,
                                             i,
                                             "Undetermined_R2.fastq.gz")
-      if (file.exists(out.full.undetermined.R1)) {
-        ShortRead::writeFastq(undetermined.fq.out.R1,
-                              out.full.undetermined.R1, mode = "a")
-      }
-      else {
-        ShortRead::writeFastq(undetermined.fq.out.R1,
-                              out.full.undetermined.R1, mode = "w")
-      }
+      file.create(out.full.undetermined.R1, showWarnings = FALSE)
+      file.create(out.full.undetermined.R2, showWarnings = FALSE)
+      ShortRead::writeFastq(undetermined.fq.out.R1,
+                            out.full.undetermined.R1, mode = "a")
       
-      if (file.exists(out.full.undetermined.R2)) {
-        ShortRead::writeFastq(undetermined.fq.out.R2,
-                              out.full.undetermined.R2, mode = "a")
-      }
-      else {
-        ShortRead::writeFastq(undetermined.fq.out.R2,
-                              out.full.undetermined.R2, mode = "w")
-      }
+      ShortRead::writeFastq(undetermined.fq.out.R2,
+                            out.full.undetermined.R2, mode = "a")
+      
       summary.dt[filename == "undetermined",
                  reads := reads + nrow(undetermined.dt)]
       log.messages(

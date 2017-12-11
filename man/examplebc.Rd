@@ -3,12 +3,12 @@
 \docType{data}
 \name{examplebc}
 \alias{examplebc}
-\title{Example barcodes.}
-\format{A vector of barcode sequences.}
+\title{Example barcodes table.}
+\format{A vector of barcode sequences. In the example dataset (van den Brink, et al.), cell barcodes are of length 8.}
 \usage{
 examplebc
 }
 \description{
-96 barcodes for demultiplexing example fastq files.
+A \code{data.table} object containing 96 barcodes for demultiplexing example fastq files.
 }
 \keyword{datasets}

@@ -108,15 +108,15 @@ sink.reset <- function() {
 
 get.alignment.file.paths <- function(fastq.paths, format, out.dir) {
   file.paths <- file.path(out.dir,
-                       paste0(
-                         sub(
-                           pattern = "(.*?)\\..*$",
-                           replacement = "\\1",
-                           basename(fastq.paths)
-                         ),
-                         ".",
-                         format
-                       ))
+                          paste0(
+                            sub(
+                              pattern = "(.*?)\\..*$",
+                              replacement = "\\1",
+                              basename(fastq.paths)
+                            ),
+                            ".",
+                            format
+                          ))
   return (file.paths)
 }
 
@@ -290,7 +290,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
                              "total_mapped_reads_incl_ercc")
   
   de[, cell := sub(pattern = "(.*?)\\..*$",
-                 replacement = "\\1", filename)]
+                   replacement = "\\1", filename)]
   al[, cell := remove.last.extension(basename(bam_dir))]
   
   data.table::setkey(de, cell)
@@ -326,7 +326,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   if (!all(is.na(biomart.annot.dt))) {
     mt.transcript <- base::colSums(co[gene.id %in% 
                                         biomart.annot.dt[chromosome_name == "MT",
-                                                          ensembl_gene_id],
+                                                         ensembl_gene_id],
                                       -"gene.id"])
     mt.transcript <- data.table::data.table(
       cell = names(mt.transcript),
@@ -354,7 +354,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   # protein coding genes
   if (!all(is.na(biomart.annot.dt))) {
     pro.coding.gene <- biomart.annot.dt[gene_biotype == "protein_coding",
-                                         ensembl_gene_id]
+                                        ensembl_gene_id]
     pro.gene <- sapply(cells, function(cells) nrow(
       co[gene.id %in% pro.coding.gene &
            eval(parse(text = paste0("`", cells, "`"))) != 0,
@@ -377,7 +377,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   return (qc.dt)
 }
 
-  
+
 #' Visualize stepping levels
 #' 
 #' Calculate the stepping levels for single cell RNA-sequencing data.Visualize the data using ggplot2 and ggbio
@@ -387,7 +387,6 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
 #' @param start A integer of start position which need to check
 #' @param end A integer of end position which need to check
 #' @return A plot of stepping levels
-#' @import ggbio
 #' @export
 stepping <- function(bamGA, chr, start, end){
   bamGA <- bamGA[BiocGenerics::start(bamGA) > start & BiocGenerics::end(bamGA) < end]

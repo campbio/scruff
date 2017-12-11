@@ -17,7 +17,7 @@
 count.umi <- function(alignment,
                       features,
                       format = "BAM",
-                      out.dir = "../Count",
+                      out.dir = "./Count",
                       cores = max(1, parallel::detectCores() / 2),
                       output.prefix = "countUMI",
                       verbose = FALSE,
@@ -113,6 +113,20 @@ count.umi.unit <- function(i, features, format, logfile, verbose) {
                  i,
                  logfile = logfile,
                  append = TRUE)
+  }
+  
+  # if sequence alignment file is empty
+  if (file.size(i) == 0) {
+    count.umi.dt <- data.table::data.table(gene.id = c(names(features),
+                                      "reads_mapped_to_genome",
+                                      "reads_mapped_to_genes"))
+    cell <- remove.last.extension(i)
+    count.umi.dt[[cell]] <- 0
+    
+    return (data.frame(count.umi.dt,
+               row.names = 1,
+               check.names = FALSE,
+               fix.empty.names = FALSE))
   }
 
   bfl <- Rsamtools::BamFile(i)

@@ -4,7 +4,7 @@
 \alias{align.rsubread}
 \title{A wrapper to \code{Rsubread} read alignment}
 \usage{
-align.rsubread(fastq.paths, index, format = "BAM", out.dir = "../Alignment",
+align.rsubread(fastq.paths, index, format = "BAM", out.dir = "./Alignment",
   cores = max(1, parallel::detectCores()/2), threads = 1,
   summary.prefix = "alignment", overwrite = FALSE, verbose = FALSE,
   logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
