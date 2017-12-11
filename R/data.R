@@ -1,39 +1,37 @@
-#' Example barcodes.
+#' Example barcodes table.
 #'
-#' 96 barcodes for demultiplexing example fastq files.
+#' A \code{data.table} object containing 96 barcodes for demultiplexing example fastq files.
 #'
-#' @format A vector of barcode sequences.
+#' @format A vector of barcode sequences. In the example dataset (van den Brink, et al.), cell barcodes are of length 8.
 "examplebc"
 
 #' Example fastq \code{ShortReadQ} objects
 #'
-#' A list of \code{ShortReadQ} objects of example fastq reads. Contains R1 and R2 reads
-#' from Example_01 and R1 and R2 reads from Example_02. Read library is generated
-#' using CEL-SEQ2 protocol.
+#' A list of \code{ShortReadQ} objects of example fastq reads (van den Brink, et al.). Contains read 1 (R1, UMI + cell barcodes) and read 2 (R2, genomic sequence) reads. Read library was generated using CEL-SEQ protocol.
 #'
-#' @format A list of 4 \code{ShortReadQ} \code{S4} objects.
+#' @format A list of 4 \code{ShortReadQ} \code{S4} objects each containing 20,000 reads.
 "examplefastq"
 
 #' Example annotation table
 #' 
-#' A \code{data.table} object of the annotation table for example data. 
+#' A \code{data.table} object of the annotation table for example data.
 #' 
 #' @format A \code{data.table} with 5 columns:
 #' \describe{
 #' \item{\code{project}}{Project name}
 #' \item{\code{sample}}{Sample name}
-#' \item{\code{lane}}{Flow cell lane number}
+#' \item{\code{lane}}{Flow cell lane number. If fastq files from multiple lanes are concatenated after sequencing, any placeholder would be sufficient, e.g. "L001".}
 #' \item{\code{read1_path}}{Path to read1 fastq file}
 #' \item{\code{read2_path}}{Path to read2 fastq file}
 #' }
 "exampleannot"
 
-#' GRCh38 mitochondrial dna fasta sequence
+#' GRCm38 mitochondrial dna fasta sequence
 #'
-#' An vector containing GRCh38 chrMT fasta sequence.
-"GRCh38_MT"
+#' An \code{data.table} containing GRCm38 mitochondrial (MT) DNA sequence.
+"GRCm38_MT_fa"
 
-#' GRCh38 mitochondrial gtf file
+#' GRCm38 mitochondrial gtf file
 #' 
-#' A \code{data.table} object of GRCh38 mitochondrial gtf file.
-"GRCh38_MT_gtf"
+#' A \code{data.table} object of GRCm38 mitochondrial gtf file.
+"GRCm38_MT_gtf"

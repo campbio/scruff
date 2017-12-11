@@ -4,12 +4,12 @@
 \alias{demultiplex}
 \title{Demultiplex cell barcodes and assign cell specific reads}
 \usage{
-demultiplex(fastq.annot, bc, bc.start = 6, bc.stop = 11, bc.edit = 1,
-  umi.start = 1, umi.stop = 5, keep = 50, min.qual = 10,
-  yield.reads = 1e+06, out.dir = "../Demultiplex",
-  summary.prefix = "demultiplex", overwrite = FALSE, cores = max(1,
-  parallel::detectCores()/2), verbose = FALSE,
-  logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
+demultiplex(fastq.annot, bc, bc.start, bc.stop, bc.edit = 1, umi.start,
+  umi.stop, keep = 50, min.qual = 10, yield.reads = 1e+06,
+  out.dir = "./Demultiplex", summary.prefix = "demultiplex",
+  overwrite = FALSE, cores = max(1, parallel::detectCores()/2),
+  verbose = FALSE, logfile.prefix = format(Sys.time(),
+  "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
 \item{fastq.annot}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.}

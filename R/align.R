@@ -18,7 +18,7 @@
 align.rsubread <- function(fastq.paths,
                            index,
                            format = "BAM",
-                           out.dir = "../Alignment",
+                           out.dir = "./Alignment",
                            cores = max(1, parallel::detectCores() / 2),
                            threads = 1,
                            summary.prefix = "alignment",
@@ -79,7 +79,7 @@ align.rsubread <- function(fastq.paths,
     .combine = c,
     .multicombine = TRUE,
     .packages = c("Rsubread")
-  ) %dopar%    {
+  ) %dopar% {
     if (verbose) {
       align.rsubread.unit(i, index, format, out.dir, threads, logfile)
     } else {
@@ -96,9 +96,9 @@ align.rsubread <- function(fastq.paths,
     .packages = c("Rsubread")
   ) %dopar% {
     if (verbose) {
-      Rsubread::propmapped(i)
+      propmapped_wrapper(i)
     } else {
-      suppressMessages(Rsubread::propmapped(i))
+      suppressMessages(propmapped_wrapper(i))
     }
   }
   
@@ -131,19 +131,36 @@ align.rsubread <- function(fastq.paths,
 
 
 align.rsubread.unit <- function(i, index, format, out.dir, threads, logfile) {
-  log.messages(Sys.time(),
-               "... mapping sample",
-               i,
-               logfile = logfile,
-               append = TRUE)
   file.path <- get.alignment.file.paths(i, format, out.dir)
-  Rsubread::align(
-    index = index,
-    readfile1 = i,
-    nthreads = threads,
-    output_format = format,
-    output_file = file.path
-  )
-  return (file.path)
+  
+  if (file.size(i) == 0) {
+    file.create(file.path, showWarnings = FALSE)
+    return (file.path)
+  } else {
+    log.messages(Sys.time(),
+                 "... mapping sample",
+                 i,
+                 logfile = logfile,
+                 append = TRUE)
+    
+    Rsubread::align(
+      index = index,
+      readfile1 = i,
+      nthreads = threads,
+      output_format = format,
+      output_file = file.path
+    )
+    return (file.path)
+  }
 }
 
+
+propmapped_wrapper <- function(i) {
+  if (file.size(i) == 0)
+    return (data.frame(Samples = i,
+                       NumTotal = 0,
+                       NumMapped = 0,
+                       PropMapped = NA))
+  else
+    return (Rsubread::propmapped(i))
+}

@@ -4,13 +4,11 @@
 \name{examplefastq}
 \alias{examplefastq}
 \title{Example fastq \code{ShortReadQ} objects}
-\format{A list of 4 \code{ShortReadQ} \code{S4} objects.}
+\format{A list of 4 \code{ShortReadQ} \code{S4} objects each containing 20,000 reads.}
 \usage{
 examplefastq
 }
 \description{
-A list of \code{ShortReadQ} objects of example fastq reads. Contains R1 and R2 reads
-from Example_01 and R1 and R2 reads from Example_02. Read library is generated
-using CEL-SEQ2 protocol.
+A list of \code{ShortReadQ} objects of example fastq reads (van den Brink, et al.). Contains read 1 (R1, UMI + cell barcodes) and read 2 (R2, genomic sequence) reads. Read library was generated using CEL-SEQ protocol.
 }
 \keyword{datasets}

@@ -8,7 +8,7 @@
 \describe{
 \item{\code{project}}{Project name}
 \item{\code{sample}}{Sample name}
-\item{\code{lane}}{Flow cell lane number}
+\item{\code{lane}}{Flow cell lane number. If fastq files from multiple lanes are concatenated after sequencing, any placeholder would be sufficient, e.g. "L001".}
 \item{\code{read1_path}}{Path to read1 fastq file}
 \item{\code{read2_path}}{Path to read2 fastq file}
 }}

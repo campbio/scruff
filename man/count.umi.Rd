@@ -4,7 +4,7 @@
 \alias{count.umi}
 \title{Count the number of UMIs for each transcript and output expression matrix}
 \usage{
-count.umi(alignment, features, format = "BAM", out.dir = "../Count",
+count.umi(alignment, features, format = "BAM", out.dir = "./Count",
   cores = max(1, parallel::detectCores()/2), output.prefix = "countUMI",
   verbose = FALSE, logfile.prefix = format(Sys.time(),
   "\%Y\%m\%d_\%H\%M\%S"))
