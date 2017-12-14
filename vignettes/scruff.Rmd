@@ -10,7 +10,7 @@ vignette: >
 ---
 
 
-`scruff` is a toolkit for processing single cell RNA-seq fastq reads. It does demultiplexing, alignment, Unique Molecular Identifier (UMI) correction, and transcript counting in an automated fashion and outputs expression table. This vignette provides a brief introduction to the `scruff` package by walking through the demultiplexing, alignment, and UMI-counting of a built-in example dataset. 
+`scruff` is a toolkit for processing single cell RNA-seq fastq reads. It does demultiplexing, alignment, Unique Molecular Identifier (UMI) correction, and transcript counting in an automated fashion and outputs expression table. This vignette provides a brief introduction to the `scruff` package by walking through the demultiplexing, alignment, and UMI-counting of a built-in publicly available example dataset (\emph{van den Brink, et al. 2017}).
 
 # Quick Start
 

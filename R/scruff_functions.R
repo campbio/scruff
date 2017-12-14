@@ -387,6 +387,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
 #' @param start A integer of start position which need to check
 #' @param end A integer of end position which need to check
 #' @return A plot of stepping levels
+#' @import ggbio
 #' @export
 stepping <- function(bamGA, chr, start, end){
   bamGA <- bamGA[BiocGenerics::start(bamGA) > start & BiocGenerics::end(bamGA) < end]

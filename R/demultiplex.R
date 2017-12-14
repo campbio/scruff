@@ -29,7 +29,7 @@ demultiplex <- function(fastq.annot,
                         umi.start,
                         umi.stop,
                         keep = 50,
-                        min.qual = 10,
+                        min.qual = 27,
                         yield.reads = 1e6,
                         out.dir = "./Demultiplex",
                         summary.prefix = "demultiplex",
@@ -314,11 +314,6 @@ demultiplex.unit <- function(i,
         barcode = bc.seq
       )
       
-      fqy.dt[, bc_correct := sapply(barcode,
-                                    bc.correct.mem,
-                                    barcode.dt[, barcode],
-                                    bc.edit)]
-      
       # remove low quality and short R1 reads
       
       #fqy.dt <- fqy.dt[min.phred1 >= min.qual & length1 >=
@@ -328,6 +323,16 @@ demultiplex.unit <- function(i,
       fqy.dt <- fqy.dt[min.phred1 >= min.qual &
                          length1 >= sum(bc.stop - bc.start) + length(bc.start) +
                          sum(umi.stop - umi.start) + length(umi.start), ]
+      
+      if (bc.edit > 0) {
+        # cell barcode correction
+        fqy.dt[, bc_correct := sapply(barcode,
+                                      bc.correct.mem,
+                                      barcode.dt[, barcode],
+                                      bc.edit)]
+      } else {
+        fqy.dt[, bc_correct := barcode]
+      }
       
       summary.dt[filename == "low_quality",
                  reads := reads + length(fqy1) - nrow(fqy.dt)]
