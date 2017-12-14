@@ -5,7 +5,7 @@
 \title{Demultiplex cell barcodes and assign cell specific reads}
 \usage{
 demultiplex(fastq.annot, bc, bc.start, bc.stop, bc.edit = 1, umi.start,
-  umi.stop, keep = 50, min.qual = 10, yield.reads = 1e+06,
+  umi.stop, keep = 50, min.qual = 27, yield.reads = 1e+06,
   out.dir = "./Demultiplex", summary.prefix = "demultiplex",
   overwrite = FALSE, cores = max(1, parallel::detectCores()/2),
   verbose = FALSE, logfile.prefix = format(Sys.time(),
@@ -28,7 +28,7 @@ demultiplex(fastq.annot, bc, bc.start, bc.stop, bc.edit = 1, umi.start,
 
 \item{keep}{Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.}
 
-\item{min.qual}{Minimally acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
+\item{min.qual}{Minimally acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{27}.}
 
 \item{yield.reads}{The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. Default is \strong{1e6}.}
 
