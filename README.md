@@ -7,7 +7,7 @@
 To install `scruff` using `devtools`:
 ```
 library(devtools)
-install_github("compbiomed/scruff")
+install_github("compbiomed/scruff", dependencies = TRUE)
 ```
 
 ## Package user guide
