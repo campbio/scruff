@@ -389,12 +389,17 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
 #' @return A plot of stepping levels
 #' @import ggbio
 #' @export
-stepping <- function(bamGA, chr, start, end){
-  bamGA <- bamGA[BiocGenerics::start(bamGA) > start & BiocGenerics::end(bamGA) < end]
-  a <- GenomicRanges::granges(bamGA)
-  gr <- a[GenomeInfoDb::seqnames(a) == chr]
-  g <- ggplot2::ggplot(gr) + ggbio::stat_stepping(xlab = "segment",ylab = "stepping")
-  g+ ggplot2::theme(axis.text=ggplot2::element_text(size=12),
-                    axis.title=ggplot2::element_text(size=14,face="bold"))
+stepping <- function(bamGA, chr = "1", start = 1, end = max(BiocGenerics::end(bamGA))){
+  bamGA <- bamGA[BiocGenerics::start(bamGA) > (start-1) & BiocGenerics::end(bamGA) < end + 1]
+  a <- GenomicRanges::GRanges(bamGA)
+  gr <- a[seqnames(a) == chr]
+  name <- names(gr)
+  name <- data.table::last(data.table::tstrsplit(name, ":"))
+  mcols(gr)$umi <- name
+  #g = ggplot2::ggplot(gr) + ggbio::stat_stepping(xlab = "segment",ylab = "stepping",
+  #aes(color = umi, fill = umi))
+  g = ggplot2::ggplot(gr) + ggbio::geom_arrow(aes(color = umi))
+  g + ggplot2::theme(axis.text=element_text(size=12),
+             axis.title=element_text(size=14,face="bold"))
 }
 
