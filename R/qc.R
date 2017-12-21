@@ -64,6 +64,9 @@ theme_Publication <- function(base_size=12, base_family="sans") {
 }
 
 
+# cumulative fraction of reads per cell
+
+
 # assigned reads
 plot.reads.assignment <- function(qc.dt) {
   
