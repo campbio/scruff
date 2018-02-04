@@ -155,31 +155,6 @@ gtf.db.read <- function(gtf.file, logfile) {
 }
 
 
-# correct barcode mismatch 
-# implements memoization (closure)
-# deprecated
-bc.correct.fast <- function() {
-  res <- list()
-  mem.bc.correct <- function(bc, ref.barcodes, max.edit.dist) {
-    if (bc %in% names(res))
-      return (res[[bc]])
-    
-    sdm <- stringdist::stringdistmatrix(bc, ref.barcodes)
-    min.dist <- min(sdm)
-    if (min.dist <= max.edit.dist) {
-      ind <- which(sdm == min.dist)
-      if (length(ind) == 1) {
-        res[[bc]] <<- ref.barcodes[ind]
-        return (res[[bc]])
-      }
-    }
-    res[[bc]] <<- bc
-    return (res[[bc]])
-  }
-  return (mem.bc.correct)
-}
-
-
 # correct barcode mismatch using memoization
 bc.correct.mem <- local({
   res <- list()
@@ -187,7 +162,15 @@ bc.correct.mem <- local({
   f <- function(bc, ref.barcodes, max.edit.dist) {
     if (bc %in% names(res))
       return (res[[bc]])
-    sdm <- stringdist::stringdistmatrix(bc, ref.barcodes)
+    if (bc %in% ref.barcodes) {
+      res[[bc]] <<- bc
+      return (res[[bc]])
+    }
+    
+    sdm <- stringdist::stringdistmatrix(bc,
+                                        ref.barcodes,
+                                        method = "hamming",
+                                        nthread = 1)
     min.dist <- min(sdm)
     if (min.dist <= max.edit.dist) {
       ind <- which(sdm == min.dist)
@@ -389,12 +372,25 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
 #' @return A plot of stepping levels
 #' @import ggbio
 #' @export
-stepping <- function(bamGA, chr, start, end){
-  bamGA <- bamGA[BiocGenerics::start(bamGA) > start & BiocGenerics::end(bamGA) < end]
-  a <- GenomicRanges::granges(bamGA)
+stepping <- function(bamGA,
+                     chr = "1",
+                     start = 1,
+                     end = max(BiocGenerics::end(bamGA))) {
+  
+  bamGA <- bamGA[BiocGenerics::start(bamGA) > (start-1) &
+                   BiocGenerics::end(bamGA) < end + 1]
+  a <- GenomicRanges::GRanges(bamGA)
   gr <- a[GenomeInfoDb::seqnames(a) == chr]
-  g <- ggplot2::ggplot(gr) + ggbio::stat_stepping(xlab = "segment",ylab = "stepping")
-  g+ ggplot2::theme(axis.text=ggplot2::element_text(size=12),
-                    axis.title=ggplot2::element_text(size=14,face="bold"))
+  name <- names(gr)
+  name <- data.table::last(data.table::tstrsplit(name, ":"))
+  S4Vectors::mcols(gr)$umi <- name
+  #g = ggplot2::ggplot(gr) + ggbio::stat_stepping(xlab = "segment",
+  #ylab = "stepping",
+  #aes(color = umi, fill = umi))
+  g = ggplot2::ggplot(gr) + ggbio::geom_arrow(ggplot2::aes(color = umi))
+  g + ggplot2::theme(axis.text = ggplot2::element_text(size = 12),
+                     axis.title = ggplot2::element_text(size = 14,
+                                                        face = "bold"))
+  return (g)
 }
 

@@ -18,7 +18,7 @@
 #' 
 #' @format A \code{data.table} with 5 columns:
 #' \describe{
-#' \item{\code{project}}{Project name}
+#' \item{\code{project}}{Project name. It is advised to keep project names identical across samples.}
 #' \item{\code{sample}}{Sample name}
 #' \item{\code{lane}}{Flow cell lane number. If fastq files from multiple lanes are concatenated after sequencing, any placeholder would be sufficient, e.g. "L001".}
 #' \item{\code{read1_path}}{Path to read1 fastq file}

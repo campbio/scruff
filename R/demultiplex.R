@@ -9,8 +9,8 @@
 #' @param bc.edit Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list.
 #' @param umi.start Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.
 #' @param umi.stop Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.
-#' @param keep Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.
-#' @param min.qual Minimally acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{27}.
+#' @param keep Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end.
+#' @param min.qual Minimally acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.
 #' @param yield.reads The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. Default is \strong{1e6}.
 #' @param out.dir Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.
 #' @param summary.prefix Prefix for demultiplex summary file. Default is \code{"demultiplex"}.
@@ -28,7 +28,7 @@ demultiplex <- function(fastq.annot,
                         bc.edit = 1,
                         umi.start,
                         umi.stop,
-                        keep = 50,
+                        keep,
                         min.qual = 10,
                         yield.reads = 1e6,
                         out.dir = "./Demultiplex",
