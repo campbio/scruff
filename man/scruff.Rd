@@ -5,7 +5,7 @@
 \title{Run scruff pipeline}
 \usage{
 scruff(fastq.annot, bc, index, features, bc.start, bc.stop, bc.edit = 1,
-  umi.start, umi.stop, keep = 50, min.qual = 10, yield.reads = 1e+06,
+  umi.start, umi.stop, keep, min.qual = 10, yield.reads = 1e+06,
   alignment.file.format = "BAM", demultiplex.out.dir = "./Demultiplex",
   alignment.out.dir = "./Alignment", umi.out.dir = "./Count",
   demultiplex.summary.prefix = "demultiplex",
@@ -33,7 +33,7 @@ scruff(fastq.annot, bc, index, features, bc.start, bc.stop, bc.edit = 1,
 
 \item{umi.stop}{Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.}
 
-\item{keep}{Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end. Default is \strong{50}.}
+\item{keep}{Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end.}
 
 \item{min.qual}{Minimally acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
 

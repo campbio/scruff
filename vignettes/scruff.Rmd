@@ -36,7 +36,7 @@ for (i in seq_len(length(examplefastq))) {
 
 # Build Rsubread alignment index
 fasta <- "GRCm38_MT.fa"
-index_prefix <- "GRCh38_MT"
+index_prefix <- "GRCm38_MT"
 
 write.table(GRCm38_MT_fa,
             fasta,
@@ -47,7 +47,7 @@ write.table(GRCm38_MT_fa,
 
 # NOTE: Rsubread package does not support Windows environment.
 library(Rsubread)
-# Create index files for GRCh38_MT. For details, please refer to Rsubread user manual.
+# Create index files for GRCm38_MT. For details, please refer to Rsubread user manual.
 buildindex(
   basename = index_prefix,
   reference = fasta,
@@ -75,7 +75,8 @@ result <- scruff(fastq.annot = exampleannot,
                umi.start = 9,
                umi.stop = 12,
                keep = 75,
-               cores = 2)
+               cores = 2,
+               verbose = TRUE)
 ```
 
 # Stepwise Tutorial
@@ -121,11 +122,11 @@ de <- demultiplex(exampleannot,
 
 ## Alignment
 
-`scruff` has a wrapper function `align.rsubread` which is a wrapper function to `align` in `Rsubread` package. It aligns the reads to reference sequence index and outputs sequence alignment map files. For demonstration purpose, the built-in mitochondrial DNA sequence from GRCh38 reference assembly `GRCh38_MT` will be used to map the reads. First, a `Rsubread` index for the reference sequence needs to be generated.
+`scruff` has a wrapper function `align.rsubread` which is a wrapper function to `align` in `Rsubread` package. It aligns the reads to reference sequence index and outputs sequence alignment map files. For demonstration purpose, the built-in mitochondrial DNA sequence from GRCm38 reference assembly `GRCm38_MT` will be used to map the reads. First, a `Rsubread` index for the reference sequence needs to be generated.
 
 ```{r eval=FALSE}
 fasta <- "GRCm38_MT.fa"
-index_prefix <- "GRCh38_MT"
+index_prefix <- "GRCm38_MT"
 
 # write reference sequence to "./GRCm38_MT.fa".
 write.table(GRCm38_MT_fa,
@@ -137,7 +138,7 @@ write.table(GRCm38_MT_fa,
 
 # NOTE: Rsubread package does not support Windows environment.
 library(Rsubread)
-# Create index files for GRCh38_MT. For details, please refer to Rsubread user manual.
+# Create index files for GRCm38_MT. For details, please refer to Rsubread user manual.
 buildindex(
   basename = index_prefix,
   reference = fasta,
@@ -145,7 +146,7 @@ buildindex(
   )
 ```
 
-The following command maps the fastq files to GRCh38 mitochondrial reference sequence `GRCh38_MT` and returns the file paths of the generated sequence alignment map files. By default, the files are stored in BAM format in `../Demultiplex` folder.
+The following command maps the fastq files to GRCm38 mitochondrial reference sequence `GRCm38_MT` and returns the file paths of the generated sequence alignment map files. By default, the files are stored in BAM format in `../Demultiplex` folder.
 
 ```{r eval=FALSE}
 # get the paths to demultiplexed fastq.gz files
@@ -164,7 +165,7 @@ al <- align.rsubread(
 
 ## UMI correction and Generation of Expression Table
 
-Example GTF file `GRCh38_MT_gtf` will be used for feature counting. Currently, `scruff` applies the union counting mode of the HTSeq Python package. The following command generates the UMI corrected expression table for the example dataset.
+Example GTF file `GRCm38_MT_gtf` will be used for feature counting. Currently, `scruff` applies the union counting mode of the HTSeq Python package. The following command generates the UMI corrected expression table for the example dataset.
 
 ```{r eval=FALSE}
 # first write example GTF file to working directory

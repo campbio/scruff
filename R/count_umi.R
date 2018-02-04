@@ -128,7 +128,7 @@ count.umi.unit <- function(i, features, format, logfile, verbose) {
                check.names = FALSE,
                fix.empty.names = FALSE))
   }
-
+  
   bfl <- Rsamtools::BamFile(i)
   bamGA <- GenomicAlignments::readGAlignments(bfl, use.names = T)
   
@@ -157,38 +157,61 @@ count.umi.unit <- function(i, features, format, logfile, verbose) {
     pos = BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)]
   )
   
-  ol.dt[, umi := data.table::last(data.table::tstrsplit(name, ":"))]
-  
-  # remove ambiguous gene alignments (union mode filtering)
-  ol.dt <- ol.dt[!(
-    base::duplicated(ol.dt, by = "name") |
-      base::duplicated(ol.dt, by = "name", fromLast = TRUE)
-  ), ]
-  
-  # reads mapped to genes
-  reads.mapped.to.genes <- nrow(ol.dt[!grepl("ERCC", ol.dt[, gene.id ]), ])
-  
-  # umi filtering
-  count.umi <- base::table(unique(ol.dt[, .(gene.id, umi, pos)])[, gene.id])
-  
-  # clean up
-  count.umi.dt <- data.table::data.table(gene.id = c(names(features),
-                                                     "reads_mapped_to_genome",
-                                                     "reads_mapped_to_genes"))
-  cell <- remove.last.extension(i)
-  count.umi.dt[[cell]] <- 0
-  count.umi.dt[gene.id == "reads_mapped_to_genome",
-               cell] <- reads.mapped.to.genome
-  count.umi.dt[gene.id == "reads_mapped_to_genes",
-               cell] <- reads.mapped.to.genes
-  count.umi.dt[gene.id %in% names(count.umi),
-               eval(cell) := as.numeric(count.umi[gene.id])]
-  
-  # coerce to data frame to keep rownames for cbind combination
-  count.umi.dt <- data.frame(count.umi.dt,
-                             row.names = 1,
-                             check.names = FALSE,
-                             fix.empty.names = FALSE)
+  if (nrow(ol.dt) == 0) {
+    reads.mapped.to.genes <- 0
+    
+    # clean up
+    count.umi.dt <- data.table::data.table(gene.id = c(names(features),
+                                                       "reads_mapped_to_genome",
+                                                       "reads_mapped_to_genes"))
+    cell <- remove.last.extension(i)
+    count.umi.dt[[cell]] <- 0
+    count.umi.dt[gene.id == "reads_mapped_to_genome",
+                 cell] <- reads.mapped.to.genome
+    count.umi.dt[gene.id == "reads_mapped_to_genes",
+                 cell] <- reads.mapped.to.genes
+    
+    # coerce to data frame to keep rownames for cbind combination
+    count.umi.dt <- data.frame(count.umi.dt,
+                               row.names = 1,
+                               check.names = FALSE,
+                               fix.empty.names = FALSE)
+    
+  } else {
+    
+    ol.dt[, umi := data.table::last(data.table::tstrsplit(name, ":"))]
+    
+    # remove ambiguous gene alignments (union mode filtering)
+    ol.dt <- ol.dt[!(
+      base::duplicated(ol.dt, by = "name") |
+        base::duplicated(ol.dt, by = "name", fromLast = TRUE)
+    ), ]
+    
+    # reads mapped to genes
+    reads.mapped.to.genes <- nrow(ol.dt[!grepl("ERCC", ol.dt[, gene.id ]), ])
+    
+    # umi filtering
+    count.umi <- base::table(unique(ol.dt[, .(gene.id, umi, pos)])[, gene.id])
+    
+    # clean up
+    count.umi.dt <- data.table::data.table(gene.id = c(names(features),
+                                                       "reads_mapped_to_genome",
+                                                       "reads_mapped_to_genes"))
+    cell <- remove.last.extension(i)
+    count.umi.dt[[cell]] <- 0
+    count.umi.dt[gene.id == "reads_mapped_to_genome",
+                 cell] <- reads.mapped.to.genome
+    count.umi.dt[gene.id == "reads_mapped_to_genes",
+                 cell] <- reads.mapped.to.genes
+    count.umi.dt[gene.id %in% names(count.umi),
+                 eval(cell) := as.numeric(count.umi[gene.id])]
+    
+    # coerce to data frame to keep rownames for cbind combination
+    count.umi.dt <- data.frame(count.umi.dt,
+                               row.names = 1,
+                               check.names = FALSE,
+                               fix.empty.names = FALSE)
+  }
   return (count.umi.dt)
 }
 

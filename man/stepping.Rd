@@ -4,7 +4,7 @@
 \alias{stepping}
 \title{Visualize stepping levels}
 \usage{
-stepping(bamGA, chr, start, end)
+stepping(bamGA, chr = "1", start = 1, end = max(BiocGenerics::end(bamGA)))
 }
 \arguments{
 \item{bamGA}{A GenomicAlignment object load a toy "BAM" file}
