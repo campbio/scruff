@@ -347,7 +347,9 @@ demultiplex.unit <- function(i,
         # project_sample_"cell"_cellnum.fastq.gz
         out.fname <- summary.dt[cell_num == k, filename]
         out.full <- file.path(out.dir, i, out.fname)
-        file.create(out.full, showWarnings = FALSE)
+        if (!file.exists(out.full)) {
+          file.create(out.full, showWarnings = FALSE)
+        }
         
         # if barcode exists in fastq reads
         if (nrow(cfq.dt) != 0) {
@@ -383,8 +385,12 @@ demultiplex.unit <- function(i,
       out.full.undetermined.R2 <- file.path(out.dir,
                                             i,
                                             "Undetermined_R2.fastq.gz")
-      file.create(out.full.undetermined.R1, showWarnings = FALSE)
-      file.create(out.full.undetermined.R2, showWarnings = FALSE)
+      if (!file.exists(out.full.undetermined.R1)) {
+        file.create(out.full.undetermined.R1, showWarnings = FALSE)
+      }
+      if (!file.exists(out.full.undetermined.R2)) {
+        file.create(out.full.undetermined.R2, showWarnings = FALSE)
+      }
       ShortRead::writeFastq(undetermined.fq.out.R1,
                             out.full.undetermined.R1, mode = "a")
       
