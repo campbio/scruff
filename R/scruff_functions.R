@@ -361,36 +361,45 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
 }
 
 
-#' Visualize stepping levels
+#' Visualize aligned reads
 #' 
-#' Calculate the stepping levels for single cell RNA-sequencing data.Visualize the data using ggplot2 and ggbio
+#' Visualize mapped reads for single cell RNA-sequencing data. Arrow represents orientation of alignment. Reads are colored by their UMI tag.
 #' 
-#' @param bamGA A GenomicAlignment object load a toy "BAM" file
-#' @param chr Chromosome name or vector of the chromosome names need to check
-#' @param start A integer of start position which need to check
-#' @param end A integer of end position which need to check
-#' @return A plot of stepping levels
+#' @param bamGA A GenomicAlignment object
+#' @param chr Chromosome. Integer or "X", "Y", "MT".
+#' @param start Genomic coordinate of the start position.
+#' @param end Genomic coordinate of the end position.
+#' @param legend Show legend. Default is FALSE.
+#' @return A ggplot object of aligned reads
 #' @import ggbio
 #' @export
 stepping <- function(bamGA,
                      chr = "1",
                      start = 1,
-                     end = max(BiocGenerics::end(bamGA))) {
+                     end = max(BiocGenerics::end(bamGA)),
+                     legend = FALSE) {
   
-  bamGA <- bamGA[BiocGenerics::start(bamGA) > (start-1) &
-                   BiocGenerics::end(bamGA) < end + 1]
-  a <- GenomicRanges::GRanges(bamGA)
-  gr <- a[GenomeInfoDb::seqnames(a) == chr]
-  name <- names(gr)
-  name <- data.table::last(data.table::tstrsplit(name, ":"))
-  S4Vectors::mcols(gr)$umi <- name
+  reads <- bamGA[BiocGenerics::start(bamGA) >= start &
+                   BiocGenerics::end(bamGA) <= end &
+                   GenomeInfoDb::seqnames(bamGA) == chr]
+  reads.gr <- sort(GenomicRanges::GRanges(reads))
+  
+  S4Vectors::mcols(reads.gr)$umi <- data.table::last(data.table::tstrsplit(names(reads.gr), ":"))
+  
   #g = ggplot2::ggplot(gr) + ggbio::stat_stepping(xlab = "segment",
   #ylab = "stepping",
   #aes(color = umi, fill = umi))
-  g = ggplot2::ggplot(gr) + ggbio::geom_arrow(ggplot2::aes(color = umi))
-  g + ggplot2::theme(axis.text = ggplot2::element_text(size = 12),
-                     axis.title = ggplot2::element_text(size = 14,
-                                                        face = "bold"))
+  g = ggplot2::ggplot(reads.gr) +
+    ggbio::geom_arrow(ggplot2::aes(color = umi)) +
+    theme_Publication()
+  
+  if (legend == FALSE) {
+    g = g + theme(legend.position="none")
+  }
   return (g)
 }
+
+
+
+
 

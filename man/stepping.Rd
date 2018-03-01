@@ -2,22 +2,25 @@
 % Please edit documentation in R/scruff_functions.R
 \name{stepping}
 \alias{stepping}
-\title{Visualize stepping levels}
+\title{Visualize aligned reads}
 \usage{
-stepping(bamGA, chr = "1", start = 1, end = max(BiocGenerics::end(bamGA)))
+stepping(bamGA, chr = "1", start = 1, end = max(BiocGenerics::end(bamGA)),
+  legend = FALSE)
 }
 \arguments{
-\item{bamGA}{A GenomicAlignment object load a toy "BAM" file}
+\item{bamGA}{A GenomicAlignment object}
 
-\item{chr}{Chromosome name or vector of the chromosome names need to check}
+\item{chr}{Chromosome. Integer or "X", "Y", "MT".}
 
-\item{start}{A integer of start position which need to check}
+\item{start}{Genomic coordinate of the start position.}
 
-\item{end}{A integer of end position which need to check}
+\item{end}{Genomic coordinate of the end position.}
+
+\item{legend}{Show legend. Default is FALSE.}
 }
 \value{
-A plot of stepping levels
+A ggplot object of aligned reads
 }
 \description{
-Calculate the stepping levels for single cell RNA-sequencing data.Visualize the data using ggplot2 and ggbio
+Visualize mapped reads for single cell RNA-sequencing data. Arrow represents orientation of alignment. Reads are colored by their UMI tag.
 }
