@@ -15,6 +15,8 @@ stepping(bamGA, chr = "1", start = 1, end = max(BiocGenerics::end(bamGA)),
 \item{start}{Genomic coordinate of the start position.}
 
 \item{end}{Genomic coordinate of the end position.}
+
+\item{legend}{Show legend. Default is FALSE.}
 }
 \value{
 A ggplot object of aligned reads

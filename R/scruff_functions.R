@@ -369,6 +369,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
 #' @param chr Chromosome. Integer or "X", "Y", "MT".
 #' @param start Genomic coordinate of the start position.
 #' @param end Genomic coordinate of the end position.
+#' @param legend Show legend. Default is FALSE.
 #' @return A ggplot object of aligned reads
 #' @import ggbio
 #' @export
@@ -397,4 +398,8 @@ stepping <- function(bamGA,
   }
   return (g)
 }
+
+
+
+
 
