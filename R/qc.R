@@ -31,9 +31,11 @@ qcplot <- function(qc.dt) {
 }
 
 
-# ggplot publication theme
-# adapted from Koundinya Desiraju
-# https://rpubs.com/Koundy/71792
+#' ggplot publication theme
+#' Modify theme of ggplots. Make plots look better. Adapted from Koundinya Desiraju. https://rpubs.com/Koundy/71792
+#' @param base_size Default 12.
+#' @param base_family Default \emph{sans}.
+#' @export
 theme_Publication <- function(base_size=12, base_family="sans") {
   (ggthemes::theme_foundation(base_size=base_size, base_family=base_family)
    + ggplot2::theme(plot.title = ggplot2::element_text(face = "bold",
