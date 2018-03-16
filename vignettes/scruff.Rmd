@@ -243,3 +243,11 @@ QC metrics can be visualized by running `qcplot` function.
 qcplot(qc)
 ```
 
+
+## Genome view
+
+```{r eval = FALSE}
+genomeDB <- loadGenomeDb()
+```
+
+
