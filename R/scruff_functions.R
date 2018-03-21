@@ -576,10 +576,10 @@ gview <- function(ensemblGenome,
   
   # use new variables to avoid ambiguity
   begin <- start
-  stop <- end
+  st <- end
   
   # subset features
-  gtf.dt <- gtf.dt[end >= begin & start <= stop & seqid == chr, ]
+  gtf.dt <- gtf.dt[end >= begin & start <= st & seqid == chr, ]
   
   # aggregate transcripts
   txdt <- gettxdt(gtf.dt)
@@ -611,10 +611,10 @@ gview <- function(ensemblGenome,
                             label = transcript_name),
               size = text_size) +
     theme_Publication() +
-    ggplot2::theme(axis.title.y = element_blank(),
-          axis.text.y = element_blank(),
-          axis.ticks.y = element_blank(),
-          axis.line.y = element_blank()) +
+    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+          axis.text.y = ggplot2::element_blank(),
+          axis.ticks.y = ggplot2::element_blank(),
+          axis.line.y = ggplot2::element_blank()) +
     ggplot2::xlab(paste0("Chr", chr))
   
   return (g)
