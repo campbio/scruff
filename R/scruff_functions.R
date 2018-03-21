@@ -416,6 +416,7 @@ stepping <- function(bamGA,
 #' @param arrow_type One of "open" or "closed" indicating whether the arrow head should be a closed triangle. Passed to the type argument of arrow function. Default "open".
 #' @param text_size Size of text. Passed to the size argument of the geom_text function. Default 4.
 #' @return A ggplot object of genomic view
+#' @import refGenome
 #' @export
 gview <- function(ensemblGenome,
                   chr,
