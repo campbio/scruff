@@ -35,4 +35,5 @@ Imports: data.table,
     GenomeInfoDb,
     stringdist,
     ggbio,
-    GenomicRanges
+    GenomicRanges,
+    refGenome
