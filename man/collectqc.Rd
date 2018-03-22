@@ -4,7 +4,7 @@
 \alias{collectqc}
 \title{Collect QC metrics}
 \usage{
-collectqc(de, al, co, biomart.annot.dt = NA)
+collectqc(de, al, co, gene.annot = NA)
 }
 \arguments{
 \item{de}{Demultiplex result. Table returned from \code{demultiplex} function.}
@@ -13,7 +13,7 @@ collectqc(de, al, co, biomart.annot.dt = NA)
 
 \item{co}{Count matrix. Table returned from \code{count.umi} function.}
 
-\item{biomart.annot.dt}{Gene information table generated from running \code{biomaRt} query on gene IDs. Must contain \emph{ensembl_gene_id} and \emph{gene_biotype}.}
+\item{gene.annot}{Gene information table generated from parsing GTF file. Must contain \emph{gene_id}, \emph{gene_biotype}, and \emph{seqid} columns.}
 }
 \value{
 QC metrics table

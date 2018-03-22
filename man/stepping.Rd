@@ -22,5 +22,5 @@ stepping(bamGA, chr = "1", start = 1, end = max(BiocGenerics::end(bamGA)),
 A ggplot object of aligned reads
 }
 \description{
-Visualize mapped reads for single cell RNA-sequencing data. Arrow represents orientation of alignment. Reads are colored by their UMI tag.
+Visualize read alignments for UMI tagged single cell RNA-sequencing data. Arrow represents orientation of alignment. Reads are colored by their UMI and sorted by their start positions and UMI.
 }
