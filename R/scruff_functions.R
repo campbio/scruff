@@ -212,6 +212,7 @@ to.bam <- function(sam,
 
 
 # get gene names from biomart
+# deprecated
 get.gene.annot <- function(co,
                            host = "www.ensembl.org",
                            biomart = "ENSEMBL_MART_ENSEMBL",
@@ -262,10 +263,10 @@ get.gene.annot <- function(co,
 #' @param de Demultiplex result. Table returned from \code{demultiplex} function.
 #' @param al Alignment result. Table returned from \code{align.rsubread} function.
 #' @param co Count matrix. Table returned from \code{count.umi} function.
-#' @param biomart.annot.dt Gene information table generated from running \code{biomaRt} query on gene IDs. Must contain \emph{ensembl_gene_id} and \emph{gene_biotype}.
+#' @param gene.annot Gene information table generated from parsing GTF file. Must contain \emph{gene_id}, \emph{gene_biotype}, and \emph{seqid} columns.
 #' @return QC metrics table
 #' @export
-collectqc <- function(de, al, co, biomart.annot.dt = NA) {
+collectqc <- function(de, al, co, gene.annot = NA) {
   de <- data.table::copy(data.table::data.table(de))
   al <- data.table::copy(data.table::data.table(al))
   
@@ -286,8 +287,9 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   
   # get reads mapped to genome
   rmtgenome <- co[gene.id == "reads_mapped_to_genome", -"gene.id"]
-  rmtgenome <- data.table::data.table(cell = colnames(rmtgenome),
-                                      reads_mapped_to_genome = as.numeric(rmtgenome))
+  rmtgenome <- data.table::data.table(
+    cell = colnames(rmtgenome),
+    reads_mapped_to_genome = as.numeric(rmtgenome))
   qc.dt <- base::merge(qc.dt, rmtgenome, all.x=TRUE)
   
   # reads mapped to genes
@@ -306,10 +308,10 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   qc.dt <- base::merge(qc.dt, transcript, all.x = TRUE)
   
   # MT transcript
-  if (!all(is.na(biomart.annot.dt))) {
+  if (!all(is.na(gene.annot))) {
     mt.transcript <- base::colSums(co[gene.id %in% 
-                                        biomart.annot.dt[chromosome_name == "MT",
-                                                         ensembl_gene_id],
+                                        gene.annot[seqid == "MT",
+                                                   gene_id],
                                       -"gene.id"])
     mt.transcript <- data.table::data.table(
       cell = names(mt.transcript),
@@ -335,9 +337,9 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
   qc.dt <- base::merge(qc.dt, genes, all.x = TRUE)
   
   # protein coding genes
-  if (!all(is.na(biomart.annot.dt))) {
-    pro.coding.gene <- biomart.annot.dt[gene_biotype == "protein_coding",
-                                        ensembl_gene_id]
+  if (!all(is.na(gene.annot))) {
+    pro.coding.gene <- gene.annot[gene_biotype == "protein_coding",
+                                  gene_id]
     pro.gene <- sapply(cells, function(cells) nrow(
       co[gene.id %in% pro.coding.gene &
            eval(parse(text = paste0("`", cells, "`"))) != 0,
@@ -363,7 +365,7 @@ collectqc <- function(de, al, co, biomart.annot.dt = NA) {
 
 #' Visualize aligned reads
 #' 
-#' Visualize mapped reads for single cell RNA-sequencing data. Arrow represents orientation of alignment. Reads are colored by their UMI tag.
+#' Visualize read alignments for UMI tagged single cell RNA-sequencing data. Arrow represents orientation of alignment. Reads are colored by their UMI and sorted by their start positions and UMI.
 #' 
 #' @param bamGA A GenomicAlignment object
 #' @param chr Chromosome. Integer or "X", "Y", "MT".
@@ -382,19 +384,20 @@ stepping <- function(bamGA,
   reads <- bamGA[BiocGenerics::start(bamGA) >= start &
                    BiocGenerics::end(bamGA) <= end &
                    GenomeInfoDb::seqnames(bamGA) == chr]
-  reads.gr <- sort(GenomicRanges::GRanges(reads))
+  umi <- data.table::last(data.table::tstrsplit(names(reads), ":"))
+  reads <- reads[order(BiocGenerics::start(reads), umi)]
   
-  S4Vectors::mcols(reads.gr)$umi <- data.table::last(data.table::tstrsplit(names(reads.gr), ":"))
+  reads.gr <- GenomicRanges::GRanges(reads)
+  S4Vectors::mcols(reads.gr)$umi <- data.table::last(
+    data.table::tstrsplit(names(reads.gr), ":"))
   
-  #g = ggplot2::ggplot(gr) + ggbio::stat_stepping(xlab = "segment",
-  #ylab = "stepping",
-  #aes(color = umi, fill = umi))
-  g = ggplot2::ggplot(reads.gr) +
+  g <- ggplot2::ggplot(reads.gr) +
     ggbio::geom_arrow(ggplot2::aes(color = umi)) +
-    theme_Publication()
+    theme_Publication() + 
+    ggplot2::theme(axis.title.y = ggplot2::element_blank())
   
   if (legend == FALSE) {
-    g = g + theme(legend.position="none")
+    g <- g + ggplot2::theme(legend.position="none")
   }
   return (g)
 }
@@ -593,29 +596,30 @@ gview <- function(ensemblGenome,
   # plot
   g <- ggplot2::ggplot() +
     ggplot2::geom_rect(data = rectdt,
-              mapping = ggplot2::aes(xmin = x1,
-                            xmax = x2,
-                            ymin = y1,
-                            ymax = y2)) +
+                       mapping = ggplot2::aes(xmin = x1,
+                                              xmax = x2,
+                                              ymin = y1,
+                                              ymax = y2)) +
     ggplot2::geom_segment(data = arrowdt,
-                 mapping = ggplot2::aes(x = x1,
-                               y = y1,
-                               xend = x2,
-                               yend = y2),
-                 size = line_width,
-                 arrow = ggplot2::arrow(angle = arrow_width,
-                               length = ggplot2::unit(arrow_length, "inches"),
-                               type = arrow_type)) +
+                          mapping = ggplot2::aes(x = x1,
+                                                 y = y1,
+                                                 xend = x2,
+                                                 yend = y2),
+                          size = line_width,
+                          arrow = ggplot2::arrow(angle = arrow_width,
+                                                 length = ggplot2::unit(
+                                                   arrow_length, "inches"),
+                                                 type = arrow_type)) +
     ggplot2::geom_text(data = textdt,
-              mapping = ggplot2::aes(x = x,
-                            y = y,
-                            label = transcript_name),
-              size = text_size) +
+                       mapping = ggplot2::aes(x = x,
+                                              y = y,
+                                              label = transcript_name),
+                       size = text_size) +
     theme_Publication() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
-          axis.text.y = ggplot2::element_blank(),
-          axis.ticks.y = ggplot2::element_blank(),
-          axis.line.y = ggplot2::element_blank()) +
+                   axis.text.y = ggplot2::element_blank(),
+                   axis.ticks.y = ggplot2::element_blank(),
+                   axis.line.y = ggplot2::element_blank()) +
     ggplot2::xlab(paste0("Chr", chr))
   
   return (g)
