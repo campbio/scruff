@@ -123,7 +123,7 @@ count.reads <- function(alignment,
   
   expr.gene <- merge(expr.tx, gtf.dt.tx.to.gene,
                      by = "transcript_id")
-  expr.gene <- gene.expr[order(gene_id), ]
+  expr.gene <- expr.gene[order(gene_id), ]
   
   expr.gene <- data.table::data.table(
     stats::aggregate(.~gene_id, expr[, -"transcript_id"], sum))
