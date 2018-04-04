@@ -23,9 +23,7 @@ count.reads <- function(alignment,
                         verbose = FALSE,
                         logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
   
-  message(paste(Sys.time(), "Start read counting ..."))
-  
-  logfile <- paste0(logfile.prefix, "_countUMI_log.txt")
+  logfile <- paste0(logfile.prefix, "_count_log.txt")
   
   if (verbose) {
     log.messages(Sys.time(),
@@ -37,7 +35,7 @@ count.reads <- function(alignment,
     print(alignment)
   } else {
     log.messages(Sys.time(),
-                 "... Start UMI counting",
+                 "... Start read counting",
                  logfile = NULL,
                  append = FALSE)
   }
@@ -49,8 +47,8 @@ count.reads <- function(alignment,
              showWarnings = FALSE,
              recursive = TRUE)
   
-  print(paste(Sys.time(),
-              paste("... Loading TxDb file")))
+  message(paste(Sys.time(),
+                paste("... Loading TxDb file")))
   
   features.tx <- suppressPackageStartupMessages(
     gtf.db.read(gtf, logfile, grouping = "tx"))
@@ -66,6 +64,9 @@ count.reads <- function(alignment,
   
   
   # parallelization
+  message(paste(Sys.time(),
+                paste("... counting")))
+  
   cl <- if (verbose)
     parallel::makeCluster(cores, outfile = logfile)
   else
@@ -126,8 +127,8 @@ count.reads <- function(alignment,
   expr.gene <- expr.gene[order(gene_id), ]
   
   expr.gene <- data.table::data.table(
-    stats::aggregate(.~gene_id, expr[, -"transcript_id"], sum))
-  last2rows <- expr.tx[transcript.id %in%
+    stats::aggregate(.~gene_id, expr.gene[, -"transcript_id"], sum))
+  last2rows <- expr.tx[transcript_id %in%
                          c("reads_mapped_to_genome",
                            "reads_mapped_to_transcripts"), ]
   colnames(last2rows)[names(last2rows) == "transcript_id"] <- "gene_id"
@@ -153,9 +154,6 @@ count.reads <- function(alignment,
 
 
 count.tx.unit <- function(i, features.tx, format, logfile, verbose) {
-  print(paste(Sys.time(),
-              "... counting reads in sample",
-              i))
   if (verbose) {
     log.messages(Sys.time(),
                  "... counting reads in sample",
@@ -187,12 +185,15 @@ count.tx.unit <- function(i, features.tx, format, logfile, verbose) {
     seqnames = as.vector(GenomicAlignments::seqnames(bamGA)))
   
   if (length(unique(genome.reads[, name])) != nrow(genome.reads)) {
-    print(paste0(i,
+    log.messages(Sys.time(),
+                 i,
                  " has duplicate read alignments.",
                  " This is fine if multi-alignment is allowed.",
                  " Otherwise, try re-running demultiplexing",
                  " and alignment functions",
-                 " with appropriate number of cores."))
+                 " with appropriate number of cores.",
+                 logfile = logfile,
+                 append = TRUE)
   }
   
   # reads mapped to genome (exclude ERCC spike-in)
@@ -222,7 +223,7 @@ count.tx.unit <- function(i, features.tx, format, logfile, verbose) {
     count.tx.dt[[cell]] <- 0
     count.tx.dt[tx.id == "reads_mapped_to_genome",
                  cell] <- reads.mapped.to.genome
-    count.tx.dt[tx.id == "reads_mapped_to_genes",
+    count.tx.dt[tx.id == "reads_mapped_to_transcripts",
                  cell] <- reads.mapped.to.tx
     
     # coerce to data frame to keep rownames for cbind combination
