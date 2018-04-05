@@ -200,7 +200,7 @@ count.umi.unit <- function(i, features, format, logfile, verbose) {
     # only reads with different UMI sequences are 
     # considered unique trancsript molecules
     # Read positions do not matter
-    count.umi <- base::table(unique(ol.dt[, .(umi)])[, gene.id])
+    count.umi <- base::table(unique(ol.dt[, .(gene.id, umi)])[, gene.id])
     
     # clean up
     count.umi.dt <- data.table::data.table(gene.id = c(names(features),
