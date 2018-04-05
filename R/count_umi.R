@@ -190,8 +190,17 @@ count.umi.unit <- function(i, features, format, logfile, verbose) {
     # reads mapped to genes
     reads.mapped.to.genes <- nrow(ol.dt[!grepl("ERCC", ol.dt[, gene.id ]), ])
     
-    # umi filtering
-    count.umi <- base::table(unique(ol.dt[, .(gene.id, umi, pos)])[, gene.id])
+    # UMI filtering
+    
+    # strict way of doing UMI correction.
+    # reads with different pos are considered unique trancsript molecules
+    #count.umi <- base::table(unique(ol.dt[, .(gene.id, umi, pos)])[, gene.id])
+    
+    # The way CEL-seq pipeline does UMI filtering 
+    # only reads with different UMI sequences are 
+    # considered unique trancsript molecules
+    # Read positions do not matter
+    count.umi <- base::table(unique(ol.dt[, .(umi)])[, gene.id])
     
     # clean up
     count.umi.dt <- data.table::data.table(gene.id = c(names(features),
