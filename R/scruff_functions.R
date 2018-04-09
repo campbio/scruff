@@ -140,7 +140,7 @@ gtf.db.read <- function(gtf.file, logfile, grouping = "tx") {
     gtf.db <- GenomicFeatures::makeTxDbFromGFF(file = gtf.file)
     AnnotationDbi::saveDb(gtf.db, file = gtf.db.file)
     if (grouping == "tx")
-      return (GenomicFeatures::exonsBy(gtf.db, by = "tx"), use.names = TRUE)
+      return (GenomicFeatures::exonsBy(gtf.db, by = "tx", use.names = TRUE))
     else if (grouping == "gene")
       return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
   }
