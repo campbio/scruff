@@ -125,10 +125,17 @@ get.alignment.file.paths <- function(fastq.paths, format, out.dir) {
 ##### procedural helper functions ######
 ########################################
 
-# read gtf database and return feature GRangesList by gene ID
-gtf.db.read <- function(gtf.file, logfile, grouping = "tx") {
-  if (!grouping %in% c("tx", "gene"))
-    stop("grouping needs to be one of 'gene' or 'tx'.")
+# read gtf database and return feature GRangesList by gene/tx ID
+gtf.db.read <- function(gtf.file,
+                        feature = "exon",
+                        grouping = "transcript") {
+  
+  if (!feature %in% c("exon", "transcript"))
+    stop("feature needs to be one of 'exon' or 'transcript'.")
+  
+  if (!grouping %in% c("transcript", "gene"))
+    stop("grouping needs to be one of 'gene' or 'transcript'.")
+  
   gtf.db.file <- paste0(gtf.file, ".sqlite")
   if ((!(file.exists(gtf.file))) & (!(file.exists(gtf.db.file)))) {
     stop(paste("File", gtf.file, "does not exist"))
@@ -139,10 +146,21 @@ gtf.db.read <- function(gtf.file, logfile, grouping = "tx") {
     message(paste(Sys.time(), "... Creating TxDb object", gtf.db.file))
     gtf.db <- GenomicFeatures::makeTxDbFromGFF(file = gtf.file)
     AnnotationDbi::saveDb(gtf.db, file = gtf.db.file)
-    if (grouping == "tx")
-      return (GenomicFeatures::exonsBy(gtf.db, by = "tx", use.names = TRUE))
-    else if (grouping == "gene")
-      return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
+    
+    if (feature == "exon") {
+      if (grouping == "transcript")
+        return (GenomicFeatures::exonsBy(gtf.db, by = "tx", use.names = TRUE))
+      else if (grouping == "gene")
+        return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
+    }
+    
+    if (feature == "transcript") {
+      if (grouping == "gene")
+        return (GenomicFeatures::transcriptsBy(gtf.db,
+                                               by = "gene"))
+      else
+        stop("grouping needs to be 'gene' if feature is 'transcript'.")
+    }
   }
   
   gtf.db <- tryCatch(
@@ -156,10 +174,21 @@ gtf.db.read <- function(gtf.file, logfile, grouping = "tx") {
         )
       )
   )
-  if (grouping == "tx")
-    return (GenomicFeatures::exonsBy(gtf.db, by = "tx", use.names = TRUE))
-  else if (grouping == "gene")
-    return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
+  
+  if (feature == "exon") {
+    if (grouping == "transcript")
+      return (GenomicFeatures::exonsBy(gtf.db, by = "tx", use.names = TRUE))
+    else if (grouping == "gene")
+      return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
+  }
+  
+  if (feature == "transcript") {
+    if (grouping == "gene")
+      return (GenomicFeatures::transcriptsBy(gtf.db,
+                                             by = "gene"))
+    else
+      stop("grouping needs to be 'gene' if feature is 'transcript'.")
+  }
 }
 
 
