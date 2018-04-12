@@ -425,8 +425,9 @@ count.tx.unit <- function(cell,
         # if tie, disregard
         
         if (length(unique(read.alignments[, joint])) > 1) {
-          read.alignments[first(order(joint,
-                                      decreasing = TRUE)), assign := TRUE]
+          read.alignments[
+            data.table::first(order(joint,
+                                    decreasing = TRUE)), assign := TRUE]
           
           # abundance probability
           g <- read.alignments[order(joint,
@@ -455,22 +456,33 @@ count.tx.unit <- function(cell,
           # update multi.probs
           multi.probs <- log((bincounts + 1) / sumbincounts)
           
-          multi.gene.alignments <- merge(multi.gene.alignments,
-                                         read.alignments[assign == TRUE,
-                                                         .(readname,
-                                                           txid,
-                                                           readstart,
-                                                           readend,
-                                                           strand,
-                                                           gene_id,
-                                                           assign)],
-                                         by = c("readname",
-                                                "txid",
-                                                "readstart",
-                                                "readend",
-                                                "strand",
-                                                "gene_id"),
-                                         all.x = TRUE)
+          assigned.dt <- read.alignments[assign == TRUE, ]
+          
+          
+          multi.gene.alignments[readname == assigned.dt[, readname] &
+                                  txid == assigned.dt[, txid] &
+                                  readstart == assigned.dt[, readstart] &
+                                  readend == assigned.dt[, readend] &
+                                  strand == assigned.dt[, strand] &
+                                  gene_id == assigned.dt[, gene_id],
+                                assign := TRUE]
+          
+          #multi.gene.alignments <- merge(multi.gene.alignments,
+          #                               read.alignments[assign == TRUE,
+          #                                               .(readname,
+          #                                                 txid,
+          #                                                 readstart,
+          #                                                 readend,
+          #                                                 strand,
+          #                                                 gene_id,
+          #                                                 assign)],
+          #                               by = c("readname",
+          #                                      "txid",
+          #                                      "readstart",
+          #                                      "readend",
+          #                                      "strand",
+          #                                      "gene_id"),
+          #                               all.x = TRUE)
         }
         
         multi.gene.alignments[readname == i,
@@ -633,11 +645,17 @@ count.tx.unit <- function(cell,
                                    ol.dt,
                                    by = "readname")
     
+    #start_time <- Sys.time()
     multimapper.dt <- multimapper.assign(multi.gene.alignments,
-                                         ex.dt,
+                                         features.tx.dt,
                                          bincounts,
                                          count.reads.dt)
+    #end_time <- Sys.time()
+    #print(end_time - start_time)
     
+    multimapper.dt[,
+                   umi := data.table::last(
+                     data.table::tstrsplit(readname, ":"))]
     
     unique.gene.dt[, umi := data.table::last(
       data.table::tstrsplit(readname, ":"))]
@@ -645,7 +663,6 @@ count.tx.unit <- function(cell,
                       multimapper.dt[assign == TRUE, .(readname,
                                                        gene_id,
                                                        umi)])
-    
     
     # remove ambiguous gene alignments (union mode filtering)
     #ol.dt <- ol.dt[!(
@@ -668,7 +685,7 @@ count.tx.unit <- function(cell,
     count.gene.dt[[cellname]] <- 0
     count.gene.dt[gene_id == "reads_mapped_to_genome",
                   cellname] <- reads.mapped.to.genome
-    count.gene.dt[gene_id == "reads_mapped_to_transcripts",
+    count.gene.dt[gene_id == "reads_mapped_to_genes",
                   cellname] <- reads.mapped.to.gene
     count.gene.dt[gene_id %in% names(count.gene),
                   eval(cellname) := as.numeric(count.gene[gene_id])]
