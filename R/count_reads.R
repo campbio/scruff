@@ -387,8 +387,10 @@ count.unit <- function(cell,
       cutpoints <- seq(0, 1, 0.01)
       multi.probs <- log((bincounts + 1) / sumbincounts)
       
+      # randomly choose multimapper one at a time to assign
+      shuffledreads <- sample(unique(multi.gene.alignments[, readname]))
       
-      for (i in unique(multi.gene.alignments[, readname])) {
+      for (i in shuffledreads) {
         read.alignments <- multi.gene.alignments[readname == i, ]
         
         for (j in seq_len(nrow(read.alignments))) {
