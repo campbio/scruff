@@ -116,16 +116,16 @@ count.reads <- function(alignment,
     .packages = c("BiocGenerics", "S4Vectors",
                   "GenomicFeatures", "GenomicAlignments")
   ) %dopar% {
-    count.tx.unit(i,
-                  features.tx,
-                  features.tx.dt,
-                  features.gene,
-                  features.tx.rg,
-                  txtogene,
-                  unique.alignment,
-                  format,
-                  logfile,
-                  verbose)
+    count.unit(i,
+               features.tx,
+               features.tx.dt,
+               features.gene,
+               features.tx.rg,
+               txtogene,
+               unique.alignment,
+               format,
+               logfile,
+               verbose)
   }
   
   parallel::stopCluster(cl)
@@ -148,54 +148,54 @@ count.reads <- function(alignment,
   )), sep = "\t")
   
   # get counts for genes
-#   print(paste(Sys.time(), "... generating gene expression table"))
-#   
-#   gtf.eg <- refGenome::ensemblGenome(basedir = dirname(gtf))
-#   refGenome::read.gtf(gtf.eg, filename = basename(gtf))
-#   gtf.dt.tx.to.gene <- unique(data.table::data.table(
-#     refGenome::getGtf(gtf.eg)[, c("transcript_id", "gene_id")]))
-#   
-#   expr.gene <- merge(expr.tx, gtf.dt.tx.to.gene,
-#                      by = "transcript_id")
-#   expr.gene <- expr.gene[order(gene_id), ]
-#   
-#   expr.gene <- data.table::data.table(
-#     stats::aggregate(.~gene_id, expr.gene[, -"transcript_id"], sum))
-#   last2rows <- expr.tx[transcript_id %in%
-#                          c("reads_mapped_to_genome",
-#                            "reads_mapped_to_transcripts"), ]
-#   colnames(last2rows)[names(last2rows) == "transcript_id"] <- "gene_id"
-#   expr.gene <- rbind(expr.gene, last2rows)
-#   
-#   print(paste(Sys.time(), paste(
-#     "... Write gene expression table to",
-#     file.path(out.dir, paste0(
-#       format(Sys.time(),
-#              "%Y%m%d_%H%M%S"), "_",
-#       output.prefix, "_gene.tab"
-#     ))
-#   )))
-#   
-#   data.table::fwrite(expr.gene, file.path(out.dir, paste0(
-#     format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-#     output.prefix, "_gene.tab"
-#   )), sep = "\t")
+  #   print(paste(Sys.time(), "... generating gene expression table"))
+  #   
+  #   gtf.eg <- refGenome::ensemblGenome(basedir = dirname(gtf))
+  #   refGenome::read.gtf(gtf.eg, filename = basename(gtf))
+  #   gtf.dt.tx.to.gene <- unique(data.table::data.table(
+  #     refGenome::getGtf(gtf.eg)[, c("transcript_id", "gene_id")]))
+  #   
+  #   expr.gene <- merge(expr.tx, gtf.dt.tx.to.gene,
+  #                      by = "transcript_id")
+  #   expr.gene <- expr.gene[order(gene_id), ]
+  #   
+  #   expr.gene <- data.table::data.table(
+  #     stats::aggregate(.~gene_id, expr.gene[, -"transcript_id"], sum))
+  #   last2rows <- expr.tx[transcript_id %in%
+  #                          c("reads_mapped_to_genome",
+  #                            "reads_mapped_to_transcripts"), ]
+  #   colnames(last2rows)[names(last2rows) == "transcript_id"] <- "gene_id"
+  #   expr.gene <- rbind(expr.gene, last2rows)
+  #   
+  #   print(paste(Sys.time(), paste(
+  #     "... Write gene expression table to",
+  #     file.path(out.dir, paste0(
+  #       format(Sys.time(),
+  #              "%Y%m%d_%H%M%S"), "_",
+  #       output.prefix, "_gene.tab"
+  #     ))
+  #   )))
+  #   
+  #   data.table::fwrite(expr.gene, file.path(out.dir, paste0(
+  #     format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+  #     output.prefix, "_gene.tab"
+  #   )), sep = "\t")
   
   message(paste(Sys.time(), "... read counting finished!"))
   return(expr.gene)
 }
 
 
-count.tx.unit <- function(cell,
-                          features.tx,
-                          features.tx.dt,
-                          features.gene,
-                          features.tx.rg,
-                          txtogene,
-                          unique.alignment,
-                          format,
-                          logfile,
-                          verbose) {
+count.unit <- function(cell,
+                       features.tx,
+                       features.tx.dt,
+                       features.gene,
+                       features.tx.rg,
+                       txtogene,
+                       unique.alignment,
+                       format,
+                       logfile,
+                       verbose) {
   
   if (verbose) {
     log.messages(Sys.time(),
