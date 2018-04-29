@@ -4,10 +4,12 @@
 #' 
 #' @param fastq.paths A vcector containing the paths to input fastq files.
 #' @param index Path to the \code{Rsubread} index of reference sequences. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.
+#' @param unique Argument passed to \code{align} function in \code{Rsubread} package. Logical indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{TRUE}.
+#' @param nBestLocations Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, ‘NH’ tag is used to indicate how many alignments are reported for the read and ‘HI’ tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.
 #' @param format Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param out.dir Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Alignment"}.
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.
-#' @param threads Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}.
+#' @param threads Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}. It should not be changed in most cases.
 #' @param summary.prefix Prefix for alignment summary file. Default is \code{"alignment"}.
 #' @param overwrite Overwrite the output directory. Default is \strong{FALSE}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
@@ -17,6 +19,8 @@
 #' @export
 align.rsubread <- function(fastq.paths,
                            index,
+                           unique = TRUE,
+                           nBestLocations = 1,
                            format = "BAM",
                            out.dir = "./Alignment",
                            cores = max(1, parallel::detectCores() / 2),
@@ -81,10 +85,23 @@ align.rsubread <- function(fastq.paths,
     .packages = c("Rsubread")
   ) %dopar% {
     if (verbose) {
-      align.rsubread.unit(i, index, format, out.dir, threads, logfile)
+      align.rsubread.unit(i,
+                          index,
+                          unique,
+                          nBestLocations,
+                          format,
+                          out.dir,
+                          threads,
+                          logfile)
     } else {
-      suppressMessages(align.rsubread.unit(i, index, format,
-                                           out.dir, threads, logfile = NULL))
+      suppressMessages(align.rsubread.unit(i,
+                                           index,
+                                           unique,
+                                           nBestLocations,
+                                           format,
+                                           out.dir,
+                                           threads,
+                                           logfile = NULL))
     }
   }
   
@@ -130,7 +147,15 @@ align.rsubread <- function(fastq.paths,
 }
 
 
-align.rsubread.unit <- function(i, index, format, out.dir, threads, logfile) {
+align.rsubread.unit <- function(i,
+                                index,
+                                unique,
+                                nBestLocations,
+                                format,
+                                out.dir,
+                                threads,
+                                logfile) {
+  
   file.path <- get.alignment.file.paths(i, format, out.dir)
   
   if (file.size(i) == 0) {
@@ -146,6 +171,8 @@ align.rsubread.unit <- function(i, index, format, out.dir, threads, logfile) {
     Rsubread::align(
       index = index,
       readfile1 = i,
+      unique = unique,
+      nBestLocations = nBestLocations,
       nthreads = threads,
       output_format = format,
       output_file = file.path

@@ -4,15 +4,20 @@
 \alias{align.rsubread}
 \title{A wrapper to \code{Rsubread} read alignment}
 \usage{
-align.rsubread(fastq.paths, index, format = "BAM", out.dir = "./Alignment",
-  cores = max(1, parallel::detectCores()/2), threads = 1,
-  summary.prefix = "alignment", overwrite = FALSE, verbose = FALSE,
-  logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
+align.rsubread(fastq.paths, index, unique = TRUE, nBestLocations = 1,
+  format = "BAM", out.dir = "./Alignment", cores = max(1,
+  parallel::detectCores()/2), threads = 1, summary.prefix = "alignment",
+  overwrite = FALSE, verbose = FALSE, logfile.prefix = format(Sys.time(),
+  "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
 \item{fastq.paths}{A vcector containing the paths to input fastq files.}
 
 \item{index}{Path to the \code{Rsubread} index of reference sequences. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
+
+\item{unique}{Argument passed to \code{align} function in \code{Rsubread} package. Logical indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{TRUE}.}
+
+\item{nBestLocations}{Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, ‘NH’ tag is used to indicate how many alignments are reported for the read and ‘HI’ tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.}
 
 \item{format}{Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 
@@ -20,7 +25,7 @@ align.rsubread(fastq.paths, index, format = "BAM", out.dir = "./Alignment",
 
 \item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.}
 
-\item{threads}{Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}.}
+\item{threads}{Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}. It should not be changed in most cases.}
 
 \item{summary.prefix}{Prefix for alignment summary file. Default is \code{"alignment"}.}
 
