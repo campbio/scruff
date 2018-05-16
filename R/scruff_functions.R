@@ -91,7 +91,7 @@ parse.fastq <- function(fastq) {
 }
 
 
-strip.leading.underscore <- function (x)  sub("^\\_+", "", x)
+.stripLeadingUnderscore <- function (x)  sub("^\\_+", "", x)
 
 remove.last.extension <- function(x) {
   return (sub(pattern = "\\.[^\\.]*$",
@@ -156,26 +156,26 @@ gtf.db.read <- function(gtf.file, logfile) {
 
 
 # correct barcode mismatch using memoization
-bc.correct.mem <- local({
+.bcCorrectMem <- local({
   res <- list()
   
-  f <- function(bc, ref.barcodes, max.edit.dist) {
+  f <- function(bc, refBarcodes, maxEditDist) {
     if (bc %in% names(res))
       return (res[[bc]])
-    if (bc %in% ref.barcodes) {
+    if (bc %in% refBarcodes) {
       res[[bc]] <<- bc
       return (res[[bc]])
     }
     
     sdm <- stringdist::stringdistmatrix(bc,
-                                        ref.barcodes,
+                                        refBarcodes,
                                         method = "hamming",
                                         nthread = 1)
     min.dist <- min(sdm)
-    if (min.dist <= max.edit.dist) {
+    if (min.dist <= maxEditDist) {
       ind <- which(sdm == min.dist)
       if (length(ind) == 1) {
-        res[[bc]] <<- ref.barcodes[ind]
+        res[[bc]] <<- refBarcodes[ind]
         return (res[[bc]])
       }
     }

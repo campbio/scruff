@@ -1,4 +1,4 @@
-#' A wrapper to \code{Rsubread} read alignment 
+#' A wrapper to \code{Rsubread} read alignment
 #' 
 #' Align cell specific reads to reference genome and write sequence alignment results to output directory. A wrapper to the \code{align} function in \code{Rsubread} package. For details please refer to \code{Rsubread} manual.
 #' 
