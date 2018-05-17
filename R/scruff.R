@@ -1,11 +1,11 @@
 #' Run scruff pipeline
 #' 
-#' Run the \code{scruff} pipeline including \code{demultiplex}, \code{align.rsubread}, and \code{count.umi} functions. Write demultiplex information, alignment information, and expression table in output directories.
+#' Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \code{alignRsubread}, and \code{countUmi} functions. Write demultiplex information, alignment information, and expression table in output directories. QC table is also generated.
 #' 
-#' @param fastq.annot An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
+#' @param fastqAnnot An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.
 #' @param bc A vector of pre-determined cell barcodes. For example, see \code{?examplebc}.
 #' @param index Directory to the \code{Rsubread} index of reference sequences. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.
-#' @param features Directory to the gtf reference file. For generation of TxDb objects from gtf files, please refer to \code{makeTxDbFromGFF} function in \code{GenomicFeatures} package.
+#' @param reference Directory to the gtf reference file. For generation of TxDb objects from gtf files, please refer to \code{makeTxDbFromGFF} function in \code{GenomicFeatures} package.
 #' @param bc.start Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).
 #' @param bc.stop Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).
 #' @param bc.edit Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list.
@@ -26,11 +26,12 @@
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param cores Number of cores to use for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.
 #' @param threads \strong{Do not change}. Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}.
+#' @return A \code{data.table} object of UMI filtered count matrix.
 #' @export
-scruff <- function(fastq.annot,
+scruff <- function(fastqAnnot,
                    bc,
                    index,
-                   features,
+                   reference,
                    bc.start,
                    bc.stop,
                    bc.edit = 1,
@@ -57,7 +58,7 @@ scruff <- function(fastq.annot,
   message(match.call(expand.dots = TRUE))
   
   de <- demultiplex(
-    fastq.annot = fastq.annot,
+    fastqAnnot = fastqAnnot,
     bc = bc,
     bc.start = bc.start,
     bc.stop = bc.stop,
@@ -90,7 +91,7 @@ scruff <- function(fastq.annot,
   
   co <- count.umi(
     alignment = al$Samples,
-    features = features,
+    reference = reference,
     format = alignment.file.format,
     out.dir = umi.out.dir,
     cores = cores,

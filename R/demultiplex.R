@@ -43,7 +43,7 @@ demultiplex <- function(fastqAnnot,
     message(paste(Sys.time(), "All files in", outDir,  "will be deleted ..."))
   }
   if (verbose) {
-    print("Input annotation table for FASTQ files:")
+    message("Input annotation table for FASTQ files:")
     print(fastqAnnot)
   }
   
@@ -75,7 +75,7 @@ demultiplex <- function(fastqAnnot,
     if (verbose) {
       ## Generate a unique log file name based on given prefix and parameters
       logfile <- paste0(logfilePrefix, "_sample_", i, "_log.txt")
-      demultiplexUnit(
+      .demultiplexUnit(
         i,
         fastqAnnotDt,
         barcodeDt,
@@ -94,7 +94,7 @@ demultiplex <- function(fastqAnnot,
       )
     } else {
       suppressPackageStartupMessages(
-        demultiplexUnit(
+        .demultiplexUnit(
           i,
           fastqAnnotDt,
           barcodeDt,
@@ -116,7 +116,7 @@ demultiplex <- function(fastqAnnot,
   }
   parallel::stopCluster(cl)
   
-  print(paste(
+  message(paste(
     Sys.time(),
     paste(
       "... Write demultiplex summary for all samples to",
@@ -142,27 +142,27 @@ demultiplex <- function(fastqAnnot,
 
 
 # demultiplex unit function for one sample (unique sample id)
-demultiplexUnit <- function(i,
-                            fastq,
-                            barcodeDt,
-                            bcStart,
-                            bcStop,
-                            bcEdit,
-                            umiStart,
-                            umiStop,
-                            keep,
-                            minQual,
-                            yieldReads,
-                            outDir,
-                            summaryPrefix,
-                            overwrite,
-                            logfile) {
+.demultiplexUnit <- function(i,
+                             fastq,
+                             barcodeDt,
+                             bcStart,
+                             bcStop,
+                             bcEdit,
+                             umiStart,
+                             umiStop,
+                             keep,
+                             minQual,
+                             yieldReads,
+                             outDir,
+                             summaryPrefix,
+                             overwrite,
+                             logfile) {
   
-  log.messages(Sys.time(),
-               "... demultiplexing sample",
-               i,
-               logfile = logfile,
-               append = FALSE)
+  .logMessages(Sys.time(),
+              "... demultiplexing sample",
+              i,
+              logfile = logfile,
+              append = FALSE)
   
   sampleMetaDt <- fastq[sample == i, ]
   lanes <- unique(sampleMetaDt[, lane])
@@ -196,7 +196,7 @@ demultiplexUnit <- function(i,
   
   if (overwrite) {
     # delete existing results
-    log.messages(
+    .logMessages(
       Sys.time(),
       "... Delete (if any) existing demultiplex results for sample ",
       i,
@@ -207,7 +207,7 @@ demultiplexUnit <- function(i,
   } else {
     if (any(file.exists(file.path(outDir, i,
                                   summaryDt[!(is.na(cell_num)), filename])))) {
-      log.messages(
+      .logMessages(
         paste(
           "Stop.",
           summaryDt[!(is.na(cell_num)), ]
@@ -226,11 +226,18 @@ demultiplexUnit <- function(i,
   }
   
   for (j in lanes) {
-    log.messages(Sys.time(), "... Processing Lane", j,
-                 logfile = logfile, append=TRUE)
+    .logMessages(Sys.time(), "... Processing Lane", j,
+                logfile = logfile, append=TRUE)
     
     f1 <- sampleMetaDt[lane == j, read1_path]
     f2 <- sampleMetaDt[lane == j, read2_path]
+    
+    if (length(f1) > 1 || length(f2) > 1) {
+      stop(paste0("Duplicate lanes detected. ",
+                  "Lane should be unique for each FASTQ file. ",
+                  "Try modify the sample annotation table."))
+    }
+    
     fq1 <- ShortRead::FastqStreamer(f1, n = yieldReads)
     fq2 <- ShortRead::FastqStreamer(f2, n = yieldReads)
     repeat {
@@ -238,7 +245,7 @@ demultiplexUnit <- function(i,
       fqy2 <- ShortRead::yield(fq2)
       if (length(fqy1) != length(fqy2))
       {
-        log.messages(
+        .logMessages(
           Sys.time(),
           "Stop. Unequal number of reads between read1 and read2 fastq files:",
           f1,
@@ -308,7 +315,7 @@ demultiplexUnit <- function(i,
         # cell barcode correction
         fqyDt[, bc_correct := vapply(barcode,
                                      .bcCorrectMem,
-                                     chracter(1),
+                                     character(1),
                                      barcodeDt[, barcode],
                                      bcEdit)]
       } else {
@@ -380,7 +387,7 @@ demultiplexUnit <- function(i,
       
       summaryDt[filename == "undetermined",
                 reads := reads + nrow(undeterminedDt)]
-      log.messages(
+      .logMessages(
         Sys.time(),
         paste("...", fq1$`.->.status`[3],
               "read pairs processed"),
@@ -395,7 +402,7 @@ demultiplexUnit <- function(i,
   summaryDt[, percent_assigned := 100 * reads /
               summaryDt[filename == "total", reads]]
   
-  log.messages(
+  .logMessages(
     Sys.time(),
     paste(
       "... Write",
@@ -419,7 +426,7 @@ demultiplexUnit <- function(i,
                      ),
                      sep = "\t")
   
-  log.messages(
+  .logMessages(
     Sys.time(),
     paste("... finished demultiplexing sample", i),
     logfile = logfile,
@@ -428,4 +435,3 @@ demultiplexUnit <- function(i,
   
   return(summaryDt)
 }
-

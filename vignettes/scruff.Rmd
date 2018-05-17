@@ -54,7 +54,7 @@ For test porpurses, here we are aligning the example FASTQ files to the genes on
 ```{r}
 # filename of the FASTA file
 fasta <- "GRCm38_MT.fa"
-index_prefix <- "GRCm38_MT"
+indexPrefix <- "GRCm38_MT"
 
 write.table(GRCm38MitochondrialFasta,
             fasta,
@@ -71,7 +71,7 @@ Now we generate the index for alignment.
 library(Rsubread)
 # Create index files for GRCm38_MT. For details, please refer to Rsubread user manual.
 buildindex(
-  basename = index_prefix,
+  basename = indexPrefix,
   reference = fasta,
   indexSplit = FALSE
   )
@@ -93,54 +93,55 @@ Now that everything is ready, we can run `scruff`.
 # Returns a list of demultiplex information, alignment information,
 # and expression tables
 result <- scruff(fastq.annot = exampleannot,
-               bc = examplebc,
-               index = index_prefix,
-               features = gtf,
-               bc.start = 1,
-               bc.stop = 8,
-               umi.start = 9,
-               umi.stop = 12,
-               keep = 75,
-               cores = 1,
-               verbose = TRUE)
+                 bc = examplebc,
+                 index = indexPrefix,
+                 features = gtf,
+                 bc.start = 1,
+                 bc.stop = 8,
+                 umi.start = 9,
+                 umi.stop = 12,
+                 keep = 75,
+                 cores = 1,
+                 verbose = TRUE)
 ```
 
 # Stepwise Tutorial
 ## Load Example Dataset
 
-The `scruff` package contains a example single cell RNA-seq dataset `examplefastq` which is stored as a list of `ShortReadQ` objects. Each object has 20,000 sequenced reads. They can be accessed via variable `examplefastq` and exported to current working directory as fastq.gz files. `scruff` only accepts fastq/fastq.gz files for demultiplexing so these objects have to be stored in fastq.gz format first.
-
+The `scruff` package contains an example single cell RNA-seq dataset `fastqExample` which is stored as a list of `ShortReadQ` objects. Each object has 20,000 sequenced reads. They can be accessed via variable `fastqExample` and exported to current working directory as fastq.gz files. `scruff` only accepts fastq/fastq.gz files for demultiplexing so these objects have to be stored in fastq.gz format first.
 
 ```{r eval=FALSE}
 library(scruff)
-dir.create("./scruff_example/examplefastq",
+dir.create("./scruff_example/fastqExample",
            showWarnings = FALSE,
            recursive = TRUE)
 setwd("./scruff_example")
 
 # write fastg.gz files to folder "examplefastq" in working directory
-for (i in seq_len(length(examplefastq))) {
-  ShortRead::writeFastq(examplefastq[[i]],
-             paste0("examplefastq/", names(examplefastq)[i]),
+for (i in seq_len(length(fastqExample))) {
+  ShortRead::writeFastq(fastqExample[[i]],
+             paste0("fastqExample/", names(fastqExample)[i]),
              mode = "w")
 }
 ```
 
 ## Demultiplex and Assign Cell Specific Reads
 
-Now the fastq files are saved in current working directory and are ready to be demultiplexed. `scruff` package provides built-in predetermined sample annotation table `exampleannot` and barcodes `examplebc` for demultiplexing the example dataset. In the example fastq files, the barcode sequence of each read starts at base 1 and ends at base 8. The UMI sequence starts at base 9 and ends at base 12. They can be set via `bc.start`, `bc.stop`, and `umi.start`, `umi.stop` arguments. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example fastq reads and trims reads longer than 75 nucleotides. The command returns a summary `data.table` containing the sample barcodes, filenames, number of reads, sample name, file paths, etc. By default, the cell specific demultiplexed fastq.gz files are stored in `./Demultiplex` folder.
+Now the fastq files are saved in current working directory and are ready to be demultiplexed. `scruff` package provides built-in predefined sample annotation table `annotationExample` and barcodes `barcodeExample` for demultiplexing the example dataset. In the example fastq files, the barcode sequence of each read starts at base 1 and ends at base 8. The UMI sequence starts at base 9 and ends at base 12. They can be set via `bcStart`, `bcStop`, and `umiStart`, `umiStop` arguments. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example fastq reads and trims reads longer than 75 nucleotides. The command returns a summary `data.table` object containing the sample barcodes, filenames, number of reads, sample name, file paths, etc. By default, the cell specific demultiplexed fastq.gz files are stored in `./Demultiplex` folder.
 
 ```{r eval=FALSE}
-de <- demultiplex(exampleannot,
-                  examplebc,
-                  bc.start = 1,
-                  bc.stop = 8,
-                  bc.edit = 1,
-                  umi.start = 9,
-                  umi.stop = 12,
+print(annotationExample)
+
+de <- demultiplex(annotationExample,
+                  barcodeExample,
+                  bcStart = 1,
+                  bcStop = 8,
+                  bcEdit = 0,
+                  umiStart = 9,
+                  umiStop = 12,
                   keep = 75,
-                  min.qual = 10,
-                  yield.reads = 1e+06,
+                  minQual = 10,
+                  yieldReads = 1e+06,
                   cores = 1,
                   verbose = TRUE,
                   overwrite = TRUE)
@@ -148,14 +149,14 @@ de <- demultiplex(exampleannot,
 
 ## Alignment
 
-`scruff` provides a alignment function `align.rsubread` which is a wrapper function to `align` in `Rsubread` package. It aligns the reads to reference sequence index and outputs sequence alignment map files. For demonstration purpose, the built-in mitochondrial DNA sequence from GRCm38 reference assembly `GRCm38_MT` will be used to map the reads. First, a `Rsubread` index for the reference sequence needs to be generated.
+`scruff` provides a alignment function `alignRsubread` which is a wrapper function to `align` in `Rsubread` package. It aligns the reads to reference sequence index and outputs sequence alignment map files. For demonstration purpose, the built-in mitochondrial DNA sequence from GRCm38 reference assembly `GRCm38MitochondrialFasta` will be used to map the reads. First, a `Rsubread` index for the reference sequence needs to be generated.
 
 ```{r eval=FALSE}
 fasta <- "GRCm38_MT.fa"
-index_prefix <- "GRCm38_MT"
+indexPrefix <- "GRCm38_MT"
 
 # write reference sequence to "./GRCm38_MT.fa".
-write.table(GRCm38_MT_fa,
+write.table(GRCm38MitochondrialFasta,
             fasta,
             quote = FALSE,
             sep = "\t",
@@ -166,22 +167,22 @@ write.table(GRCm38_MT_fa,
 library(Rsubread)
 # Create index files for GRCm38_MT. For details, please refer to Rsubread user manual.
 buildindex(
-  basename = index_prefix,
+  basename = indexPrefix,
   reference = fasta,
   indexSplit = FALSE
   )
 ```
 
-The following command maps the fastq files to GRCm38 mitochondrial reference sequence `GRCm38_MT` and returns the file paths of the generated sequence alignment map files. By default, the files are stored in BAM format in `./Alignment` folder.
+The following command maps the fastq files to GRCm38 mitochondrial reference sequence `GRCm38_MT.fa` and returns the file paths of the generated sequence alignment map files. By default, the files are stored in BAM format in `./Alignment` folder.
 
 ```{r eval=FALSE}
 # get the paths to the demultiplexed cells
-fastq.paths <- de[!(is.na(cell_num)), fastq_path]
+fastqPaths <- de[!(is.na(cell_num)), fastq_path]
 
 # map the reads
-al <- align.rsubread(
-  fastq.paths,
-  index_prefix,
+al <- alignRsubread(
+  fastqPaths,
+  indexPrefix,
   format = "BAM",
   cores = 1,
   overwrite = TRUE,
@@ -191,12 +192,12 @@ al <- align.rsubread(
 
 ## UMI correction and Generation of Expression Table
 
-Example GTF file `GRCm38_MT_gtf` will be used for feature counting. Currently, `scruff` applies the union counting mode of the HTSeq Python package. The following command generates the UMI corrected expression table for the example dataset.
+Example GTF file `GRCm38MitochondrialGTF` will be used for feature counting. Currently, `scruff` applies the union counting mode of the HTSeq Python package. The following command generates the UMI corrected expression table for the example dataset.
 
 ```{r eval=FALSE}
 # first write example GTF file to working directory
 gtf <- "GRCm38_MT.gtf"
-write.table(GRCm38_MT_gtf,
+write.table(GRCm38MitochondrialGTF,
             gtf,
             quote = FALSE,
             sep = "\t",
@@ -204,7 +205,7 @@ write.table(GRCm38_MT_gtf,
             col.names = FALSE)
 
 # get the molecular counts of trancsripts for each cell
-co = count.umi(
+co = countUmi(
   al$Samples,
   gtf,
   format = "BAM",
@@ -215,24 +216,24 @@ co = count.umi(
 
 ## Gather gene annotation information from GTF file
 
-Gene annotation information is needed before the visualization of data quality. `refGenome` package provides functions to parse GTF file and retrieve gene names, biotypes, and chromosome names.
+Gene annotation information is needed before the visualization of data quality. `refGenome` package provides functions to parse GTF file and retrieve gene names, biotypes, and chromosome names. A GTF file is needed to perform subsequent steps.
 
 ```{r eval=FALSE}
 # get gene names, biotypes, and chromosome names
 
 # get gene IDs
 # exclude ERCC spike-ins and last two rows in expression table 
-geneID <- co[!(gene.id %in% c("reads_mapped_to_genome",
+geneID <- co[!(geneid %in% c("reads_mapped_to_genome",
                                "reads_mapped_to_genes")) &
-                !grepl("ERCC", co[,gene.id]), gene.id]
+                !grepl("ERCC", co[,geneid]), geneid]
 
 # Get feature annotation data
 library(refGenome)
-gtf.eg = ensemblGenome()
-read.gtf(gtf.eg, filename = gtf)
+gtfEG = ensemblGenome()
+read.gtf(gtfEG, filename = gtf)
 
-gene.annot <- data.table::data.table(
-  unique(refGenome::getGtf(gtf.eg)[, c("gene_id",
+geneAnnotation <- data.table::data.table(
+  unique(refGenome::getGtf(gtfEG)[, c("gene_id",
                                        "gene_name",
                                        "gene_biotype",
                                        "seqid")]))
@@ -240,10 +241,10 @@ gene.annot <- data.table::data.table(
 
 ## Visualization of QC metrics
 
-In order to plots data quality, a QC metrics table needs to be generated. `collectqc` function collects and summarizes diagnostic information from results from previous steps and returns a QC metrics table for plotting purpose.
+In order to visualize data quality, a QC metrics table needs to be generated. `collectqc` function collects and summarizes diagnostic information from results from previous steps and returns a QC metrics table for plotting purpose. `scruff` function returns the QC metrics table automatically.
 
 ```{r eval = FALSE}
-qc <- collectqc(de, al, co, gene.annot)
+qc <- collectQC(de, al, co, geneAnnotation)
 ```
 
 QC metrics can be visualized by running `qcplot` function.
@@ -262,15 +263,15 @@ qcplot(qc)
 bam <- GenomicAlignments::readGAlignments(
   Rsamtools::BamFile(
     al[Samples == "./Alignment/vandenBrink_b1_cell_0095.BAM", Samples]),
-                                          use.names = T)
+  use.names = T)
 
 # gene mt-Rnr2 starts at 1094 and ends at 2675
 start <- 1094
 end <- 2675
 
 g1 <- stepping(bam, chr = "MT", start = start, end = end)
-g2 <- gview(gtf.eg, chr = "MT", start = start, end = end)
-g <- ggbio::tracks(g1, g2)
+g2 <- gview(gtfEG, chr = "MT", start = start, end = end)
+g <- ggbio::tracks(g1, g2, heights = c(5,1), xlab = "chr MT")
 g
 ```
 
