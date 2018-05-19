@@ -2,7 +2,7 @@
 
 export(alignRsubread)
 export(collectQC)
-export(countUmi)
+export(countUMI)
 export(demultiplex)
 export(gview)
 export(qcplot)

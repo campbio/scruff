@@ -92,14 +92,14 @@ Now that everything is ready, we can run `scruff`.
 # Run scruff
 # Returns a list of demultiplex information, alignment information,
 # and expression tables
-result <- scruff(fastq.annot = exampleannot,
-                 bc = examplebc,
+result <- scruff(fastqAnnot = annotationExample,
+                 bc = barcodeExample,
                  index = indexPrefix,
-                 features = gtf,
-                 bc.start = 1,
-                 bc.stop = 8,
-                 umi.start = 9,
-                 umi.stop = 12,
+                 reference = gtf,
+                 bcStart = 1,
+                 bcStop = 8,
+                 umiStart = 9,
+                 umiStop = 12,
                  keep = 75,
                  cores = 1,
                  verbose = TRUE)
@@ -205,7 +205,7 @@ write.table(GRCm38MitochondrialGTF,
             col.names = FALSE)
 
 # get the molecular counts of trancsripts for each cell
-co = countUmi(
+co = countUMI(
   al$Samples,
   gtf,
   format = "BAM",

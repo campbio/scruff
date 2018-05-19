@@ -8,26 +8,27 @@
 #'  \item{"Path to the reference GTF file."}{The TxDb obeject of the GTF file will be generated and saved in the same directory as the GTF file with ".sqlite" suffix.}
 #'  \item{"A TxDb object."}{A TxDb object contains feature information about the reference genome. For more detail, please refer to \code{GenomicFeatures} package.}}
 #' @param format Format of input sequence alignment files. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
-#' @param outDir Output directory for UMI counting results. Expression table will be stored in this directory. Default is \code{"./Count"}.
+#' @param outDir Output directory for UMI counting results. UMI corrected count matrix will be stored in this directory. Default is \code{"./Count"}.
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.
 #' @param outputPrefix Prefix for expression table filename. Default is \code{"countUMI"}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
-#' @param logfile.prefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
+#' @param logfilePrefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @return A expression matrix \code{data.table} object containing the raw counts of unique \emph{UMI:gene} pairs.
 #' @import data.table foreach
 #' @export
-countUmi <- function(alignmentFilePaths,
+countUMI <- function(alignmentFilePaths,
                      reference,
                      format = "BAM",
                      outDir = "./Count",
                      cores = max(1, parallel::detectCores() / 2),
                      outputPrefix = "countUMI",
                      verbose = FALSE,
-                     logfile.prefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
+                     logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
   
   message(paste(Sys.time(), "Start UMI counting ..."))
+  print(match.call(expand.dots = TRUE))
   
-  logfile <- paste0(logfile.prefix, "_countUMI_log.txt")
+  logfile <- paste0(logfilePrefix, "_countUMI_log.txt")
   
   if (verbose) {
     .logMessages(Sys.time(),

@@ -3,7 +3,7 @@
 \name{theme_Publication}
 \alias{theme_Publication}
 \title{ggplot publication theme
-Modify theme of ggplots. Make plots look better. Adapted from Koundinya Desiraju. https://rpubs.com/Koundy/71792}
+Modify theme of ggplots. Make ggplots look better. Adapted from Koundinya Desiraju. https://rpubs.com/Koundy/71792}
 \usage{
 theme_Publication(base_size = 12, base_family = "sans")
 }
@@ -14,5 +14,5 @@ theme_Publication(base_size = 12, base_family = "sans")
 }
 \description{
 ggplot publication theme
-Modify theme of ggplots. Make plots look better. Adapted from Koundinya Desiraju. https://rpubs.com/Koundy/71792
+Modify theme of ggplots. Make ggplots look better. Adapted from Koundinya Desiraju. https://rpubs.com/Koundy/71792
 }

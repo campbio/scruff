@@ -4,65 +4,71 @@
 \alias{scruff}
 \title{Run scruff pipeline}
 \usage{
-scruff(fastq.annot, bc, index, features, bc.start, bc.stop, bc.edit = 1,
-  umi.start, umi.stop, keep, min.qual = 10, yield.reads = 1e+06,
-  alignment.file.format = "BAM", demultiplex.out.dir = "./Demultiplex",
-  alignment.out.dir = "./Alignment", umi.out.dir = "./Count",
-  demultiplex.summary.prefix = "demultiplex",
-  alignment.summary.prefix = "alignment", expr.prefix = "countUMI",
-  logfile.prefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"),
+scruff(fastqAnnot, bc, index, reference, bcStart, bcStop, bcEdit = 0,
+  umiStart, umiStop, keep, minQual = 10, yieldReads = 1e+06,
+  alignmentFileFormat = "BAM", demultiplexOutDir = "./Demultiplex",
+  alignmentOutDir = "./Alignment", countUmiOutDir = "./Count",
+  demultiplexSummaryPrefix = "demultiplex",
+  alignmentSummaryPrefix = "alignment", exprPrefix = "countUMI",
+  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"),
   overwrite = FALSE, verbose = FALSE, cores = max(1,
   parallel::detectCores()/2), threads = 1)
 }
 \arguments{
-\item{fastq.annot}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.}
+\item{fastqAnnot}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?annotationExample}.}
 
-\item{bc}{A vector of pre-determined cell barcodes. For example, see \code{?examplebc}.}
+\item{bc}{A vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.}
 
-\item{index}{Directory to the \code{Rsubread} index of reference sequences. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
+\item{index}{Path to the \code{Rsubread} index of the reference genome. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
 
-\item{features}{Directory to the gtf reference file. For generation of TxDb objects from gtf files, please refer to \code{makeTxDbFromGFF} function in \code{GenomicFeatures} package.}
+\item{reference}{Can be in one of the following 2 formats:
+\itemize{
+ \item{"Path to the reference GTF file."}{The TxDb obeject of the GTF file will be generated and saved in the same directory as the GTF file with ".sqlite" suffix.}
+ \item{"A TxDb object."}{A TxDb object contains feature information about the reference genome. For more detail, please refer to \code{GenomicFeatures} package.}}}
 
-\item{bc.start}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
+\item{bcStart}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
 
-\item{bc.stop}{Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).}
+\item{bcStop}{Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).}
 
-\item{bc.edit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list.}
+\item{bcEdit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list.}
 
-\item{umi.start}{Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.}
+\item{umiStart}{Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.}
 
-\item{umi.stop}{Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.}
+\item{umiStop}{Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.}
 
-\item{keep}{Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end.}
+\item{keep}{Read trimming. Read length or number of nucleotides to keep for read 2 (the read that contains transcript sequence information). Longer reads will be clipped at 3' end. Shorter reads will not be affected.}
 
-\item{min.qual}{Minimally acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
+\item{minQual}{Minimally acceptable Phred quality score for barcode and UMI sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
 
-\item{yield.reads}{The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. Default is \strong{1e6}.}
+\item{yieldReads}{The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. This parameter is passed to the \code{n} argument of the \code{FastqStreamer} function in \emph{ShortRead} package. Default is \strong{1e06}.}
 
-\item{alignment.file.format}{Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
+\item{alignmentFileFormat}{Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 
-\item{demultiplex.out.dir}{Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Demultiplex"}.}
+\item{demultiplexOutDir}{Output folder path for demultiplex results. Demultiplexed cell specifc FASTQ files will be stored in folders in this path, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Demultiplex"}.}
 
-\item{alignment.out.dir}{Output directory for alignment results. Sequence alignment maps will be stored in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.}
+\item{alignmentOutDir}{Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.}
 
-\item{umi.out.dir}{Output directory for UMI counting results. UMI corrected expression table will be stored in this directory. Default is \code{"./Count"}.}
+\item{countUmiOutDir}{Output directory for UMI counting results. UMI corrected count matrix will be stored in this directory. Default is \code{"./Count"}.}
 
-\item{demultiplex.summary.prefix}{Prefix for demultiplex summary file. Default is \code{"demultiplex"}.}
+\item{demultiplexSummaryPrefix}{Prefix for demultiplex summary file. Default is \code{"demultiplex"}.}
 
-\item{alignment.summary.prefix}{Prefix for alignment summary file. Default is \code{"alignment"}.}
+\item{alignmentSummaryPrefix}{Prefix for alignment summary file. Default is \code{"alignment"}.}
 
-\item{expr.prefix}{Prefix for expression table filename. Default is \code{"countUMI"}.}
+\item{exprPrefix}{Prefix for UMI count matrix filename. Default is \code{"countUMI"}.}
 
-\item{logfile.prefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
+\item{logfilePrefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 
-\item{overwrite}{Overwrite the output directory. Default is \strong{FALSE}.}
+\item{overwrite}{Boolean indicating whether to overwrite the output directory. Default is \strong{FALSE}.}
 
-\item{verbose}{Print log messages. Useful for debugging. Default to \strong{FALSE}.}
+\item{verbose}{Boolean indicating whether to print log messages. Useful for debugging. Default to \strong{FALSE}.}
 
 \item{cores}{Number of cores to use for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.}
 
-\item{threads}{\strong{Do not change}. Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}.}
+\item{threads}{\strong{Do not change}. Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}. It should not be changed in most cases.}
+}
+\value{
+A \code{data.table} object of UMI filtered count matrix.
 }
 \description{
-Run the \code{scruff} pipeline including \code{demultiplex}, \code{align.rsubread}, and \code{count.umi} functions. Write demultiplex information, alignment information, and expression table in output directories.
+Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \code{alignRsubread}, and \code{countUMI} functions. Write demultiplex information, alignment information, and expression table in output directories. QC table is also generated.
 }

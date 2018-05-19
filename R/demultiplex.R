@@ -39,6 +39,8 @@ demultiplex <- function(fastqAnnot,
                         logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
   
   message(paste(Sys.time(), "Start demultiplexing ..."))
+  print(match.call(expand.dots = TRUE))
+  
   if (overwrite) {
     message(paste(Sys.time(), "All files in", outDir,  "will be deleted ..."))
   }
@@ -74,7 +76,7 @@ demultiplex <- function(fastqAnnot,
   ) %dopar% {
     if (verbose) {
       ## Generate a unique log file name based on given prefix and parameters
-      logfile <- paste0(logfilePrefix, "_sample_", i, "_log.txt")
+      logfile <- paste0(logfilePrefix, "_demultiplex_", i, "_log.txt")
       .demultiplexUnit(
         i,
         fastqAnnotDt,
@@ -221,6 +223,7 @@ demultiplex <- function(fastqAnnot,
         logfile = logfile,
         append = TRUE
       )
+      message("Demultiplex output file already exists!")
       stop("Stop. Try re-running the function by setting overwrite to TRUE\n")
     }
   }
