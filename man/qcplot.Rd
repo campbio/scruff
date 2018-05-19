@@ -4,10 +4,10 @@
 \alias{qcplot}
 \title{Visualize data quality}
 \usage{
-qcplot(qc.dt)
+qcplot(qcDt)
 }
 \arguments{
-\item{qc.dt}{An QC metrics table returnd from \code{collect.qc} function.}
+\item{qcDt}{An QC metrics table returnd from \code{collect.qc} function.}
 }
 \value{
 A list of \code{grobs} objects

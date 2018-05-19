@@ -4,45 +4,44 @@
 \alias{demultiplex}
 \title{Demultiplex cell barcodes and assign cell specific reads}
 \usage{
-demultiplex(fastq.annot, bc, bc.start, bc.stop, bc.edit = 1, umi.start,
-  umi.stop, keep, min.qual = 10, yield.reads = 1e+06,
-  out.dir = "./Demultiplex", summary.prefix = "demultiplex",
-  overwrite = FALSE, cores = max(1, parallel::detectCores()/2),
-  verbose = FALSE, logfile.prefix = format(Sys.time(),
-  "\%Y\%m\%d_\%H\%M\%S"))
+demultiplex(fastqAnnot, bc, bcStart, bcStop, bcEdit = 0, umiStart, umiStop,
+  keep, minQual = 10, yieldReads = 1e+06, outDir = "./Demultiplex",
+  summaryPrefix = "demultiplex", overwrite = FALSE, cores = max(1,
+  parallel::detectCores()/2), verbose = FALSE,
+  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
-\item{fastq.annot}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?exampleannot}.}
+\item{fastqAnnot}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?annotationExample}.}
 
-\item{bc}{A vector of pre-determined cell barcodes. For example, see \code{?examplebc}.}
+\item{bc}{A vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.}
 
-\item{bc.start}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
+\item{bcStart}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
 
-\item{bc.stop}{Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).}
+\item{bcStop}{Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).}
 
-\item{bc.edit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list.}
+\item{bcEdit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list.}
 
-\item{umi.start}{Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.}
+\item{umiStart}{Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.}
 
-\item{umi.stop}{Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.}
+\item{umiStop}{Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.}
 
-\item{keep}{Read trimming. Read length or number of nucleotides to keep for the read that contains transcript sequence information. Longer reads will be clipped at 3' end.}
+\item{keep}{Read trimming. Read length or number of nucleotides to keep for read 2 (the read that contains transcript sequence information). Longer reads will be clipped at 3' end. Shorter reads will not be affected.}
 
-\item{min.qual}{Minimally acceptable Phred quality score for barcode and umi sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
+\item{minQual}{Minimally acceptable Phred quality score for barcode and UMI sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
 
-\item{yield.reads}{The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. Default is \strong{1e6}.}
+\item{yieldReads}{The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. This parameter is passed to the \code{n} argument of the \code{FastqStreamer} function in \emph{ShortRead} package. Default is \strong{1e06}.}
 
-\item{out.dir}{Output directory for demultiplexing results. Demultiplexed fastq files will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"../Demultiplex"}.}
+\item{outDir}{Output folder path for demultiplex results. Demultiplexed cell specifc FASTQ files will be stored in folders in this path, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Demultiplex"}.}
 
-\item{summary.prefix}{Prefix for demultiplex summary file. Default is \code{"demultiplex"}.}
+\item{summaryPrefix}{Prefix for demultiplex summary file. Default is \code{"demultiplex"}.}
 
-\item{overwrite}{Overwrite the output directory. Default is \strong{FALSE}.}
+\item{overwrite}{Boolean indicating whether to overwrite the output directory. Default is \strong{FALSE}.}
 
 \item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.}
 
-\item{verbose}{Print log messages. Useful for debugging. Default to \strong{FALSE}.}
+\item{verbose}{Poolean indicating whether to print log messages. Useful for debugging. Default to \strong{FALSE}.}
 
-\item{logfile.prefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
+\item{logfilePrefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 }
 \value{
 Demultiplexed annotation \code{data.table}.
