@@ -10,6 +10,8 @@ countUMI(alignmentFilePaths, reference, format = "BAM", outDir = "./Count",
   "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
+\item{alignmentFilePaths}{A character vector of the paths to input alignment files. They can be in SAM or BAM format.}
+
 \item{reference}{Can be in one of the following 2 formats:
 \itemize{
  \item{"Path to the reference GTF file."}{The TxDb obeject of the GTF file will be generated and saved in the same directory as the GTF file with ".sqlite" suffix.}
@@ -26,8 +28,6 @@ countUMI(alignmentFilePaths, reference, format = "BAM", outDir = "./Count",
 \item{verbose}{Print log messages. Useful for debugging. Default to \strong{FALSE}.}
 
 \item{logfilePrefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
-
-\item{alignmentFFilePaths}{A character vector of the paths to input alignment files. They can be in SAM or BAM format.}
 }
 \value{
 A expression matrix \code{data.table} object containing the raw counts of unique \emph{UMI:gene} pairs.
