@@ -103,6 +103,9 @@ scruff <- function(fastqAnnot,
     logfilePrefix = logfilePrefix
   )
   
+  # start from demultiplex pass singlecellexperiment object along the pipeline
+  #sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = as.matrix(co)))
+  
   message(paste(Sys.time(), "Finished running scruff ..."))
   
   return (list(demultiplex = de,

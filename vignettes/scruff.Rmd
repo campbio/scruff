@@ -25,7 +25,7 @@ library(scruff)
 First create a folder for storing intermediate and output files.
 
 ```{r}
-dir.create("./scruff_example/fastqExample",
+dir.create(paste0(tempdir(), "/scruff_example/fastqExample"),
            showWarnings = FALSE,
            recursive = TRUE)
 ```
@@ -33,7 +33,7 @@ dir.create("./scruff_example/fastqExample",
 Set current working directory to "./scruff_example".
 
 ```{r}
-setwd("./scruff_example")
+setwd(paste0(tempdir(), "/scruff_example"))
 ```
 
 Prepare example FASTQ files.
@@ -112,10 +112,10 @@ The `scruff` package contains an example single cell RNA-seq dataset `fastqExamp
 
 ```{r eval=FALSE}
 library(scruff)
-dir.create("./scruff_example/fastqExample",
+dir.create(paste0(tempdir(), "/scruff_example/fastqExample"),
            showWarnings = FALSE,
            recursive = TRUE)
-setwd("./scruff_example")
+setwd(paste0(tempdir(), "/scruff_example"))
 
 # write fastg.gz files to folder "examplefastq" in working directory
 for (i in seq_len(length(fastqExample))) {
@@ -176,12 +176,9 @@ buildindex(
 The following command maps the fastq files to GRCm38 mitochondrial reference sequence `GRCm38_MT.fa` and returns the file paths of the generated sequence alignment map files. By default, the files are stored in BAM format in `./Alignment` folder.
 
 ```{r eval=FALSE}
-# get the paths to the demultiplexed cells
-fastqPaths <- de[!(is.na(cell_num)), fastq_path]
-
-# map the reads
+# Align the reads using Rsubread
 al <- alignRsubread(
-  fastqPaths,
+  de,
   indexPrefix,
   format = "BAM",
   cores = 1,
@@ -206,7 +203,7 @@ write.table(GRCm38MitochondrialGTF,
 
 # get the molecular counts of trancsripts for each cell
 co = countUMI(
-  al$Samples,
+  al,
   gtf,
   format = "BAM",
   cores = 1,

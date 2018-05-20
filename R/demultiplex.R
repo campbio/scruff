@@ -18,7 +18,7 @@
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.
 #' @param verbose Poolean indicating whether to print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfilePrefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
-#' @return Demultiplexed annotation \code{data.table}.
+#' @return \strong{SingleCellExperiment} object containing the demultiplex summary information as \code{colData}.
 #' @import data.table foreach
 #' @export
 demultiplex <- function(fastqAnnot,
@@ -138,8 +138,26 @@ demultiplex <- function(fastqAnnot,
     ".tab"
   )), sep = "\t")
   
+  cellname <- resDt[!is.na(cell_num), filename]
+  cellname <- gsub(
+    pattern = "\\.fastq$|\\.fastq\\.gz$",
+    "",
+    cellname,
+    ignore.case = T
+  )
+  
+  # initialize sce object. Add demultiplex summary metadata
+  message("... Initialize SingleCellExperiment object.")
+  message("... Add demultiplex summary to SCE colData.")
+  
+  summaryDF <- S4Vectors::DataFrame(resDt[!is.na(cell_num), -"filename"],
+                                    row.names = cellname)
+  placeholder <- matrix(ncol = length(cellname))
+  sce <- SingleCellExperiment::SingleCellExperiment(placeholder)
+  SummarizedExperiment::colData(sce) <- summaryDF
+  
   message(paste(Sys.time(), "... Demultiplex done!"))
-  return(resDt)
+  return(sce)
 }
 
 

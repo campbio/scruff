@@ -44,7 +44,7 @@ demultiplex(fastqAnnot, bc, bcStart, bcStop, bcEdit = 0, umiStart, umiStop,
 \item{logfilePrefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 }
 \value{
-Demultiplexed annotation \code{data.table}.
+\strong{SingleCellExperiment} object containing the demultiplex summary information as \code{colData}.
 }
 \description{
 Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory

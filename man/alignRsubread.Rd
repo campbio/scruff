@@ -2,16 +2,16 @@
 % Please edit documentation in R/alignRsubread.R
 \name{alignRsubread}
 \alias{alignRsubread}
-\title{A wrapper to \code{Rsubread} read alignment}
+\title{A wrapper to \code{Rsubread} read alignment function \code{align}}
 \usage{
-alignRsubread(fastqPaths, index, unique = TRUE, nBestLocations = 1,
+alignRsubread(sce, index, unique = TRUE, nBestLocations = 1,
   format = "BAM", outDir = "./Alignment", cores = max(1,
   parallel::detectCores()/2), threads = 1, summaryPrefix = "alignment",
   overwrite = FALSE, verbose = FALSE, logfilePrefix = format(Sys.time(),
   "\%Y\%m\%d_\%H\%M\%S"), ...)
 }
 \arguments{
-\item{fastqPaths}{A vcector containing the paths to input cell-specific FASTQ files.}
+\item{sce}{A \code{SingleCellExperiment} object of which the \code{colData} slot contains the \strong{fastq_path} column with paths to input cell-specific FASTQ files.}
 
 \item{index}{Path to the \code{Rsubread} index of the reference genome. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
 
@@ -38,8 +38,8 @@ alignRsubread(fastqPaths, index, unique = TRUE, nBestLocations = 1,
 \item{...}{Additional arguments passed to the \code{align} function in \code{Rsubread} package.}
 }
 \value{
-A character vector of the paths to output alignment files.
+\strong{SingleCellExperiment} object containing the alignment summary information in the \code{colData} slot. Contains a character vector of the paths to output alignment files.
 }
 \description{
-Align cell specific reads to reference genome and write sequence alignment results to output directory. A wrapper to the \code{align} function in \code{Rsubread} package. For details please refer to \code{Rsubread} manual.
+This function is \strong{not} available in Windows environment. Align cell specific reads to reference genome and write sequence alignment results to output directory. A wrapper to the \code{align} function in \code{Rsubread} package. For details please refer to \code{Rsubread} manual.
 }
