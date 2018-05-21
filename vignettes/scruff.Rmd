@@ -90,19 +90,29 @@ Now that everything is ready, we can run `scruff`.
 
 ```{r}
 # Run scruff
-# Returns a list of demultiplex information, alignment information,
-# and expression tables
-result <- scruff(fastqAnnot = annotationExample,
-                 bc = barcodeExample,
-                 index = indexPrefix,
-                 reference = gtf,
-                 bcStart = 1,
-                 bcStop = 8,
-                 umiStart = 9,
-                 umiStop = 12,
-                 keep = 75,
-                 cores = 1,
-                 verbose = TRUE)
+# Returns a SingleCellExperiment object containing UMI filtered count matrix as well as gene and sample annotations.
+sce <- scruff(fastqAnnot = annotationExample,
+              bc = barcodeExample,
+              index = indexPrefix,
+              reference = gtf,
+              bcStart = 1,
+              bcStop = 8,
+              umiStart = 9,
+              umiStop = 12,
+              keep = 75,
+              cores = 1,
+              verbose = TRUE)
+
+# In sample 1h1, cell barcodes 95 and 96 are empty well controls. In sample b1, cell barcode 95 is bulk sample containing 300 cells.
+
+colData(sce)[
+  colData(sce)$cell_index %in% c(95, 96) &
+    colData(sce)$sample == "1h1", "number_of_cells"] <- 0
+colData(sce)[
+  colData(sce)$cell_index == 95 &
+    colData(sce)$sample == "b1", "number_of_cells"] <- 300
+
+qc <- qcplots(sce)
 ```
 
 # Stepwise Tutorial
@@ -244,10 +254,10 @@ In order to visualize data quality, a QC metrics table needs to be generated. `c
 qc <- collectQC(de, al, co, geneAnnotation)
 ```
 
-QC metrics can be visualized by running `qcplot` function.
+QC metrics can be visualized by running `qcplots` function.
 
 ```{r eval = FALSE, warning = FALSE, message = FALSE}
-qcplot(qc)
+qcplots(qc)
 ```
 
 

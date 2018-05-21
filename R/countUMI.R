@@ -6,6 +6,7 @@
 #' @param reference Path to the reference GTF file. The TxDb object of the GTF file will be generated and saved in the current working directory with ".sqlite" suffix.
 #' @param format Format of input sequence alignment files. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param outDir Output directory for UMI counting results. UMI corrected count matrix will be stored in this directory. Default is \code{"./Count"}.
+#' @param cellPerWell Number of cells per well. Can be an integer (e.g. 1) indicating the number of cells in each well or an integer vector with length equal to the total number of cells in the input alignment files. Default is 1.
 #' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.
 #' @param outputPrefix Prefix for expression table filename. Default is \code{"countUMI"}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
@@ -17,6 +18,7 @@ countUMI <- function(sce,
                      reference,
                      format = "BAM",
                      outDir = "./Count",
+                     cellPerWell = 1,
                      cores = max(1, parallel::detectCores() / 2),
                      outputPrefix = "countUMI",
                      verbose = FALSE,
@@ -24,6 +26,10 @@ countUMI <- function(sce,
   
   message(paste(Sys.time(), "Start UMI counting ..."))
   print(match.call(expand.dots = TRUE))
+  
+  if (ncol(sce) != length(cellPerWell) & length(cellPerWell) != 1) {
+    stop(paste0("cellPerWell doe not have same length as ncol(" , sce, ")."))
+  }
   
   alignmentFilePaths <- SummarizedExperiment::colData(sce)$alignment_path
   
@@ -122,9 +128,6 @@ countUMI <- function(sce,
   colnames(readmapping) <- c("reads_mapped_to_genome",
                              "reads_mapped_to_genes")
   
-  SummarizedExperiment::colData(newsce) <- 
-    cbind(SummarizedExperiment::colData(sce), readmapping)
-  
   SingleCellExperiment::isSpike(newsce, "ERCC") <- grepl("^ERCC-",
                                                          rownames(newsce))
   
@@ -135,26 +138,51 @@ countUMI <- function(sce,
     unique(refGenome::getGtf(gtfEG)[, c("gene_id",
                                         "gene_name",
                                         "gene_biotype",
-                                        "seqid",
-                                        "strand")]))
+                                        "seqid")]))
   
   SummarizedExperiment::rowData(newsce) <-
     S4Vectors::DataFrame(geneAnnotation[, -"gene_id"],
                          row.names = geneAnnotation[, gene_id])
   
   # UMI filtered transcripts QC metrics
-  # total counts
+  # total counts exclude ERCC
   totalCounts <- base::colSums(as.data.frame(
     SummarizedExperiment::assay(newsce)[!SingleCellExperiment::isSpike(newsce, "ERCC"), ]))
   
   # MT counts
   mtCounts <- base::colSums(as.data.frame(
-    SummarizedExperiment::assay(newsce)[grep("^mt-", rowData(newsce)[, "gene_name"]), ]))
+    SummarizedExperiment::assay(newsce)
+    [grep("^mt-", SummarizedExperiment::rowData(newsce)[, "gene_name"]), ]))
   
-  # gene number
+  # gene number exclude ERCC
+  cm <- SummarizedExperiment::assay(newsce)[
+    !SingleCellExperiment::isSpike(newsce, "ERCC"), ]
+  
+  geneNumber <- vapply(colnames(cm), function(cells) {
+    sum(cm[, cells] != 0)
+  }, integer(1))
+  
   # protein coding genes
-  # protein coding counts
+  proteinCodingGene <- geneAnnotation[gene_biotype == "protein_coding",
+                                      gene_id]
+  proGene <- vapply(colnames(cm), function(cells) {
+    sum(cm[proteinCodingGene, cells] != 0)
+  }, integer(1))
   
+  # protein coding counts
+  proCounts <- base::colSums(as.data.frame(cm[proteinCodingGene, ]))
+  
+  # number of cells per well, default = 1
+  
+  SummarizedExperiment::colData(newsce) <- 
+    cbind(SummarizedExperiment::colData(sce),
+          readmapping,
+          total_counts = totalCounts,
+          mt_counts = mtCounts,
+          gene_number = geneNumber,
+          protein_coding_gene = proGene,
+          protein_coding_counts = proCounts,
+          number_of_cells = cellPerWell)
   
   message(paste(Sys.time(), "... UMI counting done!"))
   return(newsce)

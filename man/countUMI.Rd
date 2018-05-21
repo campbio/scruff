@@ -5,9 +5,9 @@
 \title{Count the number of UMIs for each gene and output expression matrix}
 \usage{
 countUMI(sce, reference, format = "BAM", outDir = "./Count",
-  cores = max(1, parallel::detectCores()/2), outputPrefix = "countUMI",
-  verbose = FALSE, logfilePrefix = format(Sys.time(),
-  "\%Y\%m\%d_\%H\%M\%S"))
+  cellPerWell = 1, cores = max(1, parallel::detectCores()/2),
+  outputPrefix = "countUMI", verbose = FALSE,
+  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object of which the \code{colData} slot contains the \strong{alignment_path} column with paths to input cell-specific sequence alignment files (BAM or SAM format).}
@@ -17,6 +17,8 @@ countUMI(sce, reference, format = "BAM", outDir = "./Count",
 \item{format}{Format of input sequence alignment files. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 
 \item{outDir}{Output directory for UMI counting results. UMI corrected count matrix will be stored in this directory. Default is \code{"./Count"}.}
+
+\item{cellPerWell}{Number of cells per well. Can be an integer (e.g. 1) indicating the number of cells in each well or an integer vector with length equal to the total number of cells in the input alignment files. Default is 1.}
 
 \item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.}
 

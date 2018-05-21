@@ -107,22 +107,24 @@ collectQC <- function(de, al, co, geneAnnotation = NA) {
 
 #' Visualize data quality
 #' 
-#' Visualize data quality from QC metrics table and return a list of \code{grobs} objects.
+#' Visualize data quality from the \code{colData} of the \code{SingleCellExperiment} object and return a list of figures in \code{grobs} objects.
 #' 
-#' @param qcDt An QC metrics table returnd from \code{collect.qc} function.
-#' @return A list of \code{grobs} objects
+#' @param sce An \code{SingleCellExperiment} object returned from \code{scruff} or \code{countUMI} function.
+#' @return A list of \code{grobs} objects ready for plotting
 #' @export
-qcplot <- function(qcDt) {
-  g1 <- plot.reads.assignment(qcDt)
-  g2 <- plot.total.reads(qcDt)
-  g3 <- plot.reads.mapped.to.genome(qcDt)
-  g4 <- plot.reads.mapped.to.genes(qcDt)
-  g5 <- plot.genome.reads.fraction(qcDt)
-  g6 <- plot.gene.to.genome.fraction(qcDt)
-  g7 <- plot.gene.to.total.fraction(qcDt)
-  g8 <- plot.transcripts(qcDt)
-  g9 <- plot.MT.transcripts(qcDt)
-  g10 <- plot.MT.transcripts.fraction(qcDt)
+qcplots <- function(sce) {
+  qcDt <- data.table::as.data.table(SummarizedExperiment::colData(sce))
+  
+  #g1 <- plot.reads.assignment(qcDt)
+  g2 <- .plotTotalReads(qcDt)
+  g3 <- .plotReadsMappedToGenome(qcDt)
+  g4 <- .plotReadsMappedToGenes(qcDt)
+  g5 <- .plotGenomeReadsFraction(qcDt)
+  g6 <- .plotGeneToGenomeFraction(qcDt)
+  g7 <- .plotGeneToTotalFraction(qcDt)
+  g8 <- .plotCounts(qcDt)
+  g9 <- .plotMtCounts(qcDt)
+  g10 <- .plotMtCountsFraction(qcDt)
   g11 <- plot.genes(qcDt)
   g12 <- plot.frac.protein.coding.genes(qcDt)
   g13 <- plot.frac.protein.coding.transcripts(qcDt)
@@ -179,14 +181,12 @@ theme_Publication <- function(base_size = 12,
 }
 
 
-# cumulative fraction of reads per cell
-
-
 # assigned reads
+# old
 plot.reads.assignment <- function(qcDt) {
   
   plot.reads.assignment.id <- function (i, qc) {
-    qc.i <- qc[!is.na(cell_num) & sample == i, ]
+    qc.i <- qc[!is.na(cell_index) & sample == i, ]
     qc.i <- qc.i[order(qc.i$reads, decreasing = TRUE), ]
     ggplot2::ggplot(qc.i) +
       ggplot2::geom_bar(ggplot2::aes(x = seq(nrow(qc.i)),
@@ -202,7 +202,7 @@ plot.reads.assignment <- function(qcDt) {
   qc <- data.table::copy(qcDt)
   
   return (gridExtra::marrangeGrob(
-    grobs = lapply(X = qcDt[,unique(sample)],
+    grobs = lapply(X = qcDt[, unique(sample)],
                    plot.reads.assignment.id,
                    qc = qcDt),
     ncol = 1, nrow = 2,
@@ -212,203 +212,198 @@ plot.reads.assignment <- function(qcDt) {
 }
 
 
-plot.total.reads <- function(qcDt) {
-  g <- ggplot2::ggplot(data = qcDt[!(is.na(cell_num)), ],
+.plotTotalReads <- function(qcDt) {
+  g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
                          x = as.factor(sample),
                          y = log10(reads),
-                         #y = reads,
-                         group = as.factor(sample)
-                       )) +
+                         group = as.factor(sample))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
-      color = "#424242",
+      ggplot2::aes(color = as.factor(number_of_cells)),
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 0.5
     ) +
-    ggplot2::ylab(expression(Log[10]*"reads")) +
-    ggplot2::ggtitle("Number of total reads") +
+    ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
+    ggplot2::xlab("Sample") +
+    ggplot2::ggtitle("Total reads") +
+    ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +
-    theme_Publication() +
-    ggplot2::theme(axis.title.x = ggplot2::element_blank())
+    theme_Publication()
   return (g)
 }
 
 
-plot.reads.mapped.to.genome <- function(qcDt) {
-  g <- ggplot2::ggplot(data = subset(qcDt, !(cell %in% c("low_quality",
-                                                          "total",
-                                                          "undetermined"))),
+.plotReadsMappedToGenome <- function(qcDt) {
+  g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
                          x = as.factor(sample),
                          y = log10(reads_mapped_to_genome),
-                         group = as.factor(sample)
-                       )) +
+                         group = as.factor(sample))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
-      color = "#424242",
+      ggplot2::aes(color = as.factor(number_of_cells)),
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 0.5
     ) +
-    ggplot2::ylab(expression(Log[10]*"reads")) +
-    ggplot2::ggtitle("Number of aligned reads") +
+    ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
+    ggplot2::xlab("Sample") +
+    ggplot2::ggtitle("Reads aligned to reference genome") +
+    ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +
-    theme_Publication() +
-    ggplot2::theme(axis.title.x = ggplot2::element_blank())
-    
+    theme_Publication()
   return (g)
 }
 
 
-plot.reads.mapped.to.genes <- function(qcDt) {
-  g <- ggplot2::ggplot(data = subset(qcDt, !(cell %in% c("low_quality",
-                                                          "total",
-                                                          "undetermined"))),
-                       ggplot2::aes(x = as.factor(sample),
-                                    y = log10(reads_mapped_to_genes),
-                                    group = as.factor(sample))) +
+.plotReadsMappedToGenes <- function(qcDt) {
+  g <- ggplot2::ggplot(data = qcDt,
+                       ggplot2::aes(
+                         x = as.factor(sample),
+                         y = log10(reads_mapped_to_genes),
+                         group = as.factor(sample))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
-    ggplot2::geom_point(color = "#424242",
-               position = ggplot2::position_jitter(width = 0.3, height = 0),
-               size = 0.5) +
-    ggplot2::ylab(expression(Log[10]*"reads")) +
-    ggplot2::ggtitle("Number of reads aligned to an gene") +
+    ggplot2::geom_point(
+      ggplot2::aes(color = as.factor(number_of_cells)),
+      position = ggplot2::position_jitter(width = 0.3, height = 0),
+      size = 0.5) +
+    ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
+    ggplot2::xlab("Sample") +
+    ggplot2::ggtitle("Reads mapped to genes") +
+    ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +
-    theme_Publication() +
-    ggplot2::theme(axis.title.x = ggplot2::element_blank())
-    
+    theme_Publication()
   return (g)
 }
 
 
-plot.genome.reads.fraction <- function(qcDt) {
-  g <- ggplot2::ggplot(data = subset(qcDt, !(cell %in% c("low_quality",
-                                                          "total",
-                                                          "undetermined"))),
-                       ggplot2::aes(x = as.factor(sample),
-                                    y = reads_mapped_to_genome/reads,
-                                    group = as.factor(sample))) +
+.plotGenomeReadsFraction <- function(qcDt) {
+  g <- ggplot2::ggplot(data = qcDt,
+                       ggplot2::aes(
+                         x = as.factor(sample),
+                         y = reads_mapped_to_genome/reads,
+                         group = as.factor(sample))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
-    ggplot2::geom_point(color = "#424242",
-                        position = ggplot2::position_jitter(width = 0.3,
-                                                            height = 0),
-                        size = 0.5) +
+    ggplot2::geom_point(
+      ggplot2::aes(color = as.factor(number_of_cells)),
+      position = ggplot2::position_jitter(width = 0.3, height = 0),
+      size = 0.5) +
     ggplot2::ylim(0, 1) +
+    ggplot2::xlab("Sample") +
     ggplot2::ggtitle("Fraction of aligned reads to total reads") +
+    ggplot2::labs(color = "Cells/well") +
     theme_Publication() + 
-    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
-                   axis.title.x = ggplot2::element_blank())
-    
+    ggplot2::theme(axis.title.y = ggplot2::element_blank())
   return (g)
 }
 
 
-plot.gene.to.genome.fraction <- function(qcDt) {
-  g <- ggplot2::ggplot(data = subset(qcDt, !(cell %in% c("low_quality",
-                                                          "total",
-                                                          "undetermined"))),
-                       ggplot2::aes(x = as.factor(sample),
-                                    y = reads_mapped_to_genes/reads_mapped_to_genome,
-                                    group = as.factor(sample))) +
+.plotGeneToGenomeFraction <- function(qcDt) {
+  g <- ggplot2::ggplot(data = qcDt,
+                       ggplot2::aes(
+                         x = as.factor(sample),
+                         y = reads_mapped_to_genes/reads_mapped_to_genome,
+                         group = as.factor(sample))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
-    ggplot2::geom_point(color = "#424242",
-                        position = ggplot2::position_jitter(width = 0.3,
-                                                            height = 0),
-                        size = 0.5) +
+    ggplot2::geom_point(
+      ggplot2::aes(color = as.factor(number_of_cells)),
+      position = ggplot2::position_jitter(width = 0.3, height = 0),
+      size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of reads aligned to an gene out of total number of aligned reads") +
+    ggplot2::xlab("Sample") +
+    ggplot2::ggtitle("Fraction of gene reads out of aligned reads") +
+    ggplot2::labs(color = "Cells/well") +
     theme_Publication() +
-    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
-                   axis.title.x = ggplot2::element_blank())
+    ggplot2::theme(axis.title.y = ggplot2::element_blank())
   return (g)
 }
 
 
-plot.gene.to.total.fraction <- function(qcDt) {
-  g <- ggplot2::ggplot(data = subset(qcDt, !(cell %in% c("low_quality",
-                                                          "total",
-                                                          "undetermined"))),
-                       ggplot2::aes(x = as.factor(sample),
-                                    y = reads_mapped_to_genes/reads,
-                                    group = as.factor(sample))) +
+.plotGeneToTotalFraction <- function(qcDt) {
+  g <- ggplot2::ggplot(data = qcDt,
+                       ggplot2::aes(
+                         x = as.factor(sample),
+                         y = reads_mapped_to_genes/reads,
+                         group = as.factor(sample))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
-    ggplot2::geom_point(color = "#424242",
-                        position = ggplot2::position_jitter(width = 0.3,
-                                                            height = 0),
-                        size = 0.5) +
+    ggplot2::geom_point(
+      ggplot2::aes(color = as.factor(number_of_cells)),
+      position = ggplot2::position_jitter(width = 0.3, height = 0),
+      size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of reads aligned to an gene out of total number of reads") +
+    ggplot2::xlab("Sample") +
+    ggplot2::ggtitle("Fraction of gene reads out of total reads") +
+    ggplot2::labs(color = "Cells/well") +
     theme_Publication() +
-    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
-                   axis.title.x = ggplot2::element_blank())
+    ggplot2::theme(axis.title.y = ggplot2::element_blank())
   return (g)
 }
 
 
-plot.transcripts <- function(qcDt) {
-  g <- ggplot2::ggplot(data = subset(qcDt, !(cell %in% c("low_quality",
-                                                          "total",
-                                                          "undetermined"))),
-                       ggplot2::aes(x = as.factor(sample),
-                                    y = log10(transcripts),
-                                    group = as.factor(sample))) +
+.plotCounts <- function(qcDt) {
+  g <- ggplot2::ggplot(data = qcDt,
+                       ggplot2::aes(
+                         x = as.factor(sample),
+                         y = log10(total_counts),
+                         group = as.factor(sample))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
-    ggplot2::geom_point(color = "#424242",
-                        position = ggplot2::position_jitter(width = 0.3,
-                                                            height = 0),
-                        size = 0.5) +
-    ggplot2::ylab(expression(Log[10]*"transcripts")) +
-    ggplot2::ggtitle("Total number of transcripts after UMI correction") +
+    ggplot2::geom_point(
+      ggplot2::aes(color = as.factor(number_of_cells)),
+      position = ggplot2::position_jitter(width = 0.3, height = 0),
+      size = 0.5) +
+    ggplot2::ylab(expression(bold(Log[10]*"Counts"))) +
+    ggplot2::xlab("Sample") +
+    ggplot2::ggtitle("Total counts") +
+    ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +
-    theme_Publication() +
-    ggplot2::theme(axis.title.x = ggplot2::element_blank())
+    theme_Publication()
   return (g)
 }
 
 
-plot.MT.transcripts <- function(qcDt) {
-  g <- ggplot2::ggplot(data = subset(qcDt, !(cell %in% c("low_quality",
-                                                          "total",
-                                                          "undetermined"))),
-                       ggplot2::aes(x = as.factor(sample),
-                                    y = log10(mt_transcripts),
-                                    group = as.factor(sample))) +
+.plotMtCounts <- function(qcDt) {
+  g <- ggplot2::ggplot(data = qcDt,
+                       ggplot2::aes(
+                         x = as.factor(sample),
+                         y = log10(mt_counts),
+                         group = as.factor(sample))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
-    ggplot2::geom_point(color = "#424242",
-                        position = ggplot2::position_jitter(width = 0.3,
-                                                            height = 0),
-                        size = 0.5) +
-    ggplot2::ylab(expression(Log[10]*"transcripts")) +
-    ggplot2::ggtitle("Number of mitochondrial transcripts after UMI correction") +
+    ggplot2::geom_point(
+      ggplot2::aes(color = as.factor(number_of_cells)),
+      position = ggplot2::position_jitter(width = 0.3, height = 0),
+      size = 0.5) +
+    ggplot2::ylab(expression(bold(Log[10]*"Counts"))) +
+    ggplot2::xlab("Sample") +
+    ggplot2::ggtitle("Mitochondrial counts") +
+    ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +
-    theme_Publication() +
-    ggplot2::theme(axis.title.x = ggplot2::element_blank())
+    theme_Publication()
   return (g)
 }
 
 
-plot.MT.transcripts.fraction <- function(qcDt) {
-  g <- ggplot2::ggplot(data = subset(qcDt, !(cell %in% c("low_quality",
-                                                          "total",
-                                                          "undetermined"))),
-                       ggplot2::aes(x = as.factor(sample),
-                                    y = mt_transcripts/transcripts,
-                                    group = as.factor(sample))) +
+.plotMtCountsFraction <- function(qcDt) {
+  g <- ggplot2::ggplot(data = qcDt,
+                       ggplot2::aes(
+                         x = as.factor(sample),
+                         y = mt_counts/total_counts,
+                         group = as.factor(sample))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
-    ggplot2::geom_point(color = "#424242",
-                        position = ggplot2::position_jitter(width = 0.3,
-                                                            height = 0),
-                        size = 0.5) +
+    ggplot2::geom_point(
+      ggplot2::aes(color = as.factor(number_of_cells)),
+      position = ggplot2::position_jitter(width = 0.3, height = 0),
+      size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::ggtitle("Fraction of mitochondrial transcripts after UMI correction") +
+    ggplot2::xlab("Sample") +
+    ggplot2::ggtitle("Fraction of mitochondrial counts") +
+    ggplot2::labs(color = "Cells/well") +
     theme_Publication() +
-    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
-                   axis.title.x = ggplot2::element_blank())
+    ggplot2::theme(axis.title.y = ggplot2::element_blank())
   return (g)
 }
 

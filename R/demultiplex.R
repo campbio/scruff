@@ -52,7 +52,7 @@ demultiplex <- function(fastqAnnot,
   logfile <- paste0(logfilePrefix, "_demultiplex_log.txt")
   
   fastqAnnotDt <- data.table::data.table(fastqAnnot)
-  barcodeDt <- data.table::data.table("cell_num" = seq_len(length(bc)),
+  barcodeDt <- data.table::data.table("cell_index" = seq_len(length(bc)),
                                       "barcode" = bc)
   sampleId <- fastqAnnotDt[, unique(sample)]
   
@@ -138,7 +138,7 @@ demultiplex <- function(fastqAnnot,
     ".tab"
   )), sep = "\t")
   
-  cellname <- resDt[!is.na(cell_num), filename]
+  cellname <- resDt[!is.na(cell_index), filename]
   cellname <- gsub(
     pattern = "\\.fastq$|\\.fastq\\.gz$",
     "",
@@ -150,7 +150,7 @@ demultiplex <- function(fastqAnnot,
   message("... Initialize SingleCellExperiment object.")
   message("... Add demultiplex summary to SCE colData.")
   
-  summaryDF <- S4Vectors::DataFrame(resDt[!is.na(cell_num), -"filename"],
+  summaryDF <- S4Vectors::DataFrame(resDt[!is.na(cell_index), -"filename"],
                                     row.names = cellname)
   placeholder <- matrix(ncol = length(cellname))
   sce <- SingleCellExperiment::SingleCellExperiment(placeholder)
@@ -191,7 +191,7 @@ demultiplex <- function(fastqAnnot,
                                               paste(unique(project),
                                                     i, sep = "_")],
                                  "_cell_",
-                                 sprintf("%04d", cell_num),
+                                 sprintf("%04d", cell_index),
                                  ".fastq.gz")]
   summaryDt[, reads := 0]
   summaryDt[, percent_assigned := 0]
@@ -201,7 +201,7 @@ demultiplex <- function(fastqAnnot,
     list(
       summaryDt,
       list(
-        cell_num = c(NA, NA, NA),
+        cell_index = c(NA, NA, NA),
         barcode = c(NA, NA, NA),
         filename = c("low_quality", "undetermined", "total"),
         reads = c(0, 0, 0),
@@ -226,13 +226,13 @@ demultiplex <- function(fastqAnnot,
     unlink(file.path(outDir, i), recursive = TRUE)
   } else {
     if (any(file.exists(file.path(outDir, i,
-                                  summaryDt[!(is.na(cell_num)), filename])))) {
+                                  summaryDt[!(is.na(cell_index)), filename])))) {
       .logMessages(
         paste(
           "Stop.",
-          summaryDt[!(is.na(cell_num)), ]
+          summaryDt[!(is.na(cell_index)), ]
           [which(file.exists(file.path(outDir, i,
-                                       summaryDt[!(is.na(cell_num)),
+                                       summaryDt[!(is.na(cell_index)),
                                                  filename])) == TRUE), filename],
           "already exists in output directory",
           file.path(outDir, i),
@@ -346,15 +346,15 @@ demultiplex <- function(fastqAnnot,
       summaryDt[filename == "low_quality",
                 reads := reads + length(fqy1) - nrow(fqyDt)]
       
-      for (k in barcodeDt[, cell_num]) {
-        cellBarcode <- barcodeDt[cell_num == k, barcode]
+      for (k in barcodeDt[, cell_index]) {
+        cellBarcode <- barcodeDt[cell_index == k, barcode]
         cfqDt <- fqyDt[bc_correct == cellBarcode, ]
         
         dir.create(file.path(outDir, i),
                    recursive = TRUE,
                    showWarnings = FALSE)
         # project_sample_"cell"_cellnum.fastq.gz
-        outFname <- summaryDt[cell_num == k, filename]
+        outFname <- summaryDt[cell_index == k, filename]
         outFull <- file.path(outDir, i, outFname)
         if (!file.exists(outFull)) {
           file.create(outFull, showWarnings = FALSE)
@@ -374,7 +374,7 @@ demultiplex <- function(fastqAnnot,
         summaryDt[barcode == cellBarcode, reads := reads + nrow(cfqDt)]
       }
       
-      summaryDt[!(is.na(cell_num)), 
+      summaryDt[!(is.na(cell_index)), 
                 fastq_path := file.path(outDir, sample, filename)]
       
       undeterminedDt <- fqyDt[!(bc_correct %in% barcodeDt[, barcode]), ]
