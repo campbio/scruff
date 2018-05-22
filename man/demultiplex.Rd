@@ -19,7 +19,7 @@ demultiplex(fastqAnnot, bc, bcStart, bcStop, bcEdit = 0, umiStart, umiStop,
 
 \item{bcStop}{Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).}
 
-\item{bcEdit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list.}
+\item{bcEdit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list. Default is 0, meaning no cell barcode correction is performed.}
 
 \item{umiStart}{Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.}
 
@@ -33,18 +33,18 @@ demultiplex(fastqAnnot, bc, bcStart, bcStop, bcEdit = 0, umiStart, umiStop,
 
 \item{outDir}{Output folder path for demultiplex results. Demultiplexed cell specifc FASTQ files will be stored in folders in this path, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Demultiplex"}.}
 
-\item{summaryPrefix}{Prefix for demultiplex summary file. Default is \code{"demultiplex"}.}
+\item{summaryPrefix}{Prefix for demultiplex summary filename. Default is \code{"demultiplex"}.}
 
 \item{overwrite}{Boolean indicating whether to overwrite the output directory. Default is \strong{FALSE}.}
 
-\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.}
+\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.}
 
 \item{verbose}{Poolean indicating whether to print log messages. Useful for debugging. Default to \strong{FALSE}.}
 
 \item{logfilePrefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 }
 \value{
-\strong{SingleCellExperiment} object containing the demultiplex summary information as \code{colData}.
+A \strong{SingleCellExperiment} object containing the demultiplex summary information as \code{colData}.
 }
 \description{
 Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory
