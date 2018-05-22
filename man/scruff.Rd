@@ -5,14 +5,15 @@
 \title{Run scruff pipeline}
 \usage{
 scruff(fastqAnnot, bc, index, reference, bcStart, bcStop, bcEdit = 0,
-  umiStart, umiStop, keep, minQual = 10, yieldReads = 1e+06,
+  umiStart, umiStop, keep, cellPerWell = 1, unique = TRUE,
+  nBestLocations = 1, minQual = 10, yieldReads = 1e+06,
   alignmentFileFormat = "BAM", demultiplexOutDir = "./Demultiplex",
   alignmentOutDir = "./Alignment", countUmiOutDir = "./Count",
   demultiplexSummaryPrefix = "demultiplex",
-  alignmentSummaryPrefix = "alignment", exprPrefix = "countUMI",
+  alignmentSummaryPrefix = "alignment", countPrefix = "countUMI",
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"),
   overwrite = FALSE, verbose = FALSE, cores = max(1,
-  parallel::detectCores()/2), threads = 1)
+  parallel::detectCores()/2), threads = 1, ...)
 }
 \arguments{
 \item{fastqAnnot}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?annotationExample}.}
@@ -21,40 +22,43 @@ scruff(fastqAnnot, bc, index, reference, bcStart, bcStop, bcEdit = 0,
 
 \item{index}{Path to the \code{Rsubread} index of the reference genome. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
 
-\item{reference}{Can be in one of the following 2 formats:
-\itemize{
- \item{"Path to the reference GTF file."}{The TxDb obeject of the GTF file will be generated and saved in the same directory as the GTF file with ".sqlite" suffix.}
- \item{"A TxDb object."}{A TxDb object contains feature information about the reference genome. For more detail, please refer to \code{GenomicFeatures} package.}}}
+\item{reference}{Path to the reference GTF file. The TxDb object of the GTF file will be generated and saved in the current working directory with ".sqlite" suffix.}
 
 \item{bcStart}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
 
 \item{bcStop}{Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).}
 
-\item{bcEdit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list.}
+\item{bcEdit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list. Default is 0, meaning no cell barcode correction is performed.}
 
 \item{umiStart}{Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.}
 
 \item{umiStop}{Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.}
 
-\item{keep}{Read trimming. Read length or number of nucleotides to keep for read 2 (the read that contains transcript sequence information). Longer reads will be clipped at 3' end. Shorter reads will not be affected.}
+\item{keep}{Read trimming. Read length or number of nucleotides to keep for read 2 (the read that contains transcript sequence information). Longer reads will be clipped at 3' end. Shorter reads will not be affected. This number should be determined based on the sequencing kit that was used in library preparation step.}
 
-\item{minQual}{Minimally acceptable Phred quality score for barcode and UMI sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
+\item{cellPerWell}{Number of cells per well. Can be an integer (e.g. 1) indicating the number of cells in each well or an vector with length equal to the total number of cells in the input alignment files specifying the number of cells in each file. Default is 1.}
+
+\item{unique}{Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{TRUE}.}
+
+\item{nBestLocations}{Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, "NH" tag is used to indicate how many alignments are reported for the read and "HI" tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.}
+
+\item{minQual}{Minimally acceptable Phred quality score for cell barcode and UMI sequences. Phread quality scores are calculated for each nucleotide in these tags. Tags with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
 
 \item{yieldReads}{The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. This parameter is passed to the \code{n} argument of the \code{FastqStreamer} function in \emph{ShortRead} package. Default is \strong{1e06}.}
 
-\item{alignmentFileFormat}{Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
+\item{alignmentFileFormat}{File format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 
 \item{demultiplexOutDir}{Output folder path for demultiplex results. Demultiplexed cell specifc FASTQ files will be stored in folders in this path, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Demultiplex"}.}
 
 \item{alignmentOutDir}{Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.}
 
-\item{countUmiOutDir}{Output directory for UMI counting results. UMI corrected count matrix will be stored in this directory. Default is \code{"./Count"}.}
+\item{countUmiOutDir}{Output directory for UMI counting results. UMI filtered count matrix will be stored in this directory. Default is \code{"./Count"}.}
 
-\item{demultiplexSummaryPrefix}{Prefix for demultiplex summary file. Default is \code{"demultiplex"}.}
+\item{demultiplexSummaryPrefix}{Prefix for demultiplex summary filename. Default is \code{"demultiplex"}.}
 
-\item{alignmentSummaryPrefix}{Prefix for alignment summary file. Default is \code{"alignment"}.}
+\item{alignmentSummaryPrefix}{Prefix for alignment summary filename. Default is \code{"alignment"}.}
 
-\item{exprPrefix}{Prefix for UMI count matrix filename. Default is \code{"countUMI"}.}
+\item{countPrefix}{Prefix for UMI filtered count matrix filename. Default is \code{"countUMI"}.}
 
 \item{logfilePrefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 
@@ -62,13 +66,15 @@ scruff(fastqAnnot, bc, index, reference, bcStart, bcStop, bcEdit = 0,
 
 \item{verbose}{Boolean indicating whether to print log messages. Useful for debugging. Default to \strong{FALSE}.}
 
-\item{cores}{Number of cores to use for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.}
+\item{cores}{Number of cores to use for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.}
 
 \item{threads}{\strong{Do not change}. Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}. It should not be changed in most cases.}
+
+\item{...}{Additional arguments passed to the \code{align} function in \code{Rsubread} package.}
 }
 \value{
-A \code{data.table} object of UMI filtered count matrix.
+A \code{SingleCellExperiment} object.
 }
 \description{
-Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \code{alignRsubread}, and \code{countUMI} functions. Write demultiplex information, alignment information, and expression table in output directories. QC table is also generated.
+Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \code{alignRsubread}, and \code{countUMI} functions. Write demultiplex statistics, alignment statistics, and UMI filtered count matrix in output directories. Return a SingleCellExperiment object containing the count matrix, cell and gene annotations, and all QC metrics.
 }

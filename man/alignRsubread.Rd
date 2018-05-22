@@ -2,32 +2,32 @@
 % Please edit documentation in R/alignRsubread.R
 \name{alignRsubread}
 \alias{alignRsubread}
-\title{A wrapper to \code{Rsubread} read alignment}
+\title{A wrapper to \code{Rsubread} read alignment function \code{align}}
 \usage{
-alignRsubread(fastqPaths, index, unique = TRUE, nBestLocations = 1,
+alignRsubread(sce, index, unique = TRUE, nBestLocations = 1,
   format = "BAM", outDir = "./Alignment", cores = max(1,
   parallel::detectCores()/2), threads = 1, summaryPrefix = "alignment",
   overwrite = FALSE, verbose = FALSE, logfilePrefix = format(Sys.time(),
   "\%Y\%m\%d_\%H\%M\%S"), ...)
 }
 \arguments{
-\item{fastqPaths}{A vcector containing the paths to input cell-specific FASTQ files.}
+\item{sce}{A \code{SingleCellExperiment} object of which the \code{colData} slot contains the \strong{fastq_path} column with paths to input cell-specific FASTQ files.}
 
 \item{index}{Path to the \code{Rsubread} index of the reference genome. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
 
 \item{unique}{Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{TRUE}.}
 
-\item{nBestLocations}{Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, ‘NH’ tag is used to indicate how many alignments are reported for the read and ‘HI’ tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.}
+\item{nBestLocations}{Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, "NH" tag is used to indicate how many alignments are reported for the read and "HI" tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.}
 
-\item{format}{Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
+\item{format}{File format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 
 \item{outDir}{Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.}
 
-\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.}
+\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.}
 
 \item{threads}{\strong{Do not change}. Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}. It should not be changed in most cases.}
 
-\item{summaryPrefix}{Prefix for alignment summary file. Default is \code{"alignment"}.}
+\item{summaryPrefix}{Prefix for alignment summary filename. Default is \code{"alignment"}.}
 
 \item{overwrite}{Boolean indicating whether to overwrite the output directory. Default is \strong{FALSE}.}
 
@@ -38,8 +38,8 @@ alignRsubread(fastqPaths, index, unique = TRUE, nBestLocations = 1,
 \item{...}{Additional arguments passed to the \code{align} function in \code{Rsubread} package.}
 }
 \value{
-A character vector of the paths to output alignment files.
+A \strong{SingleCellExperiment} object containing the alignment summary information in the \code{colData} slot. Contains a character vector of the paths to output alignment files.
 }
 \description{
-Align cell specific reads to reference genome and write sequence alignment results to output directory. A wrapper to the \code{align} function in \code{Rsubread} package. For details please refer to \code{Rsubread} manual.
+This function is \strong{not} available in Windows environment. Align cell specific reads to reference genome and write sequence alignment results to output directory. A wrapper to the \code{align} function in \code{Rsubread} package. For details please refer to \code{Rsubread} manual.
 }

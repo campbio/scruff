@@ -6,19 +6,19 @@
 #' @param bc A vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.
 #' @param bcStart Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).
 #' @param bcStop Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).
-#' @param bcEdit Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list.
+#' @param bcEdit Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list. Default is 0, meaning no cell barcode correction is performed.
 #' @param umiStart Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.
 #' @param umiStop Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.
 #' @param keep Read trimming. Read length or number of nucleotides to keep for read 2 (the read that contains transcript sequence information). Longer reads will be clipped at 3' end. Shorter reads will not be affected.
 #' @param minQual Minimally acceptable Phred quality score for barcode and UMI sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.
 #' @param yieldReads The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. This parameter is passed to the \code{n} argument of the \code{FastqStreamer} function in \emph{ShortRead} package. Default is \strong{1e06}.
 #' @param outDir Output folder path for demultiplex results. Demultiplexed cell specifc FASTQ files will be stored in folders in this path, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Demultiplex"}.
-#' @param summaryPrefix Prefix for demultiplex summary file. Default is \code{"demultiplex"}.
+#' @param summaryPrefix Prefix for demultiplex summary filename. Default is \code{"demultiplex"}.
 #' @param overwrite Boolean indicating whether to overwrite the output directory. Default is \strong{FALSE}.
-#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.
+#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.
 #' @param verbose Poolean indicating whether to print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfilePrefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
-#' @return Demultiplexed annotation \code{data.table}.
+#' @return A \strong{SingleCellExperiment} object containing the demultiplex summary information as \code{colData}.
 #' @import data.table foreach
 #' @export
 demultiplex <- function(fastqAnnot,
@@ -30,7 +30,7 @@ demultiplex <- function(fastqAnnot,
                         umiStop,
                         keep,
                         minQual = 10,
-                        yieldReads = 1e6,
+                        yieldReads = 1e06,
                         outDir = "./Demultiplex",
                         summaryPrefix = "demultiplex",
                         overwrite = FALSE,
@@ -52,7 +52,7 @@ demultiplex <- function(fastqAnnot,
   logfile <- paste0(logfilePrefix, "_demultiplex_log.txt")
   
   fastqAnnotDt <- data.table::data.table(fastqAnnot)
-  barcodeDt <- data.table::data.table("cell_num" = seq_len(length(bc)),
+  barcodeDt <- data.table::data.table("cell_index" = seq_len(length(bc)),
                                       "barcode" = bc)
   sampleId <- fastqAnnotDt[, unique(sample)]
   
@@ -138,8 +138,26 @@ demultiplex <- function(fastqAnnot,
     ".tab"
   )), sep = "\t")
   
+  cellname <- resDt[!is.na(cell_index), filename]
+  cellname <- gsub(
+    pattern = "\\.fastq$|\\.fastq\\.gz$",
+    "",
+    cellname,
+    ignore.case = T
+  )
+  
+  # initialize sce object. Add demultiplex summary metadata
+  message("... Initialize SingleCellExperiment object.")
+  message("... Add demultiplex summary to SCE colData.")
+  
+  summaryDF <- S4Vectors::DataFrame(resDt[!is.na(cell_index), -"filename"],
+                                    row.names = cellname)
+  placeholder <- matrix(ncol = length(cellname))
+  sce <- SingleCellExperiment::SingleCellExperiment(placeholder)
+  SummarizedExperiment::colData(sce) <- summaryDF
+  
   message(paste(Sys.time(), "... Demultiplex done!"))
-  return(resDt)
+  return(sce)
 }
 
 
@@ -173,7 +191,7 @@ demultiplex <- function(fastqAnnot,
                                               paste(unique(project),
                                                     i, sep = "_")],
                                  "_cell_",
-                                 sprintf("%04d", cell_num),
+                                 sprintf("%04d", cell_index),
                                  ".fastq.gz")]
   summaryDt[, reads := 0]
   summaryDt[, percent_assigned := 0]
@@ -183,7 +201,7 @@ demultiplex <- function(fastqAnnot,
     list(
       summaryDt,
       list(
-        cell_num = c(NA, NA, NA),
+        cell_index = c(NA, NA, NA),
         barcode = c(NA, NA, NA),
         filename = c("low_quality", "undetermined", "total"),
         reads = c(0, 0, 0),
@@ -208,13 +226,13 @@ demultiplex <- function(fastqAnnot,
     unlink(file.path(outDir, i), recursive = TRUE)
   } else {
     if (any(file.exists(file.path(outDir, i,
-                                  summaryDt[!(is.na(cell_num)), filename])))) {
+                                  summaryDt[!(is.na(cell_index)), filename])))) {
       .logMessages(
         paste(
           "Stop.",
-          summaryDt[!(is.na(cell_num)), ]
+          summaryDt[!(is.na(cell_index)), ]
           [which(file.exists(file.path(outDir, i,
-                                       summaryDt[!(is.na(cell_num)),
+                                       summaryDt[!(is.na(cell_index)),
                                                  filename])) == TRUE), filename],
           "already exists in output directory",
           file.path(outDir, i),
@@ -328,15 +346,15 @@ demultiplex <- function(fastqAnnot,
       summaryDt[filename == "low_quality",
                 reads := reads + length(fqy1) - nrow(fqyDt)]
       
-      for (k in barcodeDt[, cell_num]) {
-        cellBarcode <- barcodeDt[cell_num == k, barcode]
+      for (k in barcodeDt[, cell_index]) {
+        cellBarcode <- barcodeDt[cell_index == k, barcode]
         cfqDt <- fqyDt[bc_correct == cellBarcode, ]
         
         dir.create(file.path(outDir, i),
                    recursive = TRUE,
                    showWarnings = FALSE)
         # project_sample_"cell"_cellnum.fastq.gz
-        outFname <- summaryDt[cell_num == k, filename]
+        outFname <- summaryDt[cell_index == k, filename]
         outFull <- file.path(outDir, i, outFname)
         if (!file.exists(outFull)) {
           file.create(outFull, showWarnings = FALSE)
@@ -356,7 +374,7 @@ demultiplex <- function(fastqAnnot,
         summaryDt[barcode == cellBarcode, reads := reads + nrow(cfqDt)]
       }
       
-      summaryDt[!(is.na(cell_num)), 
+      summaryDt[!(is.na(cell_index)), 
                 fastq_path := file.path(outDir, sample, filename)]
       
       undeterminedDt <- fqyDt[!(bc_correct %in% barcodeDt[, barcode]), ]

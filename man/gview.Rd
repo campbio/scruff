@@ -22,7 +22,7 @@ gview(ensemblGenome, chr = 1, start = 1,
 
 \item{line_width}{Line weight. Default 0.5.}
 
-\item{arrow_segments}{The number of segments lines be divided to. The larger the number, more arrows there are. Default 10.}
+\item{arrow_segments}{The number of segments lines be divided to. The greater the number, more arrows there are. Default 10.}
 
 \item{arrow_width}{The angle of the arrow head in degrees (smaller numbers produce narrower, pointier arrows). Essentially describes the width of the arrow head. Passed to the angle parameter of arrow function. Default 30.}
 

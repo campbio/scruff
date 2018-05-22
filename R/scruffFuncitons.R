@@ -53,9 +53,9 @@
 # read gtf database and return feature GRangesList by gene ID
 .gtfReadDb <- function(gtf, logfile) {
   if (class(gtf) == "TxDb") {
-    return(gtf)
+    stop("Please enter path to GTF file.")
   } else {
-    gtf.db.file <- paste0(gtf, ".sqlite")
+    gtf.db.file <- paste0(basename(gtf), ".sqlite")
     if ((!(file.exists(gtf))) & (!(file.exists(gtf.db.file)))) {
       stop(paste("File", gtf, "does not exist"))
     }
@@ -140,51 +140,6 @@
 }
 
 
-# get gene names from biomart
-# deprecated
-get.gene.annot <- function(co,
-                           host = "www.ensembl.org",
-                           biomart = "ENSEMBL_MART_ENSEMBL",
-                           dataset = "hsapiens_gene_ensembl",
-                           GRCh = NULL) {
-  ######### Feature annotation
-  gene.id <- co[!(gene.id %in% c("reads_mapped_to_genome",
-                                 "reads_mapped_to_genes")) &
-                  !grepl("ERCC", co[,gene.id]), gene.id]
-  # Use Ensembl version 74 (December 2013, hg19)
-  #biomart.host <- "dec2013.archive.ensembl.org"
-  
-  # Initialize featureData slot of ExpressionSet
-  #gene.type <- data.frame(row.names = fnames)
-  
-  # Get feature annotation data
-  ensembl <- biomaRt::useEnsembl(biomart = biomart,
-                                 dataset = dataset,
-                                 host = host,
-                                 GRCh = GRCh)
-  biomart.result <- data.table::data.table(biomaRt::getBM(
-    attributes=c("ensembl_gene_id", "external_gene_name",
-                 "gene_biotype", "chromosome_name"),
-    filters="ensembl_gene_id",
-    values=gene.id,
-    mart=ensembl
-  ))
-  
-  biomart.result <- biomart.result[!base::duplicated(biomart.result,
-                                                     by = "ensembl_gene_id"), ]
-  
-  # Reorder/insert rows so that rows of Biomart query result match 
-  # rows of the expression matrix
-  biomart.result <- data.table::data.table(biomart.result[
-    match(co[!(gene.id %in% c("reads_mapped_to_genome",
-                              "reads_mapped_to_genes")) &
-               !grepl("ERCC", co[, gene.id]), gene.id],
-          biomart.result$ensembl_gene_id),])
-  
-  return (biomart.result)
-}
-
-
 #' Visualize aligned reads
 #' 
 #' Visualize read alignments for UMI tagged single cell RNA-sequencing data. Arrow represents orientation of alignment. Reads are colored by their UMI and sorted by their start positions and UMI.
@@ -197,11 +152,11 @@ get.gene.annot <- function(co,
 #' @return A ggplot object of aligned reads
 #' @import ggbio
 #' @export
-stepping <- function(bamGA,
-                     chr = "1",
-                     start = 1,
-                     end = max(BiocGenerics::end(bamGA)),
-                     legend = FALSE) {
+rview <- function(bamGA,
+                  chr = "1",
+                  start = 1,
+                  end = max(BiocGenerics::end(bamGA)),
+                  legend = FALSE) {
   
   reads <- bamGA[BiocGenerics::start(bamGA) >= start &
                    BiocGenerics::end(bamGA) <= end &
@@ -209,13 +164,13 @@ stepping <- function(bamGA,
   umi <- data.table::last(data.table::tstrsplit(names(reads), ":"))
   reads <- reads[order(BiocGenerics::start(reads), umi)]
   
-  reads.gr <- GenomicRanges::GRanges(reads)
-  S4Vectors::mcols(reads.gr)$umi <- data.table::last(
-    data.table::tstrsplit(names(reads.gr), ":"))
+  readsGr <- GenomicRanges::GRanges(reads)
+  S4Vectors::mcols(readsGr)$umi <- data.table::last(
+    data.table::tstrsplit(names(readsGr), ":"))
   
-  g <- ggplot2::ggplot(reads.gr) +
+  g <- ggplot2::ggplot(readsGr) +
     ggbio::geom_arrow(ggplot2::aes(color = umi)) +
-    theme_Publication() + 
+    .themePublication() + 
     ggplot2::theme(axis.title.y = ggplot2::element_blank())
   
   if (legend == FALSE) {
@@ -235,7 +190,7 @@ stepping <- function(bamGA,
 #' @param end Genomic coordinate of the end position.
 #' @param rect_width Exon widths. Default 0.3.
 #' @param line_width Line weight. Default 0.5.
-#' @param arrow_segments The number of segments lines be divided to. The larger the number, more arrows there are. Default 10.
+#' @param arrow_segments The number of segments lines be divided to. The greater the number, more arrows there are. Default 10.
 #' @param arrow_width The angle of the arrow head in degrees (smaller numbers produce narrower, pointier arrows). Essentially describes the width of the arrow head. Passed to the angle parameter of arrow function. Default 30.
 #' @param arrow_length The length of the arrow head. Passed to the length argument of arrow function. Default 0.08.
 #' @param arrow_type One of "open" or "closed" indicating whether the arrow head should be a closed triangle. Passed to the type argument of arrow function. Default "open".
@@ -255,7 +210,7 @@ gview <- function(ensemblGenome,
                   arrow_type = "open",
                   text_size = 4) {
   
-  getlevel <- function(txdt) {
+  .getLevel <- function(txdt) {
     txdt <- txdt[order(start, end), ]
     
     step <- 1
@@ -274,7 +229,7 @@ gview <- function(ensemblGenome,
   }
   
   
-  gettxdt <- function(dt) {
+  .getTxdt <- function(dt) {
     transcripts <- dt[, unique(transcript_id)]
     txdt <- data.table::data.table()
     for (i in transcripts) {
@@ -292,11 +247,11 @@ gview <- function(ensemblGenome,
     }
     txdt[, set := 0]
     
-    txdt <- getlevel(txdt)
+    txdt <- .getLevel(txdt)
   }
   
   
-  trans_rect <- function(dt, txdt) {
+  .transRect <- function(dt, txdt) {
     rdt <- data.table::data.table()
     transcripts <- dt[, unique(transcript_id)]
     for (tx in transcripts) {
@@ -327,7 +282,7 @@ gview <- function(ensemblGenome,
   }
   
   
-  trans_arrow <- function(dt) {
+  .transArrow <- function(dt) {
     adt <- data.table::data.table()
     for (i in seq_len(nrow(dt))) {
       mi <- dt[i, start]
@@ -364,7 +319,7 @@ gview <- function(ensemblGenome,
   }
   
   
-  trans_text <- function(dt) {
+  .transText <- function(dt) {
     tdt <- data.table::data.table()
     
     for (i in seq_len(nrow(dt))) {
@@ -386,7 +341,7 @@ gview <- function(ensemblGenome,
   
   
   # convert to data.table
-  gtf.dt <- data.table::data.table(
+  gtfDt <- data.table::data.table(
     refGenome::getGtf(ensemblGenome)[, c("id",
                                          "seqid",
                                          "feature",
@@ -405,15 +360,15 @@ gview <- function(ensemblGenome,
   st <- end
   
   # subset features
-  gtf.dt <- gtf.dt[end >= begin & start <= st & seqid == chr, ]
+  gtfDt <- gtfDt[end >= begin & start <= st & seqid == chr, ]
   
   # aggregate transcripts
-  txdt <- gettxdt(gtf.dt)
+  txdt <- .getTxdt(gtfDt)
   
   # get tables for plotting
-  rectdt <- trans_rect(gtf.dt, txdt)
-  arrowdt <- trans_arrow(txdt)
-  textdt <- trans_text(txdt)
+  rectdt <- .transRect(gtfDt, txdt)
+  arrowdt <- .transArrow(txdt)
+  textdt <- .transText(txdt)
   
   # plot
   g <- ggplot2::ggplot() +
@@ -437,7 +392,7 @@ gview <- function(ensemblGenome,
                                               y = y,
                                               label = transcript_name),
                        size = text_size) +
-    theme_Publication() +
+    .themePublication() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
                    axis.text.y = ggplot2::element_blank(),
                    axis.ticks.y = ggplot2::element_blank(),

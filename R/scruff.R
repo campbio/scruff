@@ -1,35 +1,36 @@
 #' Run scruff pipeline
 #' 
-#' Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \code{alignRsubread}, and \code{countUMI} functions. Write demultiplex information, alignment information, and expression table in output directories. QC table is also generated.
+#' Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \code{alignRsubread}, and \code{countUMI} functions. Write demultiplex statistics, alignment statistics, and UMI filtered count matrix in output directories. Return a SingleCellExperiment object containing the count matrix, cell and gene annotations, and all QC metrics.
 #' 
 #' @param fastqAnnot An annotation data table or data frame that contains information about input fastq files. For example, see \code{?annotationExample}.
 #' @param bc A vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.
 #' @param index Path to the \code{Rsubread} index of the reference genome. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.
-#' @param reference Can be in one of the following 2 formats:
-#' \itemize{
-#'  \item{"Path to the reference GTF file."}{The TxDb obeject of the GTF file will be generated and saved in the same directory as the GTF file with ".sqlite" suffix.}
-#'  \item{"A TxDb object."}{A TxDb object contains feature information about the reference genome. For more detail, please refer to \code{GenomicFeatures} package.}}
+#' @param reference Path to the reference GTF file. The TxDb object of the GTF file will be generated and saved in the current working directory with ".sqlite" suffix.
 #' @param bcStart Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).
 #' @param bcStop Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).
-#' @param bcEdit Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list.
+#' @param bcEdit Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list. Default is 0, meaning no cell barcode correction is performed.
 #' @param umiStart Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.
 #' @param umiStop Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.
-#' @param keep Read trimming. Read length or number of nucleotides to keep for read 2 (the read that contains transcript sequence information). Longer reads will be clipped at 3' end. Shorter reads will not be affected.
-#' @param minQual Minimally acceptable Phred quality score for barcode and UMI sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.
+#' @param keep Read trimming. Read length or number of nucleotides to keep for read 2 (the read that contains transcript sequence information). Longer reads will be clipped at 3' end. Shorter reads will not be affected. This number should be determined based on the sequencing kit that was used in library preparation step.
+#' @param cellPerWell Number of cells per well. Can be an integer (e.g. 1) indicating the number of cells in each well or an vector with length equal to the total number of cells in the input alignment files specifying the number of cells in each file. Default is 1.
+#' @param unique Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{TRUE}.
+#' @param nBestLocations Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, "NH" tag is used to indicate how many alignments are reported for the read and "HI" tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.
+#' @param minQual Minimally acceptable Phred quality score for cell barcode and UMI sequences. Phread quality scores are calculated for each nucleotide in these tags. Tags with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.
 #' @param yieldReads The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. This parameter is passed to the \code{n} argument of the \code{FastqStreamer} function in \emph{ShortRead} package. Default is \strong{1e06}.
-#' @param alignmentFileFormat Format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
+#' @param alignmentFileFormat File format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param demultiplexOutDir Output folder path for demultiplex results. Demultiplexed cell specifc FASTQ files will be stored in folders in this path, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Demultiplex"}.
 #' @param alignmentOutDir Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.
-#' @param countUmiOutDir Output directory for UMI counting results. UMI corrected count matrix will be stored in this directory. Default is \code{"./Count"}.
-#' @param demultiplexSummaryPrefix Prefix for demultiplex summary file. Default is \code{"demultiplex"}.
-#' @param alignmentSummaryPrefix Prefix for alignment summary file. Default is \code{"alignment"}.
-#' @param exprPrefix Prefix for UMI count matrix filename. Default is \code{"countUMI"}.
+#' @param countUmiOutDir Output directory for UMI counting results. UMI filtered count matrix will be stored in this directory. Default is \code{"./Count"}.
+#' @param demultiplexSummaryPrefix Prefix for demultiplex summary filename. Default is \code{"demultiplex"}.
+#' @param alignmentSummaryPrefix Prefix for alignment summary filename. Default is \code{"alignment"}.
+#' @param countPrefix Prefix for UMI filtered count matrix filename. Default is \code{"countUMI"}.
 #' @param logfilePrefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @param overwrite Boolean indicating whether to overwrite the output directory. Default is \strong{FALSE}.
 #' @param verbose Boolean indicating whether to print log messages. Useful for debugging. Default to \strong{FALSE}.
-#' @param cores Number of cores to use for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}.
+#' @param cores Number of cores to use for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.
 #' @param threads \strong{Do not change}. Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}. It should not be changed in most cases.
-#' @return A \code{data.table} object of UMI filtered count matrix.
+#' @param ... Additional arguments passed to the \code{align} function in \code{Rsubread} package.
+#' @return A \code{SingleCellExperiment} object.
 #' @export
 scruff <- function(fastqAnnot,
                    bc,
@@ -41,20 +42,24 @@ scruff <- function(fastqAnnot,
                    umiStart,
                    umiStop,
                    keep,
+                   cellPerWell = 1,
+                   unique = TRUE,
+                   nBestLocations = 1,
                    minQual = 10,
-                   yieldReads = 1e6,
+                   yieldReads = 1e06,
                    alignmentFileFormat = "BAM",
                    demultiplexOutDir = "./Demultiplex",
                    alignmentOutDir = "./Alignment",
                    countUmiOutDir = "./Count",
                    demultiplexSummaryPrefix = "demultiplex",
                    alignmentSummaryPrefix = "alignment",
-                   exprPrefix = "countUMI",
+                   countPrefix = "countUMI",
                    logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S"),
                    overwrite = FALSE,
                    verbose = FALSE,
                    cores = max(1, parallel::detectCores() / 2),
-                   threads = 1) {
+                   threads = 1,
+                   ...) {
   
   # run pipeline
   message(paste(Sys.time(), "Start running scruff ..."))
@@ -80,8 +85,10 @@ scruff <- function(fastqAnnot,
   )
   
   al <- alignRsubread(
-    fastqPaths = de[!(is.na(cell_num)), fastq_path],
+    sce = de,
     index = index,
+    unique = unique,
+    nBestLocations = nBestLocations,
     format = alignmentFileFormat,
     outDir = alignmentOutDir,
     cores = cores,
@@ -93,21 +100,23 @@ scruff <- function(fastqAnnot,
   )
   
   co <- countUMI(
-    alignment = al$Samples,
+    sce = al,
     reference = reference,
     format = alignmentFileFormat,
     outDir = countUmiOutDir,
+    cellPerWell = cellPerWell,
     cores = cores,
-    outputPrefix = exprPrefix,
+    outputPrefix = countPrefix,
     verbose = verbose,
     logfilePrefix = logfilePrefix
   )
   
+  # start from demultiplex pass singlecellexperiment object along the pipeline
+  #sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = as.matrix(co)))
+  
   message(paste(Sys.time(), "Finished running scruff ..."))
   
-  return (list(demultiplex = de,
-               alignment = al,
-               expression = co))
+  return (co)
 }
 
 
