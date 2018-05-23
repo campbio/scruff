@@ -51,7 +51,7 @@ buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 
 Now that everything is ready, we can run `scruff`. In sample 1h1, cell barcodes 95 and 96 are empty well controls. In sample b1, cell barcode 95 is bulk sample containing 300 cells. These information can be set by the `cellPerWell` argument. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
 
-```{r, results = 'hide', warning = FALSE}
+```{r, results = 'hide', warning = FALSE, message = FALSE}
 sce <- scruff(project = "example",
               sample = c("1h1", "b1"),
               lane = c("L001", "L001"),
@@ -129,11 +129,10 @@ de <- demultiplex(project = "example",
 `scruff` provides an alignment function `alignRsubread` which is a wrapper function to `align` in `Rsubread` package. It aligns the reads to reference sequence index and outputs sequence alignment map files in "BAM" or "SAM" format. For demonstration purpose, the built-in mitochondrial DNA sequence from GRCm38 reference assembly `GRCm38MitochondrialFasta` will be used to map the reads. First, a `Rsubread` index for the reference sequence needs to be generated.
 
 ```{r, results = 'hide'}
-fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
-indexBase <- "GRCm38_MT"
 # NOTE: Rsubread package does not support Windows environment.
 library(Rsubread)
 # Create index files for GRCm38_MT. For details, please refer to Rsubread user manual.
+fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 # Specify the basename for Rsubread index
 indexBase <- "GRCm38_MT"
 buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
@@ -188,7 +187,7 @@ bam <- GenomicAlignments::readGAlignments(
   Rsamtools::BamFile(SummarizedExperiment::colData(sce)[
     which(SummarizedExperiment::colData(sce)$number_of_cells == 300),
     "alignment_path"]),
-    use.names = T)
+    use.names = TRUE)
 
 gtfEG = refGenome::ensemblGenome(dirname(gtf))
 refGenome::read.gtf(gtfEG, filename = basename(gtf))

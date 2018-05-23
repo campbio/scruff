@@ -86,3 +86,35 @@ A \code{SingleCellExperiment} object.
 \description{
 Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \code{alignRsubread}, and \code{countUMI} functions. Write demultiplex statistics, alignment statistics, and UMI filtered count matrix in output directories. Return a SingleCellExperiment object containing the count matrix, cell and gene annotations, and all QC metrics.
 }
+\examples{
+fastqs <- list.files(system.file("extdata", package = "scruff"),
+pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
+fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
+gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
+
+# NOTE: Rsubread package does not support Windows environment.
+library(Rsubread)
+# Specify the basename for Rsubread index
+indexBase <- "GRCm38_MT"
+# Create index files for GRCm38_MT.
+buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
+
+# rub scruff
+sce <- scruff(project = "example",
+sample = c("1h1", "b1"),
+lane = c("L001", "L001"),
+read1Path = c(fastqs[1], fastqs[3]),
+read2Path = c(fastqs[2], fastqs[4]),
+bc = barcodeExample,
+index = indexBase,
+reference = gtf,
+bcStart = 1,
+bcStop = 8,
+umiStart = 9,
+umiStop = 12,
+keep = 75,
+cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+cores = 2,
+overwrite = TRUE,
+verbose = TRUE)
+}

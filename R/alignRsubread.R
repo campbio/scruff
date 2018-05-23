@@ -16,6 +16,36 @@
 #' @param logfilePrefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @param ... Additional arguments passed to the \code{align} function in \code{Rsubread} package.
 #' @return A \strong{SingleCellExperiment} object containing the alignment summary information in the \code{colData} slot. Contains a character vector of the paths to output alignment files.
+#' @examples
+#' # The SingleCellExperiment object returned by demultiplex function is
+#' # required for running alignRsubread function
+#' fastqs <- list.files(system.file("extdata", package = "scruff"),
+#' pattern = "\\.fastq\\.gz", full.names = TRUE)
+#' 
+#' de <- demultiplex(
+#' project = "example",
+#' sample = c("1h1", "b1"),
+#' lane = c("L001", "L001"),
+#' read1Path = c(fastqs[1], fastqs[3]),
+#' read2Path = c(fastqs[2], fastqs[4]),
+#' barcodeExample,
+#' bcStart = 1,
+#' bcStop = 8,
+#' umiStart = 9,
+#' umiStop = 12,
+#' keep = 75,
+#' overwrite = TRUE,
+#' cores = 1)
+#' 
+#' # Alignment
+#' library(Rsubread)
+#' # Create index files for GRCm38_MT.
+#' fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
+#' # Specify the basename for Rsubread index
+#' indexBase <- "GRCm38_MT"
+#' buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
+#' 
+#' al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 1)
 #' @import data.table foreach
 #' @export
 alignRsubread <- function(sce,

@@ -4,6 +4,10 @@
 #' 
 #' @param sce An \code{SingleCellExperiment} object returned from \code{scruff} or \code{countUMI} function.
 #' @return A list of \code{grobs} objects ready for plotting
+#' @examples
+#' data(sceExample, package = "scruff")
+#' qcplots(sceExample)
+#' @import grid
 #' @export
 qcplots <- function(sce) {
   qcDt <- data.table::as.data.table(SummarizedExperiment::colData(sce))

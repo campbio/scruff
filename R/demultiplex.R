@@ -23,7 +23,26 @@
 #' @param verbose Poolean indicating whether to print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfilePrefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @return A \strong{SingleCellExperiment} object containing the demultiplex summary information as \code{colData}.
-#' @import data.table foreach
+#' @examples
+#' # Demultiplex example FASTQ files
+#' fastqs <- list.files(system.file("extdata", package = "scruff"),
+#' pattern = "\\.fastq\\.gz", full.names = TRUE)
+#' 
+#' de <- demultiplex(
+#' project = "example",
+#' sample = c("1h1", "b1"),
+#' lane = c("L001", "L001"),
+#' read1Path = c(fastqs[1], fastqs[3]),
+#' read2Path = c(fastqs[2], fastqs[4]),
+#' barcodeExample,
+#' bcStart = 1,
+#' bcStop = 8,
+#' umiStart = 9,
+#' umiStop = 12,
+#' keep = 75,
+#' overwrite = TRUE,
+#' cores = 1)
+#' @import data.table foreach ShortRead
 #' @export
 demultiplex <- function(project = paste0("project_", Sys.Date()),
                         sample,
@@ -159,8 +178,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     pattern = "\\.fastq$|\\.fastq\\.gz$",
     "",
     cellname,
-    ignore.case = T
-  )
+    ignore.case = TRUE)
 
   # initialize sce object. Add demultiplex summary metadata
   message("... Initialize SingleCellExperiment object.")
@@ -264,7 +282,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
 
   for (j in lanes) {
     .logMessages(Sys.time(), "... Processing Lane", j,
-                logfile = logfile, append=TRUE)
+                logfile = logfile, append = TRUE)
 
     f1 <- sampleMetaDt[lane == j, read1_path]
     f2 <- sampleMetaDt[lane == j, read2_path]

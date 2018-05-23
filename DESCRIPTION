@@ -13,7 +13,6 @@ Imports: data.table,
     GenomicAlignments,
     GenomicFeatures,
     GenomicRanges,
-    gtools,
     parallel,
     Rsamtools,
     ShortRead,
@@ -40,3 +39,13 @@ Suggests:
     rmarkdown,
     Rsubread
 biocViews:
+    Software,
+    Technology,
+    Sequencing,
+    Alignment,
+    RNASeq,
+    SingleCell,
+    WorkflowStep,
+    Preprocessing,
+    QualityControl,
+    Visualization

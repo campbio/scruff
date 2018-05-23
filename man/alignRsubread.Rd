@@ -43,3 +43,34 @@ A \strong{SingleCellExperiment} object containing the alignment summary informat
 \description{
 This function is \strong{not} available in Windows environment. Align cell specific reads to reference genome and write sequence alignment results to output directory. A wrapper to the \code{align} function in \code{Rsubread} package. For details please refer to \code{Rsubread} manual.
 }
+\examples{
+# The SingleCellExperiment object returned by demultiplex function is
+# required for running alignRsubread function
+fastqs <- list.files(system.file("extdata", package = "scruff"),
+pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
+
+de <- demultiplex(
+project = "example",
+sample = c("1h1", "b1"),
+lane = c("L001", "L001"),
+read1Path = c(fastqs[1], fastqs[3]),
+read2Path = c(fastqs[2], fastqs[4]),
+barcodeExample,
+bcStart = 1,
+bcStop = 8,
+umiStart = 9,
+umiStop = 12,
+keep = 75,
+overwrite = TRUE,
+cores = 1)
+
+# Alignment
+library(Rsubread)
+# Create index files for GRCm38_MT.
+fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
+# Specify the basename for Rsubread index
+indexBase <- "GRCm38_MT"
+buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
+
+al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 1)
+}

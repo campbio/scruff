@@ -35,6 +35,37 @@
 #' @param threads \strong{Do not change}. Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}. It should not be changed in most cases.
 #' @param ... Additional arguments passed to the \code{align} function in \code{Rsubread} package.
 #' @return A \code{SingleCellExperiment} object.
+#' @examples
+#' fastqs <- list.files(system.file("extdata", package = "scruff"),
+#' pattern = "\\.fastq\\.gz", full.names = TRUE)
+#' fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
+#' gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
+#' 
+#' # NOTE: Rsubread package does not support Windows environment.
+#' library(Rsubread)
+#' # Specify the basename for Rsubread index
+#' indexBase <- "GRCm38_MT"
+#' # Create index files for GRCm38_MT.
+#' buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
+#' 
+#' # rub scruff
+#' sce <- scruff(project = "example",
+#' sample = c("1h1", "b1"),
+#' lane = c("L001", "L001"),
+#' read1Path = c(fastqs[1], fastqs[3]),
+#' read2Path = c(fastqs[2], fastqs[4]),
+#' bc = barcodeExample,
+#' index = indexBase,
+#' reference = gtf,
+#' bcStart = 1,
+#' bcStop = 8,
+#' umiStart = 9,
+#' umiStop = 12,
+#' keep = 75,
+#' cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+#' cores = 2,
+#' overwrite = TRUE,
+#' verbose = TRUE)
 #' @export
 scruff <- function(project = paste0("project_", Sys.Date()),
                    sample,
