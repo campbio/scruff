@@ -6,7 +6,7 @@
 \usage{
 scruff(project = paste0("project_", Sys.Date()), sample, lane, read1Path,
   read2Path, bc, index, reference, bcStart, bcStop, bcEdit = 0, umiStart,
-  umiStop, keep, cellPerWell = 1, unique = TRUE, nBestLocations = 1,
+  umiStop, keep, cellPerWell = 1, unique = FALSE, nBestLocations = 1,
   minQual = 10, yieldReads = 1e+06, alignmentFileFormat = "BAM",
   demultiplexOutDir = "./Demultiplex", alignmentOutDir = "./Alignment",
   countUmiOutDir = "./Count", demultiplexSummaryPrefix = "demultiplex",
@@ -46,7 +46,7 @@ scruff(project = paste0("project_", Sys.Date()), sample, lane, read1Path,
 
 \item{cellPerWell}{Number of cells per well. Can be an integer (e.g. 1) indicating the number of cells in each well or an vector with length equal to the total number of cells in the input alignment files specifying the number of cells in each file. Default is 1.}
 
-\item{unique}{Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{TRUE}.}
+\item{unique}{Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{FALSE}.}
 
 \item{nBestLocations}{Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, "NH" tag is used to indicate how many alignments are reported for the read and "HI" tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.}
 

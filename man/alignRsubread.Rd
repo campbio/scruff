@@ -4,7 +4,7 @@
 \alias{alignRsubread}
 \title{A wrapper to \code{Rsubread} read alignment function \code{align}}
 \usage{
-alignRsubread(sce, index, unique = TRUE, nBestLocations = 1,
+alignRsubread(sce, index, unique = FALSE, nBestLocations = 1,
   format = "BAM", outDir = "./Alignment", cores = max(1,
   parallel::detectCores()/2), threads = 1, summaryPrefix = "alignment",
   overwrite = FALSE, verbose = FALSE, logfilePrefix = format(Sys.time(),
@@ -15,7 +15,7 @@ alignRsubread(sce, index, unique = TRUE, nBestLocations = 1,
 
 \item{index}{Path to the \code{Rsubread} index of the reference genome. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
 
-\item{unique}{Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{TRUE}.}
+\item{unique}{Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{FALSE}.}
 
 \item{nBestLocations}{Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, "NH" tag is used to indicate how many alignments are reported for the read and "HI" tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.}
 

@@ -36,7 +36,6 @@ vb1R2 <- system.file("extdata",
                       package = "scruff")
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
-print(barcodeExample)
 ```
 
 Build Rsubread alignment index. This is for the alignment step. For test porpurse, here we are aligning the example FASTQ files to the genes on mitochondrial chromosome only.
@@ -60,14 +59,16 @@ sce <- scruff(project = "example",
               read2Path = c(v1h1R2, vb1R2),
               bc = barcodeExample,
               index = indexBase,
+              unique = FALSE,
+              nBestLocations = 1,
               reference = gtf,
               bcStart = 1,
               bcStop = 8,
               umiStart = 9,
               umiStop = 12,
               keep = 75,
-              cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), "bulk", 1),
-              cores = 1,
+              cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+              cores = 2,
               verbose = TRUE)
 ```
 
@@ -104,7 +105,6 @@ Now the FASTQ files are ready to be demultiplexed. `scruff` package provides bui
 
 ```{r}
 print(barcodeExample)
-
 de <- demultiplex(project = "example",
                   sample = c("1h1", "b1"),
                   lane = c("L001", "L001"),
@@ -119,7 +119,7 @@ de <- demultiplex(project = "example",
                   keep = 75,
                   minQual = 10,
                   yieldReads = 1e+06,
-                  cores = 1,
+                  cores = 2,
                   verbose = TRUE,
                   overwrite = TRUE)
 ```
@@ -145,9 +145,10 @@ The following command maps the FASTQ files to GRCm38 mitochondrial reference seq
 # Align the reads using Rsubread
 al <- alignRsubread(de,
                     indexBase,
-                    unique = TRUE,
+                    unique = FALSE,
+                    nBestLocations = 1,
                     format = "BAM",
-                    cores = 1,
+                    cores = 2,
                     overwrite = TRUE,
                     verbose = TRUE)
 ```
@@ -163,9 +164,8 @@ gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 sce = countUMI(al,
                gtf,
                format = "BAM",
-               cellPerWell = c(rep(1, 94), 0, 0,
-                  rep(1, 94), "bulk", 1),
-               cores = 1,
+               cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+               cores = 2,
                verbose = TRUE)
 ```
 
@@ -180,15 +180,18 @@ qc
 
 ## Visualization of Read alignments
 
-`scruff` package provides functions to visualize read alignments on the reference genome. Reads are colored by their UMI. The following command visualize the reads mapped to gene mt-Rnr2 for the bulk sample vandenBrink_b1_cell_0095.
+`scruff` package provides functions to visualize read alignments on the reference genome. Reads are colored by their UMI. The following command visualize the reads mapped to gene mt-Rnr2 for the bulk sample "vandenBrink_b1_cell_0095".
 
 ```{r}
 # Visualize the reads mapped to gene "mt-Rnr2" in cell "vandenBrink_b1_cell_0095".
 bam <- GenomicAlignments::readGAlignments(
   Rsamtools::BamFile(SummarizedExperiment::colData(sce)[
     which(SummarizedExperiment::colData(sce)$number_of_cells == 300),
-    "alignment_path"],
-    use.names = T))
+    "alignment_path"]),
+    use.names = T)
+
+gtfEG = refGenome::ensemblGenome(dirname(gtf))
+refGenome::read.gtf(gtfEG, filename = basename(gtf))
 
 # gene mt-Rnr2 starts at 1094 and ends at 2675
 start <- 1094
@@ -196,7 +199,7 @@ end <- 2675
 
 g1 <- rview(bam, chr = "MT", start = start, end = end)
 g2 <- gview(gtfEG, chr = "MT", start = start, end = end)
-g <- ggbio::tracks(g1, g2, heights = c(5,1), xlab = "chr MT")
+g <- ggbio::tracks(g1, g2, heights = c(4,1), xlab = "chr MT")
 g
 ```
 
