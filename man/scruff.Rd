@@ -6,7 +6,7 @@
 \usage{
 scruff(project = paste0("project_", Sys.Date()), sample, lane, read1Path,
   read2Path, bc, index, reference, bcStart, bcStop, bcEdit = 0, umiStart,
-  umiStop, keep, cellPerWell = 1, unique = TRUE, nBestLocations = 1,
+  umiStop, keep, cellPerWell = 1, unique = FALSE, nBestLocations = 1,
   minQual = 10, yieldReads = 1e+06, alignmentFileFormat = "BAM",
   demultiplexOutDir = "./Demultiplex", alignmentOutDir = "./Alignment",
   countUmiOutDir = "./Count", demultiplexSummaryPrefix = "demultiplex",
@@ -46,7 +46,7 @@ scruff(project = paste0("project_", Sys.Date()), sample, lane, read1Path,
 
 \item{cellPerWell}{Number of cells per well. Can be an integer (e.g. 1) indicating the number of cells in each well or an vector with length equal to the total number of cells in the input alignment files specifying the number of cells in each file. Default is 1.}
 
-\item{unique}{Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{TRUE}.}
+\item{unique}{Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{FALSE}.}
 
 \item{nBestLocations}{Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, "NH" tag is used to indicate how many alignments are reported for the read and "HI" tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.}
 
@@ -85,4 +85,36 @@ A \code{SingleCellExperiment} object.
 }
 \description{
 Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \code{alignRsubread}, and \code{countUMI} functions. Write demultiplex statistics, alignment statistics, and UMI filtered count matrix in output directories. Return a SingleCellExperiment object containing the count matrix, cell and gene annotations, and all QC metrics.
+}
+\examples{
+fastqs <- list.files(system.file("extdata", package = "scruff"),
+pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
+fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
+gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
+
+# NOTE: Rsubread package does not support Windows environment.
+library(Rsubread)
+# Specify the basename for Rsubread index
+indexBase <- "GRCm38_MT"
+# Create index files for GRCm38_MT.
+buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
+
+# rub scruff
+sce <- scruff(project = "example",
+sample = c("1h1", "b1"),
+lane = c("L001", "L001"),
+read1Path = c(fastqs[1], fastqs[3]),
+read2Path = c(fastqs[2], fastqs[4]),
+bc = barcodeExample,
+index = indexBase,
+reference = gtf,
+bcStart = 1,
+bcStop = 8,
+umiStart = 9,
+umiStop = 12,
+keep = 75,
+cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+cores = 2,
+overwrite = TRUE,
+verbose = TRUE)
 }

@@ -132,8 +132,8 @@
   )
   return (sub(
     pattern = "\\.sam$",
-    ignore.case = T,
-    perl = T,
+    ignore.case = TRUE,
+    perl = TRUE,
     replacement = ".BAM",
     x = sam
   ))
@@ -142,7 +142,7 @@
 
 #' Visualize aligned reads
 #' 
-#' Visualize read alignments for UMI tagged single cell RNA-sequencing data. Arrow represents orientation of alignment. Reads are colored by their UMI and sorted by their start positions and UMI.
+#' Visualize read alignments for UMI tagged single cell RNA-sequencing data. Read names must contain UMI sequences at the end delimited by "\strong{:}". Arrow represents orientation of alignment. Reads are colored by their UMI and sorted by their start positions and UMI.
 #' 
 #' @param bamGA A GenomicAlignment object
 #' @param chr Chromosome. Integer or "X", "Y", "MT".
@@ -150,6 +150,8 @@
 #' @param end Genomic coordinate of the end position.
 #' @param legend Show legend. Default is FALSE.
 #' @return A ggplot object of aligned reads
+#' @examples
+#' rview(bamExample, chr = "MT", legend = TRUE)
 #' @import ggbio
 #' @export
 rview <- function(bamGA,
@@ -196,6 +198,12 @@ rview <- function(bamGA,
 #' @param arrow_type One of "open" or "closed" indicating whether the arrow head should be a closed triangle. Passed to the type argument of arrow function. Default "open".
 #' @param text_size Size of text. Passed to the size argument of the geom_text function. Default 4.
 #' @return A ggplot object of genomic view
+#' @examples
+#' gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
+#' gtfEG = refGenome::ensemblGenome(dirname(gtf))
+#' refGenome::read.gtf(gtfEG, filename = basename(gtf))
+#' 
+#' gview(gtfEG, chr = "MT")
 #' @import refGenome
 #' @export
 gview <- function(ensemblGenome,

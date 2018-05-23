@@ -58,3 +58,23 @@ A \strong{SingleCellExperiment} object containing the demultiplex summary inform
 \description{
 Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory
 }
+\examples{
+# Demultiplex example FASTQ files
+fastqs <- list.files(system.file("extdata", package = "scruff"),
+pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
+
+de <- demultiplex(
+project = "example",
+sample = c("1h1", "b1"),
+lane = c("L001", "L001"),
+read1Path = c(fastqs[1], fastqs[3]),
+read2Path = c(fastqs[2], fastqs[4]),
+barcodeExample,
+bcStart = 1,
+bcStop = 8,
+umiStart = 9,
+umiStop = 12,
+keep = 75,
+overwrite = TRUE,
+cores = 1)
+}

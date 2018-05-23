@@ -38,3 +38,10 @@ A ggplot object of genomic view
 \description{
 Visualize reference genome. Rectangles represent exons. Arrow represents orientation of transcripts.
 }
+\examples{
+gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
+gtfEG = refGenome::ensemblGenome(dirname(gtf))
+refGenome::read.gtf(gtfEG, filename = basename(gtf))
+
+gview(gtfEG, chr = "MT")
+}

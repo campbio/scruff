@@ -12,7 +12,42 @@
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfilePrefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @return A \strong{SingleCellExperiment} object.
-#' @import data.table foreach
+#' @examples
+#' # The SingleCellExperiment object returned by alignRsubread function is
+#' # required for running countUMI function
+#' # First demultiplex example FASTQ files
+#' fastqs <- list.files(system.file("extdata", package = "scruff"),
+#' pattern = "\\.fastq\\.gz", full.names = TRUE)
+#' 
+#' de <- demultiplex(
+#' project = "example",
+#' sample = c("1h1", "b1"),
+#' lane = c("L001", "L001"),
+#' read1Path = c(fastqs[1], fastqs[3]),
+#' read2Path = c(fastqs[2], fastqs[4]),
+#' barcodeExample,
+#' bcStart = 1,
+#' bcStop = 8,
+#' umiStart = 9,
+#' umiStop = 12,
+#' keep = 75,
+#' overwrite = TRUE,
+#' cores = 1)
+#' 
+#' # Alignment
+#' library(Rsubread)
+#' # Create index files for GRCm38_MT.
+#' fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
+#' # Specify the basename for Rsubread index
+#' indexBase <- "GRCm38_MT"
+#' buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
+#' 
+#' al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 1)
+#' 
+#' # Counting
+#' gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
+#' sce = countUMI(al, gtf, cores = 2)
+#' @import data.table foreach refGenome GenomicAlignments GenomicFeatures
 #' @export
 countUMI <- function(sce,
                      reference,
@@ -116,7 +151,7 @@ countUMI <- function(sce,
   message(paste(Sys.time(),
                 "... Add count matrix and QC metrics to SCE object."))
   
-  newsce <- SingleCellExperiment::SingleCellExperiment(
+  scruffsce <- SingleCellExperiment::SingleCellExperiment(
     assays = list(counts = S4Vectors::DataFrame(
       expr[!geneid %in% c("reads_mapped_to_genome",
                           "reads_mapped_to_genes"), -"geneid"],
@@ -128,35 +163,35 @@ countUMI <- function(sce,
   colnames(readmapping) <- c("reads_mapped_to_genome",
                              "reads_mapped_to_genes")
   
-  SingleCellExperiment::isSpike(newsce, "ERCC") <- grepl("^ERCC-",
-                                                         rownames(newsce))
+  SingleCellExperiment::isSpike(scruffsce, "ERCC") <- grepl("^ERCC-",
+                                                         rownames(scruffsce))
   
   # get gene annotations
-  gtfEG = refGenome::ensemblGenome()
-  refGenome::read.gtf(gtfEG, filename = gtf)
+  gtfEG = refGenome::ensemblGenome(dirname(reference))
+  refGenome::read.gtf(gtfEG, filename = basename(reference))
   geneAnnotation <- data.table::data.table(
-    unique(refGenome::getGtf(gtfEG)[, c("gene_id",
+    unique(refGenome::getGeneTable(gtfEG)[, c("gene_id",
                                         "gene_name",
                                         "gene_biotype",
                                         "seqid")]))
   
-  SummarizedExperiment::rowData(newsce) <-
+  SummarizedExperiment::rowData(scruffsce) <-
     S4Vectors::DataFrame(geneAnnotation[, -"gene_id"],
                          row.names = geneAnnotation[, gene_id])
   
   # UMI filtered transcripts QC metrics
   # total counts exclude ERCC
   totalCounts <- base::colSums(as.data.frame(
-    SummarizedExperiment::assay(newsce)[!SingleCellExperiment::isSpike(newsce, "ERCC"), ]))
+    SummarizedExperiment::assay(scruffsce)[!SingleCellExperiment::isSpike(scruffsce, "ERCC"), ]))
   
   # MT counts
   mtCounts <- base::colSums(as.data.frame(
-    SummarizedExperiment::assay(newsce)
-    [grep("^mt-", SummarizedExperiment::rowData(newsce)[, "gene_name"]), ]))
+    SummarizedExperiment::assay(scruffsce)
+    [grep("^mt-", SummarizedExperiment::rowData(scruffsce)[, "gene_name"]), ]))
   
   # gene number exclude ERCC
-  cm <- SummarizedExperiment::assay(newsce)[
-    !SingleCellExperiment::isSpike(newsce, "ERCC"), ]
+  cm <- SummarizedExperiment::assay(scruffsce)[
+    !SingleCellExperiment::isSpike(scruffsce, "ERCC"), ]
   
   geneNumber <- vapply(colnames(cm), function(cells) {
     sum(cm[, cells] != 0)
@@ -174,18 +209,34 @@ countUMI <- function(sce,
   
   # number of cells per well, default = 1
   
-  SummarizedExperiment::colData(newsce) <- 
+  
+  
+  SummarizedExperiment::colData(scruffsce) <- 
     cbind(SummarizedExperiment::colData(sce),
           readmapping,
-          total_counts = totalCounts,
-          mt_counts = mtCounts,
-          genes = geneNumber,
-          protein_coding_genes = proGene,
-          protein_coding_counts = proCounts,
-          number_of_cells = cellPerWell)
+          list(total_counts = totalCounts,
+               mt_counts = mtCounts,
+               genes = geneNumber,
+               protein_coding_genes = proGene,
+               protein_coding_counts = proCounts,
+               number_of_cells = cellPerWell))
+  
+  message(paste(Sys.time(), paste(
+    "... Save SingleCellExperiment object to",
+    file.path(outDir, paste0(
+      format(Sys.time(),
+             "%Y%m%d_%H%M%S"), "_",
+      outputPrefix, "_sce.rda"
+    ))
+  )))
+  
+  save(scruffsce, file = file.path(outDir, paste0(
+    format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+    outputPrefix, "_sce.rda"
+  )))
   
   message(paste(Sys.time(), "... UMI counting done!"))
-  return(newsce)
+  return(scruffsce)
 }
 
 
@@ -213,7 +264,7 @@ countUMI <- function(sce,
   }
   
   bfl <- Rsamtools::BamFile(i)
-  bamGA <- GenomicAlignments::readGAlignments(bfl, use.names = T)
+  bamGA <- GenomicAlignments::readGAlignments(bfl, use.names = TRUE)
   
   genomeReads <- data.table::data.table(
     name = names(bamGA),

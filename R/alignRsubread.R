@@ -4,7 +4,7 @@
 #' 
 #' @param sce A \code{SingleCellExperiment} object of which the \code{colData} slot contains the \strong{fastq_path} column with paths to input cell-specific FASTQ files.
 #' @param index Path to the \code{Rsubread} index of the reference genome. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.
-#' @param unique Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{TRUE}.
+#' @param unique Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{FALSE}.
 #' @param nBestLocations Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, "NH" tag is used to indicate how many alignments are reported for the read and "HI" tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.
 #' @param format File format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param outDir Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.
@@ -16,11 +16,41 @@
 #' @param logfilePrefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @param ... Additional arguments passed to the \code{align} function in \code{Rsubread} package.
 #' @return A \strong{SingleCellExperiment} object containing the alignment summary information in the \code{colData} slot. Contains a character vector of the paths to output alignment files.
+#' @examples
+#' # The SingleCellExperiment object returned by demultiplex function is
+#' # required for running alignRsubread function
+#' fastqs <- list.files(system.file("extdata", package = "scruff"),
+#' pattern = "\\.fastq\\.gz", full.names = TRUE)
+#' 
+#' de <- demultiplex(
+#' project = "example",
+#' sample = c("1h1", "b1"),
+#' lane = c("L001", "L001"),
+#' read1Path = c(fastqs[1], fastqs[3]),
+#' read2Path = c(fastqs[2], fastqs[4]),
+#' barcodeExample,
+#' bcStart = 1,
+#' bcStop = 8,
+#' umiStart = 9,
+#' umiStop = 12,
+#' keep = 75,
+#' overwrite = TRUE,
+#' cores = 1)
+#' 
+#' # Alignment
+#' library(Rsubread)
+#' # Create index files for GRCm38_MT.
+#' fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
+#' # Specify the basename for Rsubread index
+#' indexBase <- "GRCm38_MT"
+#' buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
+#' 
+#' al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 1)
 #' @import data.table foreach
 #' @export
 alignRsubread <- function(sce,
                           index,
-                          unique = TRUE,
+                          unique = FALSE,
                           nBestLocations = 1,
                           format = "BAM",
                           outDir = "./Alignment",

@@ -1,6 +1,6 @@
 Package: scruff
 Title: Single Cell RNA-Seq UMI Filtering Facilitator (scruff)
-Version: 0.99.3
+Version: 0.99.4
 Authors@R: person("Zhe", "Wang", email = "zhe@bu.com", role = c("aut", "cre"))
 Description: Demultiplex single cell RNA-seq fastq files, align reads to reference genome using Rsubread, and generate UMI filtered count matrix.
 Depends: R (>= 3.4.0)
@@ -13,7 +13,6 @@ Imports: data.table,
     GenomicAlignments,
     GenomicFeatures,
     GenomicRanges,
-    gtools,
     parallel,
     Rsamtools,
     ShortRead,
@@ -40,3 +39,13 @@ Suggests:
     rmarkdown,
     Rsubread
 biocViews:
+    Software,
+    Technology,
+    Sequencing,
+    Alignment,
+    RNASeq,
+    SingleCell,
+    WorkflowStep,
+    Preprocessing,
+    QualityControl,
+    Visualization
