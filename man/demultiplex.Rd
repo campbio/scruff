@@ -4,16 +4,25 @@
 \alias{demultiplex}
 \title{Demultiplex cell barcodes and assign cell specific reads}
 \usage{
-demultiplex(fastqAnnot, bc, bcStart, bcStop, bcEdit = 0, umiStart, umiStop,
-  keep, minQual = 10, yieldReads = 1e+06, outDir = "./Demultiplex",
+demultiplex(project = paste0("project_", Sys.Date()), sample, lane, read1Path,
+  read2Path, bc, bcStart, bcStop, bcEdit = 0, umiStart, umiStop, keep,
+  minQual = 10, yieldReads = 1e+06, outDir = "./Demultiplex",
   summaryPrefix = "demultiplex", overwrite = FALSE, cores = max(1,
   parallel::detectCores()/2), verbose = FALSE,
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
-\item{fastqAnnot}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?annotationExample}.}
+\item{project}{The project name. Default is \code{paste0("project_", Sys.Date())}.}
 
-\item{bc}{A vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.}
+\item{sample}{A character vector of sample names. Represents the group label for each FASTQ file, e.g. "patient1, patient2, ...".}
+
+\item{lane}{A character or character vector of flow cell lane numbers. If FASTQ files from multiple lanes are concatenated, any placeholder would be sufficient, e.g. "L001".}
+
+\item{read1Path}{A character vector of file paths to the read1 FASTQ files. These are the read files with UMI and cell barcode information.}
+
+\item{read2Path}{A character vector of file paths to the read2 FASTQ files. These read files contain genomic sequences.}
+
+\item{bc}{A character vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.}
 
 \item{bcStart}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
 

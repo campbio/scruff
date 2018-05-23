@@ -4,19 +4,27 @@
 \alias{scruff}
 \title{Run scruff pipeline}
 \usage{
-scruff(fastqAnnot, bc, index, reference, bcStart, bcStop, bcEdit = 0,
-  umiStart, umiStop, keep, cellPerWell = 1, unique = TRUE,
-  nBestLocations = 1, minQual = 10, yieldReads = 1e+06,
-  alignmentFileFormat = "BAM", demultiplexOutDir = "./Demultiplex",
-  alignmentOutDir = "./Alignment", countUmiOutDir = "./Count",
-  demultiplexSummaryPrefix = "demultiplex",
+scruff(project = paste0("project_", Sys.Date()), sample, lane, read1Path,
+  read2Path, bc, index, reference, bcStart, bcStop, bcEdit = 0, umiStart,
+  umiStop, keep, cellPerWell = 1, unique = TRUE, nBestLocations = 1,
+  minQual = 10, yieldReads = 1e+06, alignmentFileFormat = "BAM",
+  demultiplexOutDir = "./Demultiplex", alignmentOutDir = "./Alignment",
+  countUmiOutDir = "./Count", demultiplexSummaryPrefix = "demultiplex",
   alignmentSummaryPrefix = "alignment", countPrefix = "countUMI",
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"),
   overwrite = FALSE, verbose = FALSE, cores = max(1,
   parallel::detectCores()/2), threads = 1, ...)
 }
 \arguments{
-\item{fastqAnnot}{An annotation data table or data frame that contains information about input fastq files. For example, see \code{?annotationExample}.}
+\item{project}{The project name. Default is \code{paste0("project_", Sys.Date())}.}
+
+\item{sample}{A character vector of sample names. Represents the group label for each FASTQ file, e.g. "patient1, patient2, ...".}
+
+\item{lane}{A character or character vector of flow cell lane numbers. If FASTQ files from multiple lanes are concatenated, any placeholder would be sufficient, e.g. "L001".}
+
+\item{read1Path}{A character vector of file paths to the read1 FASTQ files. These are the read files with UMI and cell barcode information.}
+
+\item{read2Path}{A character vector of file paths to the read2 FASTQ files. These read files contain genomic sequences.}
 
 \item{bc}{A vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.}
 
