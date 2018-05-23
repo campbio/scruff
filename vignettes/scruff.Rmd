@@ -40,7 +40,7 @@ gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 
 Build Rsubread alignment index. This is for the alignment step. For test porpurse, here we are aligning the example FASTQ files to the genes on mitochondrial chromosome only.
 
-```{r}
+```{r, results = 'hide'}
 # NOTE: Rsubread package does not support Windows environment.
 library(Rsubread)
 # Create index files for GRCm38_MT. For details, please refer to Rsubread user manual.
@@ -51,7 +51,7 @@ buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 
 Now that everything is ready, we can run `scruff`. In sample 1h1, cell barcodes 95 and 96 are empty well controls. In sample b1, cell barcode 95 is bulk sample containing 300 cells. These information can be set by the `cellPerWell` argument. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
 
-```{r}
+```{r, results = 'hide', warning = FALSE}
 sce <- scruff(project = "example",
               sample = c("1h1", "b1"),
               lane = c("L001", "L001"),
@@ -74,7 +74,7 @@ sce <- scruff(project = "example",
 
 Visualize data quality.
 
-```{r}
+```{r, warning = FALSE}
 qc <- qcplots(sce)
 ```
 
@@ -103,7 +103,7 @@ vb1R2 <- system.file("extdata",
 
 Now the FASTQ files are ready to be demultiplexed. `scruff` package provides built-in predefined cell barcodes `barcodeExample` for demultiplexing the example dataset. In the example FASTQ files, read 1 contains cell barcode and UMI sequence information. Read 2 contains transcript sequences. The barcode sequence of each read starts at base 1 and ends at base 8. The UMI sequence starts at base 9 and ends at base 12. They can be set via `bcStart`, `bcStop`, and `umiStart`, `umiStop` arguments. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example FASTQ reads and trims reads longer than 75 nucleotides. The command returns a `SingleCellExperiment` object whose `colData` contains the cell index, barcode, reads, percentage of reads assigned, sample, and FASTQ file path information for each cell. By default, the cell specific demultiplexed fastq.gz files are stored in `./Demultiplex` folder.
 
-```{r}
+```{r, results = 'hide'}
 print(barcodeExample)
 de <- demultiplex(project = "example",
                   sample = c("1h1", "b1"),
@@ -128,7 +128,7 @@ de <- demultiplex(project = "example",
 
 `scruff` provides an alignment function `alignRsubread` which is a wrapper function to `align` in `Rsubread` package. It aligns the reads to reference sequence index and outputs sequence alignment map files in "BAM" or "SAM" format. For demonstration purpose, the built-in mitochondrial DNA sequence from GRCm38 reference assembly `GRCm38MitochondrialFasta` will be used to map the reads. First, a `Rsubread` index for the reference sequence needs to be generated.
 
-```{r}
+```{r, results = 'hide'}
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 indexBase <- "GRCm38_MT"
 # NOTE: Rsubread package does not support Windows environment.
@@ -141,7 +141,7 @@ buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 
 The following command maps the FASTQ files to GRCm38 mitochondrial reference sequence `GRCm38_MT.fa` and returns a `SingleCellExperiment` object. By default, the files are stored in BAM format in `./Alignment` folder.
 
-```{r}
+```{r, results = 'hide'}
 # Align the reads using Rsubread
 al <- alignRsubread(de,
                     indexBase,
@@ -157,7 +157,7 @@ al <- alignRsubread(de,
 
 Example GTF file `GRCm38_MT.gtf` will be used for feature counting. Currently, `scruff` applies the union counting mode of the HTSeq Python package. The following command generates the UMI filtered count matrix for the example dataset.
 
-```{r}
+```{r, results = 'hide'}
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 # get the molecular counts of trancsripts for each cell
 # In sample 1h1, cell barcodes 95 and 96 are empty well controls. In sample b1, cell barcode 95 is bulk sample containing 300 cells.
@@ -173,7 +173,7 @@ sce = countUMI(al,
 
 The data quality diagnostic information are contained in the `colData` of the returned `SingleCellExperiment` object `sce`. They can be visualized using the `qcplots` function.
 
-```{r}
+```{r, warning = FALSE}
 qc <- qcplots(sce)
 qc
 ```
