@@ -4,7 +4,7 @@
 \name{barcodeExample}
 \alias{barcodeExample}
 \title{A vector of example cell barcodes.}
-\format{A vector of cell barcode sequences. Cell barcodes for this plate are of length 8 in the example dataset (van den Brink, et al.).}
+\format{A vector of cell barcode sequences. Cell barcodes for this study (van den Brink, et al.) are of length 8.}
 \usage{
 barcodeExample
 }

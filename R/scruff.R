@@ -1,8 +1,12 @@
 #' Run scruff pipeline
-#' 
+#'
 #' Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \code{alignRsubread}, and \code{countUMI} functions. Write demultiplex statistics, alignment statistics, and UMI filtered count matrix in output directories. Return a SingleCellExperiment object containing the count matrix, cell and gene annotations, and all QC metrics.
-#' 
-#' @param fastqAnnot An annotation data table or data frame that contains information about input fastq files. For example, see \code{?annotationExample}.
+#'
+#' @param project The project name. Default is \code{paste0("project_", Sys.Date())}.
+#' @param sample A character vector of sample names. Represents the group label for each FASTQ file, e.g. "patient1, patient2, ...".
+#' @param lane A character or character vector of flow cell lane numbers. If FASTQ files from multiple lanes are concatenated, any placeholder would be sufficient, e.g. "L001".
+#' @param read1Path A character vector of file paths to the read1 FASTQ files. These are the read files with UMI and cell barcode information.
+#' @param read2Path A character vector of file paths to the read2 FASTQ files. These read files contain genomic sequences.
 #' @param bc A vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.
 #' @param index Path to the \code{Rsubread} index of the reference genome. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.
 #' @param reference Path to the reference GTF file. The TxDb object of the GTF file will be generated and saved in the current working directory with ".sqlite" suffix.
@@ -32,7 +36,11 @@
 #' @param ... Additional arguments passed to the \code{align} function in \code{Rsubread} package.
 #' @return A \code{SingleCellExperiment} object.
 #' @export
-scruff <- function(fastqAnnot,
+scruff <- function(project = paste0("project_", Sys.Date()),
+                   sample,
+                   lane,
+                   read1Path,
+                   read2Path,
                    bc,
                    index,
                    reference,
@@ -60,13 +68,17 @@ scruff <- function(fastqAnnot,
                    cores = max(1, parallel::detectCores() / 2),
                    threads = 1,
                    ...) {
-  
+
   # run pipeline
   message(paste(Sys.time(), "Start running scruff ..."))
   print(match.call(expand.dots = TRUE))
-  
+
   de <- demultiplex(
-    fastqAnnot = fastqAnnot,
+    project = project,
+    sample = sample,
+    lane = lane,
+    read1Path = read1Path,
+    read2Path = read2Path,
     bc = bc,
     bcStart = bcStart,
     bcStop = bcStop,
@@ -83,7 +95,7 @@ scruff <- function(fastqAnnot,
     cores = cores,
     logfilePrefix = logfilePrefix
   )
-  
+
   al <- alignRsubread(
     sce = de,
     index = index,
@@ -98,7 +110,7 @@ scruff <- function(fastqAnnot,
     verbose = verbose,
     logfilePrefix = logfilePrefix
   )
-  
+
   co <- countUMI(
     sce = al,
     reference = reference,
@@ -110,12 +122,9 @@ scruff <- function(fastqAnnot,
     verbose = verbose,
     logfilePrefix = logfilePrefix
   )
-  
-  # start from demultiplex pass singlecellexperiment object along the pipeline
-  #sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = as.matrix(co)))
-  
+
   message(paste(Sys.time(), "Finished running scruff ..."))
-  
+
   return (co)
 }
 

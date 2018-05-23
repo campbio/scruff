@@ -126,9 +126,9 @@ alignRsubread <- function(sce,
     .packages = c("Rsubread")
   ) %dopar% {
     if (verbose) {
-      propmappedWrapper(i)
+      .propmappedWrapper(i)
     } else {
-      suppressPackageStartupMessages(propmappedWrapper(i))
+      suppressPackageStartupMessages(.propmappedWrapper(i))
     }
   }
   
@@ -204,7 +204,7 @@ alignRsubread <- function(sce,
 }
 
 
-propmappedWrapper <- function(i) {
+.propmappedWrapper <- function(i) {
   if (file.size(i) == 0)
     return (data.frame(Samples = i,
                        NumTotal = 0,
