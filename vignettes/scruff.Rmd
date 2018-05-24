@@ -1,9 +1,9 @@
 ---
-title: "Process scRNA-Seq reads using _scruff_"
+title: "Process scRNA-Seq reads in _scruff_"
 author: "Zhe Wang"
 package: scruff
 date: '`r Sys.Date()`'
-output: BiocStyle::html_document
+output: BiocStyle::pdf_document
 vignette: >
   %\VignetteIndexEntry{Process Single Cell RNA-Seq reads using _scruff_}
   %\VignetteEngine{knitr::rmarkdown}
