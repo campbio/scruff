@@ -1,5 +1,5 @@
 ---
-title: "Process Single Cell RNA-Seq reads using _scruff_"
+title: "Process scRNA-Seq reads using _scruff_"
 author: "Zhe Wang"
 package: scruff
 date: '`r Sys.Date()`'
