@@ -47,7 +47,8 @@
 #' # Counting
 #' gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 #' sce = countUMI(al, gtf, cores = 2)
-#' @import data.table foreach refGenome GenomicAlignments GenomicFeatures
+#' @import data.table foreach refGenome GenomicFeatures
+#' @rawNamespace import(GenomicAlignments, except = c(second, last, first))
 #' @export
 countUMI <- function(sce,
                      reference,
