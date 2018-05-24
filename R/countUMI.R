@@ -208,10 +208,6 @@ countUMI <- function(sce,
   # protein coding counts
   proCounts <- base::colSums(as.data.frame(cm[proteinCodingGene, ]))
   
-  # number of cells per well, default = 1
-  
-  
-  
   SummarizedExperiment::colData(scruffsce) <- 
     cbind(SummarizedExperiment::colData(sce),
           readmapping,
@@ -252,7 +248,7 @@ countUMI <- function(sce,
   
   # if sequence alignment file is empty
   if (file.size(i) == 0) {
-    countUmiDt <- data.table::data.table(gene.id = c(names(features),
+    countUmiDt <- data.table::data.table(gene_id = c(names(features),
                                                      "reads_mapped_to_genome",
                                                      "reads_mapped_to_genes"))
     cell <- .removeLastExtension(i)
@@ -287,7 +283,7 @@ countUMI <- function(sce,
   ol <- GenomicAlignments::findOverlaps(features, bamGA)
   
   ol.dt <- data.table::data.table(
-    gene.id = base::names(features)[S4Vectors::queryHits(ol)],
+    gene_id = base::names(features)[S4Vectors::queryHits(ol)],
     name = base::names(bamGA)[S4Vectors::subjectHits(ol)],
     pos = BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)]
   )
@@ -297,14 +293,14 @@ countUMI <- function(sce,
     readsMappedToGenes <- 0
     
     # clean up
-    countUmiDt <- data.table::data.table(gene.id = c(names(features),
+    countUmiDt <- data.table::data.table(gene_id = c(names(features),
                                                      "reads_mapped_to_genome",
                                                      "reads_mapped_to_genes"))
     cell <- .removeLastExtension(i)
     countUmiDt[[cell]] <- 0
-    countUmiDt[gene.id == "reads_mapped_to_genome",
+    countUmiDt[gene_id == "reads_mapped_to_genome",
                cell] <- readsMappedToGenome
-    countUmiDt[gene.id == "reads_mapped_to_genes",
+    countUmiDt[gene_id == "reads_mapped_to_genes",
                cell] <- readsMappedToGenes
     
     # coerce to data frame to keep rownames for cbind combination
@@ -324,32 +320,32 @@ countUMI <- function(sce,
     ), ]
     
     # reads mapped to genes
-    readsMappedToGenes <- nrow(ol.dt[!grepl("ERCC", ol.dt[, gene.id ]), ])
+    readsMappedToGenes <- nrow(ol.dt[!grepl("ERCC", ol.dt[, gene_id ]), ])
     
     # UMI filtering
     
     # strict way of doing UMI correction:
     # reads with different pos are considered unique trancsript molecules
-    # countUmi <- base::table(unique(ol.dt[, .(gene.id, umi, pos)])[, gene.id])
+    # countUmi <- base::table(unique(ol.dt[, .(gene_id, umi, pos)])[, gene_id])
     
     # The way CEL-Seq pipeline does UMI filtering:
     # Reads with different UMI tags are 
     # considered unique trancsript molecules
     # Read positions do not matter
-    countUmi <- base::table(unique(ol.dt[, .(gene.id, umi)])[, gene.id])
+    countUmi <- base::table(unique(ol.dt[, .(gene_id, umi)])[, gene_id])
     
     # clean up
-    countUmiDt <- data.table::data.table(gene.id = c(names(features),
+    countUmiDt <- data.table::data.table(gene_id = c(names(features),
                                                      "reads_mapped_to_genome",
                                                      "reads_mapped_to_genes"))
     cell <- .removeLastExtension(i)
     countUmiDt[[cell]] <- 0
-    countUmiDt[gene.id == "reads_mapped_to_genome",
+    countUmiDt[gene_id == "reads_mapped_to_genome",
                cell] <- readsMappedToGenome
-    countUmiDt[gene.id == "reads_mapped_to_genes",
+    countUmiDt[gene_id == "reads_mapped_to_genes",
                cell] <- readsMappedToGenes
-    countUmiDt[gene.id %in% names(countUmi),
-               eval(cell) := as.numeric(countUmi[gene.id])]
+    countUmiDt[gene_id %in% names(countUmi),
+               eval(cell) := as.numeric(countUmi[gene_id])]
     
     # coerce to data frame to keep rownames for cbind combination
     countUmiDt <- data.frame(countUmiDt,
