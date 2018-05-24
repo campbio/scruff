@@ -35,6 +35,7 @@ Imports: data.table,
     SingleCellExperiment,
     SummarizedExperiment
 Suggests:
+    BiocStyle,
     knitr,
     rmarkdown,
     Rsubread
