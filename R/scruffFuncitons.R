@@ -52,35 +52,31 @@
 
 # read gtf database and return feature GRangesList by gene ID
 .gtfReadDb <- function(gtf, logfile) {
-  if (class(gtf) == "TxDb") {
-    stop("Please enter path to GTF file.")
-  } else {
-    gtf.db.file <- paste0(basename(gtf), ".sqlite")
-    if ((!(file.exists(gtf))) & (!(file.exists(gtf.db.file)))) {
-      stop(paste("File", gtf, "does not exist"))
-    }
-    
-    if (!(file.exists(gtf.db.file))) {
-      message(paste(Sys.time(), "... TxDb file", gtf.db.file, "does not exist"))
-      message(paste(Sys.time(), "... Creating TxDb object", gtf.db.file))
-      gtf.db <- GenomicFeatures::makeTxDbFromGFF(file = gtf)
-      AnnotationDbi::saveDb(gtf.db, file = gtf.db.file)
-      return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
-    }
-    
-    gtf.db <- tryCatch(
-      suppressPackageStartupMessages(AnnotationDbi::loadDb(gtf.db.file)),
-      error = function(e)
-        stop(
-          paste(
-            "Error loading database file. Delete the file",
-            gtf.db.file,
-            "and try again."
-          )
-        )
-    )
+  gtf.db.file <- paste0(basename(gtf), ".sqlite")
+  if ((!(file.exists(gtf))) & (!(file.exists(gtf.db.file)))) {
+    stop(paste("File", gtf, "does not exist"))
+  }
+  
+  if (!(file.exists(gtf.db.file))) {
+    message(paste(Sys.time(), "... TxDb file", gtf.db.file, "does not exist"))
+    message(paste(Sys.time(), "... Creating TxDb object", gtf.db.file))
+    gtf.db <- GenomicFeatures::makeTxDbFromGFF(file = gtf)
+    AnnotationDbi::saveDb(gtf.db, file = gtf.db.file)
     return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
   }
+  
+  gtf.db <- tryCatch(
+    suppressPackageStartupMessages(AnnotationDbi::loadDb(gtf.db.file)),
+    error = function(e)
+      stop(
+        paste(
+          "Error loading database file. Delete the file",
+          gtf.db.file,
+          "and try again."
+        )
+      )
+  )
+  return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
 }
 
 

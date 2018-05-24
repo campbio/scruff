@@ -42,7 +42,8 @@
 #' keep = 75,
 #' overwrite = TRUE,
 #' cores = 1)
-#' @import data.table foreach ShortRead
+#' @import data.table foreach
+#' @rawNamespace import(ShortRead, except = c(tables, zoom))
 #' @export
 demultiplex <- function(project = paste0("project_", Sys.Date()),
                         sample,
