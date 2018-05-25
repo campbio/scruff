@@ -1,3 +1,7 @@
+# 0.99.9
+
+* Version bump. Add vignette pdf
+
 # 0.99.8
 
 * Remove LazyData:true
