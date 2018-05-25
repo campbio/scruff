@@ -16,6 +16,8 @@ A list of \code{grobs} objects ready for plotting
 Visualize data quality from the \code{colData} of the \code{SingleCellExperiment} object and return a list of figures in \code{arrangelist} object.
 }
 \examples{
+\dontrun{
 data(sceExample, package = "scruff")
 qcplots(sceExample)
+}
 }

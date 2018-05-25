@@ -1,0 +1,10 @@
+# 0.99.8
+
+* Remove LazyData:true
+
+* Add NEWS
+
+* Add \dontrun{} to some examples. version bump
+
+* Update DESCRIPTION
+
