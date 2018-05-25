@@ -36,6 +36,8 @@
 #' @param ... Additional arguments passed to the \code{align} function in \code{Rsubread} package.
 #' @return A \code{SingleCellExperiment} object.
 #' @examples
+#' \dontrun{
+#' data(barcodeExample, package = "scruff")
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),
 #' pattern = "\\.fastq\\.gz", full.names = TRUE)
 #' fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
@@ -66,6 +68,7 @@
 #' cores = 2,
 #' overwrite = TRUE,
 #' verbose = TRUE)
+#' }
 #' @export
 scruff <- function(project = paste0("project_", Sys.Date()),
                    sample,

@@ -25,6 +25,7 @@
 #' @return A \strong{SingleCellExperiment} object containing the demultiplex summary information as \code{colData}.
 #' @examples
 #' # Demultiplex example FASTQ files
+#' data(barcodeExample, package = "scruff")
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),
 #' pattern = "\\.fastq\\.gz", full.names = TRUE)
 #' 

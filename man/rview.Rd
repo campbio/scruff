@@ -25,5 +25,6 @@ A ggplot object of aligned reads
 Visualize read alignments for UMI tagged single cell RNA-sequencing data. Read names must contain UMI sequences at the end delimited by "\strong{:}". Arrow represents orientation of alignment. Reads are colored by their UMI and sorted by their start positions and UMI.
 }
 \examples{
+data(bamExample, package = "scruff")
 rview(bamExample, chr = "MT", legend = TRUE)
 }
