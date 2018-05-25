@@ -1,3 +1,7 @@
+# 0.99.11
+
+* LazyData: true
+
 # 0.99.10
 
 * cores = 1 in vigentte
