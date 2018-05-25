@@ -47,6 +47,7 @@ This function is \strong{not} available in Windows environment. Align cell speci
 # The SingleCellExperiment object returned by demultiplex function is
 # required for running alignRsubread function
 \dontrun{
+data(barcodeExample, package = "scruff")
 fastqs <- list.files(system.file("extdata", package = "scruff"),
 pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
 

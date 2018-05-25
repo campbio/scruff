@@ -26,6 +26,7 @@
 #' @examples
 #' # Demultiplex example FASTQ files
 #' \dontrun{
+#' data(barcodeExample, package = "scruff")
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),
 #' pattern = "\\.fastq\\.gz", full.names = TRUE)
 #' 

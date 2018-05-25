@@ -147,6 +147,7 @@
 #' @param legend Show legend. Default is FALSE.
 #' @return A ggplot object of aligned reads
 #' @examples
+#' data(bamExample, package = "scruff")
 #' rview(bamExample, chr = "MT", legend = TRUE)
 #' @import ggbio
 #' @export

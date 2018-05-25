@@ -14,6 +14,7 @@
 #' @return A \strong{SingleCellExperiment} object.
 #' @examples
 #' \dontrun{
+#' data(barcodeExample, package = "scruff")
 #' # The SingleCellExperiment object returned by alignRsubread function is
 #' # required for running countUMI function
 #' # First demultiplex example FASTQ files

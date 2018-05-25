@@ -36,6 +36,7 @@ Count unique \emph{UMI:gene} pairs for single cell RNA-sequencing alignment file
 }
 \examples{
 \dontrun{
+data(barcodeExample, package = "scruff")
 # The SingleCellExperiment object returned by alignRsubread function is
 # required for running countUMI function
 # First demultiplex example FASTQ files

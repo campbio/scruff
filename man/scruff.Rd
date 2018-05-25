@@ -88,6 +88,7 @@ Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \
 }
 \examples{
 \dontrun{
+data(barcodeExample, package = "scruff")
 fastqs <- list.files(system.file("extdata", package = "scruff"),
 pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
