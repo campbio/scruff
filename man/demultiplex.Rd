@@ -60,7 +60,6 @@ Demultiplex fastq files and write cell specific reads in compressed fastq format
 }
 \examples{
 # Demultiplex example FASTQ files
-\dontrun{
 data(barcodeExample, package = "scruff")
 fastqs <- list.files(system.file("extdata", package = "scruff"),
 pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
@@ -79,5 +78,4 @@ umiStop = 12,
 keep = 75,
 overwrite = TRUE,
 cores = 1)
-}
 }

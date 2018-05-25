@@ -5,10 +5,8 @@
 #' @param sce An \code{SingleCellExperiment} object returned from \code{scruff} or \code{countUMI} function.
 #' @return A list of \code{grobs} objects ready for plotting
 #' @examples
-#' \dontrun{
 #' data(sceExample, package = "scruff")
 #' qcplots(sceExample)
-#' }
 #' @import grid
 #' @export
 qcplots <- function(sce) {
