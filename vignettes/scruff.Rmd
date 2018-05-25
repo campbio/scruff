@@ -75,7 +75,7 @@ sce <- scruff(project = "example",
               umiStop = 12,
               keep = 75,
               cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-              cores = 2,
+              cores = 1,
               verbose = TRUE)
 ```
 
@@ -126,7 +126,7 @@ de <- demultiplex(project = "example",
                   keep = 75,
                   minQual = 10,
                   yieldReads = 1e+06,
-                  cores = 2,
+                  cores = 1,
                   verbose = TRUE,
                   overwrite = TRUE)
 ```
@@ -154,7 +154,7 @@ al <- alignRsubread(de,
                     unique = FALSE,
                     nBestLocations = 1,
                     format = "BAM",
-                    cores = 2,
+                    cores = 1,
                     overwrite = TRUE,
                     verbose = TRUE)
 ```
@@ -171,7 +171,7 @@ sce = countUMI(al,
                gtf,
                format = "BAM",
                cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-               cores = 2,
+               cores = 1,
                verbose = TRUE)
 ```
 
