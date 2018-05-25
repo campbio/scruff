@@ -25,6 +25,7 @@
 #' @return A \strong{SingleCellExperiment} object containing the demultiplex summary information as \code{colData}.
 #' @examples
 #' # Demultiplex example FASTQ files
+#' \dontrun{
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),
 #' pattern = "\\.fastq\\.gz", full.names = TRUE)
 #' 
@@ -42,6 +43,7 @@
 #' keep = 75,
 #' overwrite = TRUE,
 #' cores = 1)
+#' }
 #' @import data.table foreach
 #' @rawNamespace import(ShortRead, except = c(tables, zoom))
 #' @export

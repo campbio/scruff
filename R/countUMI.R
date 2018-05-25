@@ -13,6 +13,7 @@
 #' @param logfilePrefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @return A \strong{SingleCellExperiment} object.
 #' @examples
+#' \dontrun{
 #' # The SingleCellExperiment object returned by alignRsubread function is
 #' # required for running countUMI function
 #' # First demultiplex example FASTQ files
@@ -47,6 +48,7 @@
 #' # Counting
 #' gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 #' sce = countUMI(al, gtf, cores = 2)
+#' }
 #' @import data.table foreach refGenome GenomicFeatures
 #' @rawNamespace import(GenomicAlignments, except = c(second, last, first))
 #' @export

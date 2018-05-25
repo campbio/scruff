@@ -87,6 +87,7 @@ A \code{SingleCellExperiment} object.
 Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \code{alignRsubread}, and \code{countUMI} functions. Write demultiplex statistics, alignment statistics, and UMI filtered count matrix in output directories. Return a SingleCellExperiment object containing the count matrix, cell and gene annotations, and all QC metrics.
 }
 \examples{
+\dontrun{
 fastqs <- list.files(system.file("extdata", package = "scruff"),
 pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
@@ -117,4 +118,5 @@ cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
 cores = 2,
 overwrite = TRUE,
 verbose = TRUE)
+}
 }

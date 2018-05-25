@@ -46,6 +46,7 @@ This function is \strong{not} available in Windows environment. Align cell speci
 \examples{
 # The SingleCellExperiment object returned by demultiplex function is
 # required for running alignRsubread function
+\dontrun{
 fastqs <- list.files(system.file("extdata", package = "scruff"),
 pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
 
@@ -73,4 +74,5 @@ indexBase <- "GRCm38_MT"
 buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 
 al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 1)
+}
 }

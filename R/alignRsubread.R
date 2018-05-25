@@ -19,6 +19,7 @@
 #' @examples
 #' # The SingleCellExperiment object returned by demultiplex function is
 #' # required for running alignRsubread function
+#' \dontrun{
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),
 #' pattern = "\\.fastq\\.gz", full.names = TRUE)
 #' 
@@ -46,6 +47,7 @@
 #' buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 #' 
 #' al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 1)
+#' }
 #' @import data.table foreach
 #' @export
 alignRsubread <- function(sce,
