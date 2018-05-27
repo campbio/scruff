@@ -50,6 +50,9 @@
 #' gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 #' sce = countUMI(al, gtf, cores = 2)
 #' }
+#' # or use the built-in SingleCellExperiment object generated using
+#'  example dataset (see ?sceExample)
+#' data(sceExample, package = "scruff")
 #' @import data.table foreach refGenome GenomicFeatures
 #' @rawNamespace import(GenomicAlignments, except = c(second, last, first))
 #' @export

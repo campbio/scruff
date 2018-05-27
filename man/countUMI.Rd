@@ -72,4 +72,7 @@ al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 1)
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 sce = countUMI(al, gtf, cores = 2)
 }
+# or use the built-in SingleCellExperiment object generated using
+ example dataset (see ?sceExample)
+data(sceExample, package = "scruff")
 }

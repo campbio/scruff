@@ -19,6 +19,7 @@
 #' @examples
 #' # The SingleCellExperiment object returned by demultiplex function is
 #' # required for running alignRsubread function
+#' # Does not support Windows environment
 #' \dontrun{
 #' data(barcodeExample, package = "scruff")
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),

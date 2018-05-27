@@ -48,41 +48,60 @@ Build Rsubread alignment index. This is for the alignment step. For test porpurs
 
 ```{r, results = 'hide'}
 # NOTE: Rsubread package does not support Windows environment.
-library(Rsubread)
-# Create index files for GRCm38_MT. For details, please refer to Rsubread user manual.
-# Specify the basename for Rsubread index
-indexBase <- "GRCm38_MT"
-buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
+if (!requireNamespace("Rsubread", quietly = TRUE)) {
+  message(paste("Package \"Rsubread\" needed for \"alignRsubread\"",
+                "function to work.",
+                "Please install it if you are using Linux or macOS.",
+                "The function is not available in Windows environment."),
+          call. = FALSE)
+  } else {
+    # Create index files for GRCm38_MT.
+    # For details, please refer to Rsubread user manual.
+    # Specify the basename for Rsubread index
+    indexBase <- "GRCm38_MT"
+    Rsubread::buildindex(basename = indexBase,
+                         reference = fasta,
+                         indexSplit = FALSE)
+}
 ```
 
 Now that everything is ready, we can run `r Rpackage("scruff")`. In sample 1h1, cell barcodes 95 and 96 are empty well controls. In sample b1, cell barcode 95 is bulk sample containing 300 cells. These information can be set by the `cellPerWell` argument. `r Rpackage("scruff")` makes use of the `r Biocpkg("SingleCellExperiment")` package. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
 
 ```{r, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
-sce <- scruff(project = "example",
-              sample = c("1h1", "b1"),
-              lane = c("L001", "L001"),
-              read1Path = c(v1h1R1, vb1R1),
-              read2Path = c(v1h1R2, vb1R2),
-              bc = barcodeExample,
-              index = indexBase,
-              unique = FALSE,
-              nBestLocations = 1,
-              reference = gtf,
-              bcStart = 1,
-              bcStop = 8,
-              umiStart = 9,
-              umiStop = 12,
-              keep = 75,
-              cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-              cores = 1,
-              verbose = TRUE)
+
+if (!requireNamespace("Rsubread", quietly = TRUE)) {
+  message(paste("Package \"Rsubread\" needed.",
+                "Please install it if you are using Linux or macOS systems.",
+                "The function is not available in Windows environment."),
+          call. = FALSE)
+  } else {
+    sce <- scruff(project = "example",
+                  sample = c("1h1", "b1"),
+                  lane = c("L001", "L001"),
+                  read1Path = c(v1h1R1, vb1R1),
+                  read2Path = c(v1h1R2, vb1R2),
+                  bc = barcodeExample,
+                  index = indexBase,
+                  unique = FALSE,
+                  nBestLocations = 1,
+                  reference = gtf,
+                  bcStart = 1,
+                  bcStop = 8,
+                  umiStart = 9,
+                  umiStop = 12,
+                  keep = 75,
+                  cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+                  cores = 1,
+                  verbose = TRUE)
+}
 ```
 
 Visualize data quality.
 
 ```{r, warning = FALSE}
-qc <- qcplots(sce)
+data(sceExample, package = "scruff")
+qc <- qcplots(sceExample)
 ```
 
 # Stepwise Tutorial
@@ -136,27 +155,40 @@ de <- demultiplex(project = "example",
 `r Rpackage("scruff")` provides an alignment function `alignRsubread` which is a wrapper function to `align` in `Rsubread` package. It aligns the reads to reference sequence index and outputs sequence alignment map files in "BAM" or "SAM" format. For demonstration purpose, the built-in mitochondrial DNA sequence from GRCm38 reference assembly `GRCm38MitochondrialFasta` will be used to map the reads. First, a `r Biocpkg("Rsubread")` index for the reference sequence needs to be generated.
 
 ```{r, results = 'hide'}
-# NOTE: Rsubread package does not support Windows environment.
-library(Rsubread)
 # Create index files for GRCm38_MT. For details, please refer to Rsubread user manual.
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
-# Specify the basename for Rsubread index
-indexBase <- "GRCm38_MT"
-buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
+# NOTE: Rsubread package does not support Windows environment.
+if (!requireNamespace("Rsubread", quietly = TRUE)) {
+  message(paste("Package \"Rsubread\" needed for \"alignRsubread\"",
+                "function to work.",
+                "Please install it if you are using Linux or macOS.",
+                "The function is not available in Windows environment."),
+          call. = FALSE)
+  } else {
+    # Create index files for GRCm38_MT.
+    # For details, please refer to Rsubread user manual.
+    # Specify the basename for Rsubread index
+    indexBase <- "GRCm38_MT"
+    Rsubread::buildindex(basename = indexBase,
+                         reference = fasta,
+                         indexSplit = FALSE)
+}
 ```
 
 The following command maps the FASTQ files to GRCm38 mitochondrial reference sequence `GRCm38_MT.fa` and returns a `SingleCellExperiment` object. By default, the files are stored in BAM format in `./Alignment` folder.
 
 ```{r, results = 'hide', warning = FALSE, message = FALSE}
 # Align the reads using Rsubread
-al <- alignRsubread(de,
-                    indexBase,
-                    unique = FALSE,
-                    nBestLocations = 1,
-                    format = "BAM",
-                    cores = 1,
-                    overwrite = TRUE,
-                    verbose = TRUE)
+if (requireNamespace("Rsubread", quietly = TRUE)) {
+  al <- alignRsubread(de,
+                      indexBase,
+                      unique = FALSE,
+                      nBestLocations = 1,
+                      format = "BAM",
+                      cores = 1,
+                      overwrite = TRUE,
+                      verbose = TRUE)
+}
 ```
 
 ## UMI correction and Generation of Count Matrix
@@ -167,12 +199,14 @@ Example GTF file `GRCm38_MT.gtf` will be used for feature counting. Currently, `
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 # get the molecular counts of trancsripts for each cell
 # In sample 1h1, cell barcodes 95 and 96 are empty well controls. In sample b1, cell barcode 95 is bulk sample containing 300 cells.
-sce = countUMI(al,
-               gtf,
-               format = "BAM",
-               cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-               cores = 1,
-               verbose = TRUE)
+if (requireNamespace("Rsubread", quietly = TRUE)) {
+  sce = countUMI(al,
+                 gtf,
+                 format = "BAM",
+                 cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+                 cores = 1,
+                 verbose = TRUE)
+}
 ```
 
 ## Visualization of QC metrics
@@ -180,7 +214,8 @@ sce = countUMI(al,
 The data quality diagnostic information are contained in the `colData` of the returned `SingleCellExperiment` object `sce`. They can be visualized using the `qcplots` function.
 
 ```{r, warning = FALSE}
-qc <- qcplots(sce)
+data(sceExample, package = "scruff")
+qc <- qcplots(sceExample)
 qc
 ```
 
