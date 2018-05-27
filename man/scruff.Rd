@@ -124,6 +124,6 @@ verbose = TRUE)
 }
 
 # or use the built-in SingleCellExperiment object generated using
- example dataset (see ?sceExample)
+# example dataset (see ?sceExample)
 data(sceExample, package = "scruff")
 }

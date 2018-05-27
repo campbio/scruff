@@ -92,7 +92,7 @@ if (!requireNamespace("Rsubread", quietly = TRUE)) {
                   umiStop = 12,
                   keep = 75,
                   cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-                  cores = 1,
+                  cores = 2,
                   verbose = TRUE)
 }
 ```
@@ -145,7 +145,7 @@ de <- demultiplex(project = "example",
                   keep = 75,
                   minQual = 10,
                   yieldReads = 1e+06,
-                  cores = 1,
+                  cores = 2,
                   verbose = TRUE,
                   overwrite = TRUE)
 ```
@@ -185,7 +185,7 @@ if (requireNamespace("Rsubread", quietly = TRUE)) {
                       unique = FALSE,
                       nBestLocations = 1,
                       format = "BAM",
-                      cores = 1,
+                      cores = 2,
                       overwrite = TRUE,
                       verbose = TRUE)
 }
@@ -204,7 +204,7 @@ if (requireNamespace("Rsubread", quietly = TRUE)) {
                  gtf,
                  format = "BAM",
                  cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-                 cores = 1,
+                 cores = 2,
                  verbose = TRUE)
 }
 ```
@@ -225,11 +225,7 @@ qc
 
 ```{r, results = 'hide', warning = FALSE, message = FALSE}
 # Visualize the reads mapped to gene "mt-Rnr2" in cell "vandenBrink_b1_cell_0095".
-bam <- GenomicAlignments::readGAlignments(
-  Rsamtools::BamFile(SummarizedExperiment::colData(sce)[
-    which(SummarizedExperiment::colData(sce)$number_of_cells == 300),
-    "alignment_path"]),
-    use.names = TRUE)
+data(bamExample, package = "scruff")
 
 gtfEG = refGenome::ensemblGenome(dirname(gtf))
 refGenome::read.gtf(gtfEG, filename = basename(gtf))
@@ -239,7 +235,7 @@ refGenome::read.gtf(gtfEG, filename = basename(gtf))
 start <- 1094
 end <- 2675
 
-g1 <- rview(bam, chr = "MT", start = start, end = end)
+g1 <- rview(bamExample, chr = "MT", start = start, end = end)
 g2 <- gview(gtfEG, chr = "MT", start = start, end = end)
 g <- ggbio::tracks(g1, g2, heights = c(4,1), xlab = "chr MT")
 g
