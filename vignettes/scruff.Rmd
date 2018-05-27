@@ -20,7 +20,7 @@ suppressPackageStartupMessages(library(BiocStyle))
 
 # Quick Start
 
-```{r}
+```{r load_files1}
 # Run scruff on example dataset
 # NOTE: Requires Rsubread index and TxDb objects for the reference genome.
 # For generation of these files, please refer to the Stepwise Tutorial.
@@ -46,7 +46,7 @@ gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 
 Build Rsubread alignment index. This is for the alignment step. For test porpurse, here we are aligning the example FASTQ files to the genes on mitochondrial chromosome only.
 
-```{r, results = 'hide'}
+```{r buildindex1, results = 'hide'}
 # NOTE: Rsubread package does not support Windows environment.
 if (!requireNamespace("Rsubread", quietly = TRUE)) {
   message(paste("Package \"Rsubread\" needed for \"alignRsubread\"",
@@ -67,7 +67,7 @@ if (!requireNamespace("Rsubread", quietly = TRUE)) {
 
 Now that everything is ready, we can run `r Rpackage("scruff")`. In sample 1h1, cell barcodes 95 and 96 are empty well controls. In sample b1, cell barcode 95 is bulk sample containing 300 cells. These information can be set by the `cellPerWell` argument. `r Rpackage("scruff")` makes use of the `r Biocpkg("SingleCellExperiment")` package. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
 
-```{r, results = 'hide', warning = FALSE, message = FALSE}
+```{r scruff, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
 
 if (!requireNamespace("Rsubread", quietly = TRUE)) {
@@ -99,7 +99,7 @@ if (!requireNamespace("Rsubread", quietly = TRUE)) {
 
 Visualize data quality.
 
-```{r, warning = FALSE}
+```{r qc1, warning = FALSE}
 data(sceExample, package = "scruff")
 qc <- qcplots(sceExample)
 ```
@@ -109,7 +109,7 @@ qc <- qcplots(sceExample)
 
 The `r Rpackage("scruff")` package contains 4 single cell RNA-seq FASTQ example files. Each file has 10,000 sequenced reads.
 
-```{r}
+```{r loadfiles2}
 library(scruff)
 v1h1R1 <- system.file("extdata",
                       "vandenBrink_1h1_L001_R1_001.fastq.gz",
@@ -129,7 +129,7 @@ vb1R2 <- system.file("extdata",
 
 Now the FASTQ files are ready to be demultiplexed. `r Rpackage("scruff")` package provides built-in predefined cell barcodes `barcodeExample` for demultiplexing the example dataset. In the example FASTQ files, read 1 contains cell barcode and UMI sequence information. Read 2 contains transcript sequences. The barcode sequence of each read starts at base 1 and ends at base 8. The UMI sequence starts at base 9 and ends at base 12. They can be set via `bcStart`, `bcStop`, and `umiStart`, `umiStop` arguments. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example FASTQ reads and trims reads longer than 75 nucleotides. The command returns a `SingleCellExperiment` object whose `colData` contains the cell index, barcode, reads, percentage of reads assigned, sample, and FASTQ file path information for each cell. By default, the cell specific demultiplexed fastq.gz files are stored in `./Demultiplex` folder.
 
-```{r, results = 'hide', warning = FALSE, message = FALSE}
+```{r de, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
 de <- demultiplex(project = "example",
                   sample = c("1h1", "b1"),
@@ -154,7 +154,7 @@ de <- demultiplex(project = "example",
 
 `r Rpackage("scruff")` provides an alignment function `alignRsubread` which is a wrapper function to `align` in `Rsubread` package. It aligns the reads to reference sequence index and outputs sequence alignment map files in "BAM" or "SAM" format. For demonstration purpose, the built-in mitochondrial DNA sequence from GRCm38 reference assembly `GRCm38MitochondrialFasta` will be used to map the reads. First, a `r Biocpkg("Rsubread")` index for the reference sequence needs to be generated.
 
-```{r, results = 'hide'}
+```{r al_files, results = 'hide'}
 # Create index files for GRCm38_MT. For details, please refer to Rsubread user manual.
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 # NOTE: Rsubread package does not support Windows environment.
@@ -177,7 +177,7 @@ if (!requireNamespace("Rsubread", quietly = TRUE)) {
 
 The following command maps the FASTQ files to GRCm38 mitochondrial reference sequence `GRCm38_MT.fa` and returns a `SingleCellExperiment` object. By default, the files are stored in BAM format in `./Alignment` folder.
 
-```{r, results = 'hide', warning = FALSE, message = FALSE}
+```{r al, results = 'hide', warning = FALSE, message = FALSE}
 # Align the reads using Rsubread
 if (requireNamespace("Rsubread", quietly = TRUE)) {
   al <- alignRsubread(de,
@@ -195,7 +195,7 @@ if (requireNamespace("Rsubread", quietly = TRUE)) {
 
 Example GTF file `GRCm38_MT.gtf` will be used for feature counting. Currently, `r Rpackage("scruff")` applies the union counting mode of the HTSeq Python package. The following command generates the UMI filtered count matrix for the example dataset.
 
-```{r, results = 'hide', warning = FALSE, message = FALSE}
+```{r co, results = 'hide', warning = FALSE, message = FALSE}
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 # get the molecular counts of trancsripts for each cell
 # In sample 1h1, cell barcodes 95 and 96 are empty well controls. In sample b1, cell barcode 95 is bulk sample containing 300 cells.
@@ -213,7 +213,7 @@ if (requireNamespace("Rsubread", quietly = TRUE)) {
 
 The data quality diagnostic information are contained in the `colData` of the returned `SingleCellExperiment` object `sce`. They can be visualized using the `qcplots` function.
 
-```{r, warning = FALSE}
+```{r qc2, warning = FALSE}
 data(sceExample, package = "scruff")
 qc <- qcplots(sceExample)
 qc
@@ -223,14 +223,14 @@ qc
 
 `r Rpackage("scruff")` package provides functions to visualize read alignments on the reference genome. Reads are colored by their UMI. The following command visualize the reads mapped to gene mt-Rnr2 for the bulk sample `vandenBrink_b1_cell_0095`.
 
-```{r, results = 'hide', warning = FALSE, message = FALSE}
+```{r gtfEG, results = 'hide', warning = FALSE, message = FALSE}
 # Visualize the reads mapped to gene "mt-Rnr2" in cell "vandenBrink_b1_cell_0095".
 data(bamExample, package = "scruff")
 
 gtfEG = refGenome::ensemblGenome(dirname(gtf))
 refGenome::read.gtf(gtfEG, filename = basename(gtf))
 ```
-```{r}
+```{r visualize_reads}
 # gene mt-Rnr2 starts at 1094 and ends at 2675
 start <- 1094
 end <- 2675
@@ -243,6 +243,6 @@ g
 
 # Session Information
 
-```{r, echo = FALSE}
+```{r session, echo = FALSE}
 sessionInfo()
 ```
