@@ -50,9 +50,9 @@ Build Rsubread alignment index. This is for the alignment step. For test porpurs
 # NOTE: Rsubread package does not support Windows environment.
 if (!requireNamespace("Rsubread", quietly = TRUE)) {
   message(paste("Package \"Rsubread\" needed for \"alignRsubread\"",
-                "function to work.",
-                "Please install it if you are using Linux or macOS.",
-                "The function is not available in Windows environment."),
+                "function to work.\n",
+                "Please install it if you are using Linux or macOS.\n",
+                "The function is not available in Windows environment.\n"),
           call. = FALSE)
   } else {
     # Create index files for GRCm38_MT.
@@ -99,7 +99,7 @@ if (!requireNamespace("Rsubread", quietly = TRUE)) {
 
 Visualize data quality.
 
-```{r qc1, warning = FALSE}
+```{r qc1, warning = FALSE, message = FALSE, results = 'hide'}
 data(sceExample, package = "scruff")
 qc <- qcplots(sceExample)
 ```
