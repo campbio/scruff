@@ -1,7 +1,7 @@
 #' A wrapper to \code{Rsubread} read alignment function \code{align}
-#' 
+#'
 #' This function is \strong{not} available in Windows environment. Align cell specific reads to reference genome and write sequence alignment results to output directory. A wrapper to the \code{align} function in \code{Rsubread} package. For details please refer to \code{Rsubread} manual.
-#' 
+#'
 #' @param sce A \code{SingleCellExperiment} object of which the \code{colData} slot contains the \strong{fastq_path} column with paths to input cell-specific FASTQ files.
 #' @param index Path to the \code{Rsubread} index of the reference genome. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.
 #' @param unique Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{FALSE}.
@@ -24,7 +24,7 @@
 #' data(barcodeExample, package = "scruff")
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),
 #' pattern = "\\.fastq\\.gz", full.names = TRUE)
-#' 
+#'
 #' de <- demultiplex(
 #' project = "example",
 #' sample = c("1h1", "b1"),
@@ -39,7 +39,7 @@
 #' keep = 75,
 #' overwrite = TRUE,
 #' cores = 1)
-#' 
+#'
 #' # Alignment
 #' library(Rsubread)
 #' # Create index files for GRCm38_MT.
@@ -47,7 +47,7 @@
 #' # Specify the basename for Rsubread index
 #' indexBase <- "GRCm38_MT"
 #' buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
-#' 
+#'
 #' al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 1)
 #' }
 #' @import data.table foreach
@@ -66,22 +66,22 @@ alignRsubread <- function(sce,
                           logfilePrefix = format(Sys.time(),
                                                  "%Y%m%d_%H%M%S"),
                           ...) {
-  
+
   if (!requireNamespace("Rsubread", quietly = TRUE)) {
     stop(paste("Package \"Rsubread\" needed for \"alignRsubread\"",
-               "function to work.",
-               "Please install it if you are using Linux or macOS.",
-               "The function is not available in Windows environment."),
+               "function to work.\n",
+               "Please install it if you are using Linux or macOS.\n",
+               "The function is not available in Windows environment.\n"),
          call. = FALSE)
   }
-  
+
   message(paste(Sys.time(), "Start alignment ..."))
   print(match.call(expand.dots = TRUE))
-  
+
   fastqPaths <- SummarizedExperiment::colData(sce)$fastq_path
-  
+
   logfile <- paste0(logfilePrefix, "_alignment_log.txt")
-  
+
   if (verbose) {
     .logMessages(Sys.time(),
                  "... Start alignment",
@@ -91,7 +91,7 @@ alignRsubread <- function(sce,
     message("... Input fastq paths:")
     print(fastqPaths)
   }
-  
+
   if (overwrite) {
     # delete results from previous run
     message(paste(Sys.time(), "... Delete (if any) existing alignment results"))
@@ -111,17 +111,17 @@ alignRsubread <- function(sce,
       stop("Abort. Try re-running the function by setting overwrite to TRUE\n")
     }
   }
-  
+
   message(paste(Sys.time(), "... Creating output directory", outDir))
   dir.create(file.path(outDir), showWarnings = FALSE, recursive = TRUE)
-  
+
   # parallelization
   cl <- if (verbose)
     parallel::makeCluster(cores, outfile = logfile)
   else
     parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
-  
+
   alignmentFilePaths <- foreach::foreach(
     i = fastqPaths,
     .verbose = verbose,
@@ -151,7 +151,7 @@ alignRsubread <- function(sce,
                                                         ...))
     }
   }
-  
+
   resDt <- foreach::foreach(
     i = alignmentFilePaths,
     .verbose = verbose,
@@ -165,11 +165,11 @@ alignRsubread <- function(sce,
       suppressPackageStartupMessages(.propmappedWrapper(i))
     }
   }
-  
+
   parallel::stopCluster(cl)
-  
+
   resDt <- data.table::data.table(resDt)
-  
+
   message(paste(Sys.time(), paste(
     "... Write alignment summary to",
     file.path(outDir, paste0(
@@ -179,23 +179,23 @@ alignRsubread <- function(sce,
       ".tab"
     ))
   )))
-  
+
   fwrite(resDt, file.path(outDir, paste0(
     format(Sys.time(), "%Y%m%d_%H%M%S"),
     "_",
     summaryPrefix,
     ".tab"
   )), sep = "\t")
-  
+
   colnames(resDt) <- c("alignment_path",
                        "reads",
                        "aligned_reads_incl_ercc",
                        "fraction_aligned")
-  
+
   message(paste(Sys.time(), "... Add alignment information to SCE colData."))
   SummarizedExperiment::colData(sce) <-
     cbind(SummarizedExperiment::colData(sce), resDt[, -"reads"])
-  
+
   message(paste(Sys.time(), "... Alignment done!"))
   return(sce)
 }
@@ -210,9 +210,9 @@ alignRsubread <- function(sce,
                                threads,
                                logfile,
                                ...) {
-  
+
   file.path <- .getAlignmentFilePaths(i, format, outDir)
-  
+
   if (file.size(i) == 0) {
     file.create(file.path, showWarnings = FALSE)
     return (file.path)
@@ -222,7 +222,7 @@ alignRsubread <- function(sce,
                  i,
                  logfile = logfile,
                  append = TRUE)
-    
+
     Rsubread::align(
       index = index,
       readfile1 = i,

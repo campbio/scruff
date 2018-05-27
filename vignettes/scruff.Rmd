@@ -71,9 +71,9 @@ Now that everything is ready, we can run `r Rpackage("scruff")`. In sample 1h1, 
 data(barcodeExample, package = "scruff")
 
 if (!requireNamespace("Rsubread", quietly = TRUE)) {
-  message(paste("Package \"Rsubread\" needed.",
-                "Please install it if you are using Linux or macOS systems.",
-                "The function is not available in Windows environment."),
+  message(paste("Package \"Rsubread\" needed.\n",
+                "Please install it if you are using Linux or macOS systems.\n",
+                "The function is not available in Windows environment.\n"),
           call. = FALSE)
   } else {
     sce <- scruff(project = "example",
@@ -159,10 +159,9 @@ de <- demultiplex(project = "example",
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 # NOTE: Rsubread package does not support Windows environment.
 if (!requireNamespace("Rsubread", quietly = TRUE)) {
-  message(paste("Package \"Rsubread\" needed for \"alignRsubread\"",
-                "function to work.",
-                "Please install it if you are using Linux or macOS.",
-                "The function is not available in Windows environment."),
+  message(paste("Package \"Rsubread\" needed.\n",
+                "Please install it if you are using Linux or macOS systems.\n",
+                "The function is not available in Windows environment.\n"),
           call. = FALSE)
   } else {
     # Create index files for GRCm38_MT.
