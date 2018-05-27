@@ -37,20 +37,22 @@
 #' @return A \code{SingleCellExperiment} object.
 #' @examples
 #' \dontrun{
+#' # prepare required files
+#'
 #' data(barcodeExample, package = "scruff")
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),
 #' pattern = "\\.fastq\\.gz", full.names = TRUE)
 #' fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 #' gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
-#' 
+#'
 #' # NOTE: Rsubread package does not support Windows environment.
 #' library(Rsubread)
 #' # Specify the basename for Rsubread index
 #' indexBase <- "GRCm38_MT"
 #' # Create index files for GRCm38_MT.
 #' buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
-#' 
-#' # rub scruff
+#'
+#' # run scruff pipeline
 #' sce <- scruff(project = "example",
 #' sample = c("1h1", "b1"),
 #' lane = c("L001", "L001"),
@@ -69,6 +71,10 @@
 #' overwrite = TRUE,
 #' verbose = TRUE)
 #' }
+#'
+#' # or use the built-in SingleCellExperiment object generated using
+#' # example dataset (see ?sceExample)
+#' data(sceExample, package = "scruff")
 #' @export
 scruff <- function(project = paste0("project_", Sys.Date()),
                    sample,

@@ -88,6 +88,8 @@ Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \
 }
 \examples{
 \dontrun{
+# prepare required files
+
 data(barcodeExample, package = "scruff")
 fastqs <- list.files(system.file("extdata", package = "scruff"),
 pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
@@ -101,7 +103,7 @@ indexBase <- "GRCm38_MT"
 # Create index files for GRCm38_MT.
 buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 
-# rub scruff
+# run scruff pipeline
 sce <- scruff(project = "example",
 sample = c("1h1", "b1"),
 lane = c("L001", "L001"),
@@ -120,4 +122,8 @@ cores = 2,
 overwrite = TRUE,
 verbose = TRUE)
 }
+
+# or use the built-in SingleCellExperiment object generated using
+# example dataset (see ?sceExample)
+data(sceExample, package = "scruff")
 }
