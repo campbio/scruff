@@ -183,8 +183,8 @@ countUMI <- function(sce,
                                         "seqid")]))
 
   SummarizedExperiment::rowData(scruffsce) <-
-    S4Vectors::DataFrame(geneAnnotation[, -"gene_id"],
-                         row.names = geneAnnotation[, gene_id])
+    S4Vectors::DataFrame(geneAnnotation[order(gene_id), ],
+                         row.names = geneAnnotation[order(gene_id), gene_id])
 
   # UMI filtered transcripts QC metrics
   # total counts exclude ERCC
@@ -254,7 +254,7 @@ countUMI <- function(sce,
 
   # if sequence alignment file is empty
   if (file.size(i) == 0) {
-    countUmiDt <- data.table::data.table(gene_id = c(names(features),
+    countUmiDt <- data.table::data.table(gene_id = c(sort(names(features)),
                                                      "reads_mapped_to_genome",
                                                      "reads_mapped_to_genes"))
     cell <- .removeLastExtension(i)
