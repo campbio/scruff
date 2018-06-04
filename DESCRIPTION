@@ -1,6 +1,6 @@
 Package: scruff
 Title: Single Cell RNA-Seq UMI Filtering Facilitator (scruff)
-Version: 0.99.14
+Version: 0.99.15
 Authors@R: person("Zhe", "Wang", email = "zhe@bu.com", role = c("aut", "cre"))
 Description: A pipeline which processes single cell RNA-seq (scRNA-seq) reads from CEL-seq and CEL-seq2 protocols. Demultiplex scRNA-seq FASTQ files, align reads to reference genome using Rsubread, and generate UMI filtered count matrix. Also provide visualizations of read alignments and pre- and post-alignment QC metrics.
 Depends: R (>= 3.5.0)
