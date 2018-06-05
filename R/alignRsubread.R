@@ -38,7 +38,7 @@
 #' umiStop = 12,
 #' keep = 75,
 #' overwrite = TRUE,
-#' cores = 1)
+#' cores = 4)
 #'
 #' # Alignment
 #' library(Rsubread)
@@ -48,7 +48,7 @@
 #' indexBase <- "GRCm38_MT"
 #' buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 #'
-#' al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 1)
+#' al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 4)
 #' }
 #' @import data.table foreach
 #' @export
