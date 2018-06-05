@@ -3,10 +3,10 @@
 #' Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory
 #'
 #' @param project The project name. Default is \code{paste0("project_", Sys.Date())}.
-#' @param sample A character vector of sample names. Represents the group label for each FASTQ file, e.g. "patient1, patient2, ...".
-#' @param lane A character or character vector of flow cell lane numbers. If FASTQ files from multiple lanes are concatenated, any placeholder would be sufficient, e.g. "L001".
-#' @param read1Path A character vector of file paths to the read1 FASTQ files. These are the read files with UMI and cell barcode information.
-#' @param read2Path A character vector of file paths to the read2 FASTQ files. These read files contain genomic sequences.
+#' @param experiment A character vector of experiment names. Represents the group label for each FASTQ file, e.g. "patient1, patient2, ...". The number of cells in a experiment equals the length of cell barcodes \code{bc}. The length of \code{experiment} equals the number of FASTQ files to be processed.
+#' @param lane A character or character vector of flow cell lane numbers. FASTQ files from lanes having the same \code{experiment} will be concatenated. If FASTQ files from multiple lanes are already concatenated, any placeholder would be sufficient, e.g. "L001".
+#' @param read1Path A character vector of file paths to the read 1 FASTQ files. These are the read files containing UMI and cell barcode sequences.
+#' @param read2Path A character vector of file paths to the read 2 FASTQ files. These read files contain genomic transcript sequences.
 #' @param bc A character vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.
 #' @param bcStart Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).
 #' @param bcStop Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).
@@ -31,7 +31,7 @@
 #' 
 #' de <- demultiplex(
 #' project = "example",
-#' sample = c("1h1", "b1"),
+#' experiment = c("1h1", "b1"),
 #' lane = c("L001", "L001"),
 #' read1Path = c(fastqs[1], fastqs[3]),
 #' read2Path = c(fastqs[2], fastqs[4]),
@@ -47,7 +47,7 @@
 #' @rawNamespace import(ShortRead, except = c(tables, zoom))
 #' @export
 demultiplex <- function(project = paste0("project_", Sys.Date()),
-                        sample,
+                        experiment,
                         lane,
                         read1Path,
                         read2Path,
@@ -76,7 +76,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
 
   fastqAnnot <- data.table::data.table(
     project = project,
-    sample = sample,
+    experiment = experiment,
     lane = lane,
     read1_path = read1Path,
     read2_path = read2Path)
@@ -91,7 +91,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
   fastqAnnotDt <- data.table::data.table(fastqAnnot)
   barcodeDt <- data.table::data.table("cell_index" = seq_len(length(bc)),
                                       "barcode" = bc)
-  sampleId <- fastqAnnotDt[, unique(sample)]
+  expId <- fastqAnnotDt[, unique(experiment)]
 
   # disable threading in ShortRead package
   nthreads <- .Call(ShortRead:::.set_omp_threads, 1L)
@@ -105,7 +105,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
   doParallel::registerDoParallel(cl)
 
   resDt <- foreach::foreach(
-    i = sampleId,
+    i = expId,
     .verbose = verbose,
     .combine = rbind,
     .multicombine = TRUE,
@@ -158,7 +158,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
   message(paste(
     Sys.time(),
     paste(
-      "... Write demultiplex summary for all samples to",
+      "... Write demultiplex summary for all experiments to",
       file.path(outDir, paste0(
         format(Sys.time(), "%Y%m%d_%H%M%S"),
         "_",
@@ -197,7 +197,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
 }
 
 
-# demultiplex unit function for one sample (unique sample id)
+# demultiplex unit function for one experiment (unique experiment id)
 .demultiplexUnit <- function(i,
                              fastq,
                              barcodeDt,
@@ -215,15 +215,15 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                              logfile) {
 
   .logMessages(Sys.time(),
-              "... demultiplexing sample",
+              "... demultiplexing experiment",
               i,
               logfile = logfile,
               append = FALSE)
 
-  sampleMetaDt <- fastq[sample == i, ]
-  lanes <- unique(sampleMetaDt[, lane])
+  expMetaDt <- fastq[experiment == i, ]
+  lanes <- unique(expMetaDt[, lane])
   summaryDt <- data.table::copy(barcodeDt)
-  summaryDt[, filename := paste0(sampleMetaDt[,
+  summaryDt[, filename := paste0(expMetaDt[,
                                               paste(unique(project),
                                                     i, sep = "_")],
                                  "_cell_",
@@ -248,13 +248,13 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     fill = TRUE,
     idcol = FALSE
   )
-  summaryDt[, sample := i]
+  summaryDt[, experiment := i]
 
   if (overwrite) {
     # delete existing results
     .logMessages(
       Sys.time(),
-      "... Delete (if any) existing demultiplex results for sample ",
+      "... Delete (if any) existing demultiplex results for experiment ",
       i,
       logfile = logfile,
       append = TRUE
@@ -286,8 +286,8 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     .logMessages(Sys.time(), "... Processing Lane", j,
                 logfile = logfile, append = TRUE)
 
-    f1 <- sampleMetaDt[lane == j, read1_path]
-    f2 <- sampleMetaDt[lane == j, read2_path]
+    f1 <- expMetaDt[lane == j, read1_path]
+    f2 <- expMetaDt[lane == j, read2_path]
 
     if (length(f1) > 1 || length(f2) > 1) {
       stop(paste0("Duplicate lanes detected. ",
@@ -389,7 +389,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
         dir.create(file.path(outDir, i),
                    recursive = TRUE,
                    showWarnings = FALSE)
-        # project_sample_"cell"_cellnum.fastq.gz
+        # project_experiment_"cell"_cellnum.fastq.gz
         outFname <- summaryDt[cell_index == k, filename]
         outFull <- file.path(outDir, i, outFname)
         if (!file.exists(outFull)) {
@@ -411,7 +411,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
       }
 
       summaryDt[!(is.na(cell_index)),
-                fastq_path := file.path(outDir, sample, filename)]
+                fastq_path := file.path(outDir, experiment, filename)]
 
       undeterminedDt <- fqyDt[!(bc_correct %in% barcodeDt[, barcode]), ]
       undeterminedFqOutR1 <- ShortRead::ShortReadQ(
@@ -465,7 +465,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
       "... Write",
       i,
       "demultiplex summary to",
-      file.path(outDir, i, paste(sampleMetaDt[, unique(project)],
+      file.path(outDir, i, paste(expMetaDt[, unique(project)],
                                  summaryPrefix, i, sep =
                                    "_"))
     ),
@@ -477,7 +477,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                      file = file.path(
                        outDir,
                        i,
-                       paste(sampleMetaDt[, unique(project)],
+                       paste(expMetaDt[, unique(project)],
                              summaryPrefix, i, ".tab", sep =
                                "_")
                      ),
@@ -485,7 +485,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
 
   .logMessages(
     Sys.time(),
-    paste("... finished demultiplexing sample", i),
+    paste("... finished demultiplexing experiment", i),
     logfile = logfile,
     append = TRUE
   )
