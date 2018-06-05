@@ -74,9 +74,9 @@ qcplots <- function(sce) {
 .plotTotalReads <- function(qcDt) {
   g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = log10(reads),
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
@@ -84,7 +84,7 @@ qcplots <- function(sce) {
       size = 0.5
     ) +
     ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::ggtitle("Total reads") +
     ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
@@ -97,9 +97,9 @@ qcplots <- function(sce) {
 .plotReadsMappedToGenome <- function(qcDt) {
   g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = log10(reads_mapped_to_genome),
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
@@ -107,7 +107,7 @@ qcplots <- function(sce) {
       size = 0.5
     ) +
     ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::ggtitle("Reads aligned to reference genome") +
     ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
@@ -120,16 +120,16 @@ qcplots <- function(sce) {
 .plotReadsMappedToGenes <- function(qcDt) {
   g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = log10(reads_mapped_to_genes),
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 0.5) +
     ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::ggtitle("Reads mapped to genes") +
     ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
@@ -142,16 +142,16 @@ qcplots <- function(sce) {
 .plotGenomeReadsFraction <- function(qcDt) {
   g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = reads_mapped_to_genome/reads,
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::ggtitle("Fraction of aligned reads to total reads") +
     ggplot2::labs(color = "Cells/well") +
     .themePublication() + 
@@ -163,16 +163,16 @@ qcplots <- function(sce) {
 .plotGeneToGenomeFraction <- function(qcDt) {
   g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = reads_mapped_to_genes/reads_mapped_to_genome,
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::ggtitle("Fraction of gene reads out of aligned reads") +
     ggplot2::labs(color = "Cells/well") +
     .themePublication() +
@@ -184,16 +184,16 @@ qcplots <- function(sce) {
 .plotGeneToTotalFraction <- function(qcDt) {
   g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = reads_mapped_to_genes/reads,
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::ggtitle("Fraction of gene reads out of total reads") +
     ggplot2::labs(color = "Cells/well") +
     .themePublication() +
@@ -205,16 +205,16 @@ qcplots <- function(sce) {
 .plotCounts <- function(qcDt) {
   g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = log10(total_counts),
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 0.5) +
     ggplot2::ylab(expression(bold(Log[10]*"Counts"))) +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::ggtitle("Total transcripts") +
     ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
@@ -227,16 +227,16 @@ qcplots <- function(sce) {
 .plotMtCounts <- function(qcDt) {
   g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = log10(mt_counts),
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 0.5) +
     ggplot2::ylab(expression(bold(Log[10]*"Counts"))) +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::ggtitle("Mitochondrial transcripts") +
     ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
@@ -249,16 +249,16 @@ qcplots <- function(sce) {
 .plotMtCountsFraction <- function(qcDt) {
   g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = mt_counts/total_counts,
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::ggtitle("Fraction of mitochondrial transcripts") +
     ggplot2::labs(color = "Cells/well") +
     .themePublication() +
@@ -270,16 +270,16 @@ qcplots <- function(sce) {
 .plotGenes <- function(qcDt) {
   g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = log10(genes),
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 0.5) +
     ggplot2::ylab(expression(bold(Log[10]*"Genes"))) +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::ggtitle("Transcribed genes") +
     ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
@@ -292,16 +292,16 @@ qcplots <- function(sce) {
 .plotFracProteinCodingGenes <- function(qcDt) {
   g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = protein_coding_genes/genes,
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::ggtitle("Fraction of protein coding genes") +
     ggplot2::labs(color = "Cells/well") +
     .themePublication() +
@@ -313,16 +313,16 @@ qcplots <- function(sce) {
 .plotFracProteinCodingTranscripts <- function(qcDt) {
   g <- ggplot2::ggplot(qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = protein_coding_counts/total_counts,
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
       position = ggplot2::position_jitter(width = 0.3, height = 0),
       size = 0.5) +
     ggplot2::ylim(0, 1) +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::ggtitle("Fraction of protein coding transcripts") +
     ggplot2::labs(color = "Cells/well") +
     .themePublication() +
@@ -334,9 +334,9 @@ qcplots <- function(sce) {
 .plotGenesPerMillionReads <- function(qcDt) {
   g <- ggplot2::ggplot(data = qcDt,
                        ggplot2::aes(
-                         x = as.factor(sample),
+                         x = as.factor(experiment),
                          y = log10(genes * 1000000/reads),
-                         group = as.factor(sample))) +
+                         group = as.factor(experiment))) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
     ggplot2::geom_point(
       ggplot2::aes(color = as.factor(number_of_cells)),
@@ -346,7 +346,7 @@ qcplots <- function(sce) {
     ggplot2::ylab(expression(bold(paste(Log[10],
                                    "(Genes x 1000000 / total reads)")))) +
     ggplot2::ggtitle("Genes detected divided by total number of reads sequenced per million") +
-    ggplot2::xlab("Sample") +
+    ggplot2::xlab("Experiment") +
     ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +

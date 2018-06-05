@@ -45,7 +45,7 @@ pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
 
 de <- demultiplex(
 project = "example",
-sample = c("1h1", "b1"),
+experiment = c("1h1", "b1"),
 lane = c("L001", "L001"),
 read1Path = c(fastqs[1], fastqs[3]),
 read2Path = c(fastqs[2], fastqs[4]),
