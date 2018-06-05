@@ -42,7 +42,7 @@
 #' umiStop = 12,
 #' keep = 75,
 #' overwrite = TRUE,
-#' cores = 1)
+#' cores = 4)
 #' @import data.table foreach
 #' @rawNamespace import(ShortRead, except = c(tables, zoom))
 #' @export

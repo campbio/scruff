@@ -67,7 +67,7 @@
 #' umiStop = 12,
 #' keep = 75,
 #' cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-#' cores = 2,
+#' cores = 4,
 #' overwrite = TRUE,
 #' verbose = TRUE)
 #' }
