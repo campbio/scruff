@@ -215,7 +215,7 @@ qcplots <- function(sce) {
       size = 0.5) +
     ggplot2::ylab(expression(bold(Log[10]*"Counts"))) +
     ggplot2::xlab("Sample") +
-    ggplot2::ggtitle("Total counts") +
+    ggplot2::ggtitle("Total transcripts") +
     ggplot2::labs(color = "Cells/well") +
     ggplot2::scale_y_continuous(labels = scales::comma,
                                 limits = c(0, NA)) +
