@@ -1,40 +1,20 @@
-#' Example barcodes.
+#' A vector of example cell barcodes.
 #'
-#' 96 barcodes for demultiplexing example fastq files.
+#' A vector containing 96 predefined cell barcodes which will be used for demultiplexing the example FASTQ files.
 #'
-#' @format A vector of barcode sequences.
-"examplebc"
+#' @format A vector of cell barcode sequences. Cell barcodes for this study (van den Brink, et al.) are of length 8.
+"barcodeExample"
 
-#' Example fastq \code{ShortReadQ} objects
+#' Example SingleCellExperiment Object
 #'
-#' A list of \code{ShortReadQ} objects of example fastq reads. Contains R1 and R2 reads
-#' from Example_01 and R1 and R2 reads from Example_02. Read library is generated
-#' using CEL-SEQ2 protocol.
+#' An example SingleCellExperiment object containing count matrix, cell and gene annotations, and all QC metrics for mouse mitochonrial genes generated from example FASTQ reads.
 #'
-#' @format A list of 4 \code{ShortReadQ} \code{S4} objects.
-"examplefastq"
+#' @format A SingleCellExperiment object.
+"sceExample"
 
-#' Example annotation table
-#' 
-#' A \code{data.table} object of example annotation table. 
-#' 
-#' @format A \code{data.table} with 6 columns:
-#' \describe{
-#' \item{\code{project}}{Project name}
-#' \item{\code{id}}{Sample ID}
-#' \item{\code{num}}{Sample number based on the order that samples are listed during fastq generation}
-#' \item{\code{lane}}{Lane number}
-#' \item{\code{read}}{The read. R1 means Read 1 and R2 means Read 2}
-#' \item{\code{dir}}{Directory to the fastq file}
-#' }
-"exampleannot"
-
-#' GRCh38 mitochondrial dna fasta sequence
+#' Example GAlignments Object
 #'
-#' An vector containing GRCh38 chrMT fasta sequence.
-"GRCh38_MT"
-
-#' GRCh38 mitochondrial gtf file
-#' 
-#' A \code{data.table} object of GRCh38 mitochondrial gtf file.
-"GRCh38_MT_gtf"
+#' An example GAlignments object containing read alignment information for cell "vandenBrink_b1_cell_0095" of example FASTQ files. Used as an example for \code{rview} function.
+#'
+#' @format A GAlignments object.
+"bamExample"
