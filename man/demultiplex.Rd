@@ -8,7 +8,7 @@ demultiplex(project = paste0("project_", Sys.Date()), experiment, lane,
   read1Path, read2Path, bc, bcStart, bcStop, bcEdit = 0, umiStart, umiStop,
   keep, minQual = 10, yieldReads = 1e+06, outDir = "./Demultiplex",
   summaryPrefix = "demultiplex", overwrite = FALSE, cores = max(1,
-  parallel::detectCores()/2), verbose = FALSE,
+  parallel::detectCores() - 2), verbose = FALSE,
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
@@ -80,7 +80,7 @@ respectively. \strong{Make sure the folder is empty.} Default is
 directory. Default is \strong{FALSE}.}
 
 \item{cores}{Number of cores used for parallelization. Default is
-\code{max(1, parallel::detectCores() / 2)}, i.e. the number of available
+\code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
 cores divided by 2.}
 
 \item{verbose}{Poolean indicating whether to print log messages. Useful for

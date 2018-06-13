@@ -6,7 +6,7 @@
 \usage{
 alignRsubread(sce, index, unique = FALSE, nBestLocations = 1,
   format = "BAM", outDir = "./Alignment", cores = max(1,
-  parallel::detectCores()/2), threads = 1, summaryPrefix = "alignment",
+  parallel::detectCores() - 2), threads = 1, summaryPrefix = "alignment",
   overwrite = FALSE, verbose = FALSE, logfilePrefix = format(Sys.time(),
   "\%Y\%m\%d_\%H\%M\%S"), ...)
 }
@@ -23,7 +23,7 @@ alignRsubread(sce, index, unique = FALSE, nBestLocations = 1,
 
 \item{outDir}{Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.}
 
-\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.}
+\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available cores divided by 2.}
 
 \item{threads}{\strong{Do not change}. Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}. It should not be changed in most cases.}
 

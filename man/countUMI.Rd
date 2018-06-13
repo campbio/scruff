@@ -5,7 +5,7 @@
 \title{Count the number of UMIs for each gene and output count matrix}
 \usage{
 countUMI(sce, reference, format = "BAM", outDir = "./Count",
-  cellPerWell = 1, cores = max(1, parallel::detectCores()/2),
+  cellPerWell = 1, cores = max(1, parallel::detectCores() - 2),
   outputPrefix = "countUMI", verbose = FALSE,
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
@@ -20,7 +20,7 @@ countUMI(sce, reference, format = "BAM", outDir = "./Count",
 
 \item{cellPerWell}{Number of cells per well. Can be an integer (e.g. 1) indicating the number of cells in each well or an vector with length equal to the total number of cells in the input alignment files specifying the number of cells in each file. Default is 1.}
 
-\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.}
+\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available cores divided by 2.}
 
 \item{outputPrefix}{Prefix for expression table filename. Default is \code{"countUMI"}.}
 
