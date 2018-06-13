@@ -106,39 +106,64 @@ countUMI <- function(sce,
                 paste("... Loading TxDb file")))
   features <- suppressPackageStartupMessages(.gtfReadDb(reference, logfile))
 
-  # parallelization
-  cl <- if (verbose)
-    parallel::makeCluster(cores, outfile = logfile)
-  else
-    parallel::makeCluster(cores)
-  doParallel::registerDoParallel(cl)
-
   if (format == "SAM") {
-    alignmentFilePaths <- foreach::foreach(
-      i = alignmentFilePaths,
-      .verbose = verbose,
-      .combine = c,
-      .multicombine = TRUE
-    ) %dopar% {
-      .toBam(i, logfile, overwrite = FALSE, index = FALSE)
-    }
+    alignmentFilePaths <- BiocParallel::bplapply(
+      X = alignmentFilePaths,
+      FUN = .toBam,
+      BPPARAM = BiocParallel::bpparam(),
+      logfile, overwrite = FALSE, index = FALSE)
   }
+  
+  alignmentFilePaths <- unlist(alignmentFilePaths)
+  
+  exprL <- suppressPackageStartupMessages(
+    BiocParallel::bplapply(
+      X = alignmentFilePaths,
+      FUN = .countUmiUnit,
+      BPPARAM = BiocParallel::bpparam(),
+      features,
+      format,
+      logfile,
+      verbose)
+    )
+  
+  expr <- do.call(cbind, exprL)
+  expr <- data.table::as.data.table(expr, keep.rownames = TRUE)
+  
+#   
+#   # parallelization
+#   cl <- if (verbose)
+#     parallel::makeCluster(cores, outfile = logfile)
+#   else
+#     parallel::makeCluster(cores)
+#   doParallel::registerDoParallel(cl)
+# 
+#   if (format == "SAM") {
+#     alignmentFilePaths <- foreach::foreach(
+#       i = alignmentFilePaths,
+#       .verbose = verbose,
+#       .combine = c,
+#       .multicombine = TRUE
+#     ) %dopar% {
+#       .toBam(i, logfile, overwrite = FALSE, index = FALSE)
+#     }
+#   }
+# 
+#   expr <- foreach::foreach(
+#     i = alignmentFilePaths,
+#     .verbose = verbose,
+#     .combine = cbind,
+#     .multicombine = TRUE,
+#     .packages = c("BiocGenerics", "S4Vectors",
+#                   "GenomicFeatures", "GenomicAlignments")
+#   ) %dopar% {
+#     suppressPackageStartupMessages(
+#       .countUmiUnit(i, features, format, logfile, verbose))
+#   }
+# 
+#   parallel::stopCluster(cl)
 
-  expr <- foreach::foreach(
-    i = alignmentFilePaths,
-    .verbose = verbose,
-    .combine = cbind,
-    .multicombine = TRUE,
-    .packages = c("BiocGenerics", "S4Vectors",
-                  "GenomicFeatures", "GenomicAlignments")
-  ) %dopar% {
-    suppressPackageStartupMessages(
-      .countUmiUnit(i, features, format, logfile, verbose))
-  }
-
-  parallel::stopCluster(cl)
-
-  expr <- data.table::data.table(expr, keep.rownames = TRUE)
+  # expr <- data.table::data.table(expr, keep.rownames = TRUE)
   colnames(expr)[1] <- "geneid"
 
   message(paste(Sys.time(), paste(

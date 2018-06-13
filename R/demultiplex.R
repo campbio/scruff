@@ -125,7 +125,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     print(fastqAnnot)
   }
 
-  logfile <- paste0(logfilePrefix, "_demultiplex_log.txt")
+  # logfile <- paste0(logfilePrefix, "_demultiplex_log.txt")
 
   fastqAnnotDt <- data.table::data.table(fastqAnnot)
   barcodeDt <- data.table::data.table("cell_index" = seq_len(length(bc)),
@@ -135,64 +135,108 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
   # disable threading in ShortRead package
   nthreads <- .Call(ShortRead:::.set_omp_threads, 1L)
   on.exit(.Call(ShortRead:::.set_omp_threads, nthreads))
-
-  # parallelization
-  cl <- if (verbose)
-    parallel::makeCluster(cores, outfile = logfile)
-  else
-    parallel::makeCluster(cores)
-  doParallel::registerDoParallel(cl)
-
-  resDt <- foreach::foreach(
-    i = expId,
-    .verbose = verbose,
-    .combine = rbind,
-    .multicombine = TRUE,
-    .packages = c("data.table", "ShortRead")
-  ) %dopar% {
-    if (verbose) {
-      ## Generate a unique log file name based on given prefix and parameters
-      logfile <- paste0(logfilePrefix, "_demultiplex_", i, "_log.txt")
-      .demultiplexUnit(
-        i,
-        fastqAnnotDt,
-        barcodeDt,
-        bcStart,
-        bcStop,
-        bcEdit,
-        umiStart,
-        umiStop,
-        keep,
-        minQual,
-        yieldReads,
-        outDir,
-        summaryPrefix,
-        overwrite,
-        logfile
-      )
-    } else {
-      suppressPackageStartupMessages(
-        .demultiplexUnit(
-          i,
-          fastqAnnotDt,
-          barcodeDt,
-          bcStart,
-          bcStop,
-          bcEdit,
-          umiStart,
-          umiStop,
-          keep,
-          minQual,
-          yieldReads,
-          outDir,
-          summaryPrefix,
-          overwrite,
-          logfile = NULL
-        )
-      )
-    }
+  
+  # parallelization BiocParallel
+  
+  if (verbose) {
+    resL <- BiocParallel::bplapply(X = expId,
+                           FUN = .demultiplexUnit,
+                           BPPARAM = BiocParallel::bpparam(),
+                           fastqAnnotDt,
+                           barcodeDt,
+                           bcStart,
+                           bcStop,
+                           bcEdit,
+                           umiStart,
+                           umiStop,
+                           keep,
+                           minQual,
+                           yieldReads,
+                           outDir,
+                           summaryPrefix,
+                           overwrite,
+                           logfilePrefix = logfilePrefix
+                           )
+  } else {
+    resL <- BiocParallel::bplapply(X = expId,
+                           FUN = .demultiplexUnit,
+                           BPPARAM = BiocParallel::bpparam(),
+                           fastqAnnotDt,
+                           barcodeDt,
+                           bcStart,
+                           bcStop,
+                           bcEdit,
+                           umiStart,
+                           umiStop,
+                           keep,
+                           minQual,
+                           yieldReads,
+                           outDir,
+                           summaryPrefix,
+                           overwrite,
+                           logfilePrefix = NULL
+    )
   }
-  parallel::stopCluster(cl)
+  
+  resDt <- as.data.table(plyr::rbind.fill(resL))
+  
+#   # parallelization old
+#   cl <- if (verbose)
+#     parallel::makeCluster(cores, outfile = logfile)
+#   else
+#     parallel::makeCluster(cores)
+#   doParallel::registerDoParallel(cl)
+# 
+#   resDt <- foreach::foreach(
+#     i = expId,
+#     .verbose = verbose,
+#     .combine = rbind,
+#     .multicombine = TRUE,
+#     .packages = c("data.table", "ShortRead")
+#   ) %dopar% {
+#     if (verbose) {
+#       ## Generate a unique log file name based on given prefix and parameters
+#       logfile <- paste0(logfilePrefix, "_demultiplex_", i, "_log.txt")
+#       .demultiplexUnit(
+#         i,
+#         fastqAnnotDt,
+#         barcodeDt,
+#         bcStart,
+#         bcStop,
+#         bcEdit,
+#         umiStart,
+#         umiStop,
+#         keep,
+#         minQual,
+#         yieldReads,
+#         outDir,
+#         summaryPrefix,
+#         overwrite,
+#         logfile
+#       )
+#     } else {
+#       suppressPackageStartupMessages(
+#         .demultiplexUnit(
+#           i,
+#           fastqAnnotDt,
+#           barcodeDt,
+#           bcStart,
+#           bcStop,
+#           bcEdit,
+#           umiStart,
+#           umiStop,
+#           keep,
+#           minQual,
+#           yieldReads,
+#           outDir,
+#           summaryPrefix,
+#           overwrite,
+#           logfile = NULL
+#         )
+#       )
+#     }
+#   }
+#   parallel::stopCluster(cl)
 
   message(paste(
     Sys.time(),
@@ -251,7 +295,13 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                              outDir,
                              summaryPrefix,
                              overwrite,
-                             logfile) {
+                             logfilePrefix) {
+  
+  if (!is.null(logfilePrefix)) {
+    logfile <- paste0(logfilePrefix, "_demultiplex_", i, "_log.txt")
+  } else {
+    logfile <- NULL
+  }
 
   .logMessages(Sys.time(),
               "... demultiplexing experiment",

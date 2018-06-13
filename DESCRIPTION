@@ -1,6 +1,6 @@
 Package: scruff
 Title: Single Cell RNA-Seq UMI Filtering Facilitator (scruff)
-Version: 0.99.19
+Version: 0.99.20
 Date: 2018-06-05
 Authors@R: c(person("Zhe", "Wang", email = "zhe@bu.com", role = c("aut", "cre")),
              person("Junming", "Hu", email = "hjunming@bu.edu", role = c("aut")),
@@ -20,12 +20,11 @@ Imports: data.table,
     GenomicAlignments,
     GenomicFeatures,
     GenomicRanges,
-    parallel,
     Rsamtools,
     ShortRead,
-    doParallel,
-    foreach,
+    plyr,
     BiocGenerics,
+    BiocParallel,
     S4Vectors,
     AnnotationDbi,
     Biostrings,
