@@ -5,7 +5,7 @@
 \title{Count the number of UMIs for each gene and output count matrix}
 \usage{
 countUMI(sce, reference, format = "BAM", outDir = "./Count",
-  cellPerWell = 1, cores = max(1, parallel::detectCores()/2),
+  cellPerWell = 1, cores = max(1, parallel::detectCores() - 2),
   outputPrefix = "countUMI", verbose = FALSE,
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
@@ -20,7 +20,7 @@ countUMI(sce, reference, format = "BAM", outDir = "./Count",
 
 \item{cellPerWell}{Number of cells per well. Can be an integer (e.g. 1) indicating the number of cells in each well or an vector with length equal to the total number of cells in the input alignment files specifying the number of cells in each file. Default is 1.}
 
-\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.}
+\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available cores divided by 2.}
 
 \item{outputPrefix}{Prefix for expression table filename. Default is \code{"countUMI"}.}
 
@@ -55,8 +55,7 @@ bcStop = 8,
 umiStart = 9,
 umiStop = 12,
 keep = 75,
-overwrite = TRUE,
-cores = 1)
+overwrite = TRUE)
 
 # Alignment
 library(Rsubread)
@@ -66,11 +65,11 @@ fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 indexBase <- "GRCm38_MT"
 buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 
-al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 1)
+al <- alignRsubread(de, indexBase, overwrite = TRUE)
 
 # Counting
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
-sce = countUMI(al, gtf, cores = 2)
+sce = countUMI(al, gtf)
 }
 # or use the built-in SingleCellExperiment object generated using
 # example dataset (see ?sceExample)

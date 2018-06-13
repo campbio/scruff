@@ -67,7 +67,6 @@
 #' umiStop = 12,
 #' keep = 75,
 #' cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-#' cores = 4,
 #' overwrite = TRUE,
 #' verbose = TRUE)
 #' }
@@ -105,7 +104,7 @@ scruff <- function(project = paste0("project_", Sys.Date()),
                    logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S"),
                    overwrite = FALSE,
                    verbose = FALSE,
-                   cores = max(1, parallel::detectCores() / 2),
+                   cores = max(1, parallel::detectCores() - 2),
                    threads = 1,
                    ...) {
 

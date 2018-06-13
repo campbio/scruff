@@ -8,7 +8,7 @@
 #' @param nBestLocations Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, "NH" tag is used to indicate how many alignments are reported for the read and "HI" tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.
 #' @param format File format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param outDir Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.
-#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.
+#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available cores divided by 2.
 #' @param threads \strong{Do not change}. Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}. It should not be changed in most cases.
 #' @param summaryPrefix Prefix for alignment summary filename. Default is \code{"alignment"}.
 #' @param overwrite Boolean indicating whether to overwrite the output directory. Default is \strong{FALSE}.
@@ -20,7 +20,7 @@
 #' # The SingleCellExperiment object returned by demultiplex function is
 #' # required for running alignRsubread function
 #' # Does not support Windows environment
-#' \dontrun{
+#' 
 #' data(barcodeExample, package = "scruff")
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),
 #' pattern = "\\.fastq\\.gz", full.names = TRUE)
@@ -37,8 +37,7 @@
 #' umiStart = 9,
 #' umiStop = 12,
 #' keep = 75,
-#' overwrite = TRUE,
-#' cores = 4)
+#' overwrite = TRUE)
 #'
 #' # Alignment
 #' library(Rsubread)
@@ -48,9 +47,8 @@
 #' indexBase <- "GRCm38_MT"
 #' buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 #'
-#' al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 4)
-#' }
-#' @import data.table foreach
+#' al <- alignRsubread(de, indexBase, overwrite = TRUE)
+#' @import data.table
 #' @export
 alignRsubread <- function(sce,
                           index,
@@ -58,7 +56,7 @@ alignRsubread <- function(sce,
                           nBestLocations = 1,
                           format = "BAM",
                           outDir = "./Alignment",
-                          cores = max(1, parallel::detectCores() / 2),
+                          cores = max(1, parallel::detectCores() - 2),
                           threads = 1,
                           summaryPrefix = "alignment",
                           overwrite = FALSE,
@@ -74,7 +72,9 @@ alignRsubread <- function(sce,
                "The function is not available in Windows environment.\n"),
          call. = FALSE)
   }
-
+  
+  .checkCores(cores)
+  
   message(paste(Sys.time(), "Start alignment ..."))
   print(match.call(expand.dots = TRUE))
 
@@ -115,60 +115,46 @@ alignRsubread <- function(sce,
   message(paste(Sys.time(), "... Creating output directory", outDir))
   dir.create(file.path(outDir), showWarnings = FALSE, recursive = TRUE)
 
-  # parallelization
-  cl <- if (verbose)
-    parallel::makeCluster(cores, outfile = logfile)
-  else
-    parallel::makeCluster(cores)
-  doParallel::registerDoParallel(cl)
-
-  alignmentFilePaths <- foreach::foreach(
-    i = fastqPaths,
-    .verbose = verbose,
-    .combine = c,
-    .multicombine = TRUE,
-    .packages = c("Rsubread")
-  ) %dopar% {
-    if (verbose) {
-      .alignRsubreadUnit(i,
-                         index,
-                         unique,
-                         nBestLocations,
-                         format,
-                         outDir,
-                         threads,
-                         logfile,
-                         ...)
-    } else {
-      suppressPackageStartupMessages(.alignRsubreadUnit(i,
-                                                        index,
-                                                        unique,
-                                                        nBestLocations,
-                                                        format,
-                                                        outDir,
-                                                        threads,
-                                                        logfile = NULL,
-                                                        ...))
-    }
+  # parallelization BiocParallel
+  
+  if (verbose) {
+    alignmentFilePaths <- BiocParallel::bplapply(
+      X = fastqPaths,
+      FUN = .alignRsubreadUnit,
+      BPPARAM = BiocParallel::MulticoreParam(workers = cores),
+      index,
+      unique,
+      nBestLocations,
+      format,
+      outDir,
+      threads,
+      logfile,
+      ...)
+  } else {
+    alignmentFilePaths <- suppressPackageStartupMessages(
+      BiocParallel::bplapply(X = fastqPaths,
+                             FUN = .alignRsubreadUnit,
+                             BPPARAM = BiocParallel::MulticoreParam(
+                               workers = cores),
+                             index,
+                             unique,
+                             nBestLocations,
+                             format,
+                             outDir,
+                             threads,
+                             logfile = NULL,
+                             ...))
   }
-
-  resDt <- foreach::foreach(
-    i = alignmentFilePaths,
-    .verbose = verbose,
-    .combine = rbind,
-    .multicombine = TRUE,
-    .packages = c("Rsubread")
-  ) %dopar% {
-    if (verbose) {
-      .propmappedWrapper(i)
-    } else {
-      suppressPackageStartupMessages(.propmappedWrapper(i))
-    }
-  }
-
-  parallel::stopCluster(cl)
-
-  resDt <- data.table::data.table(resDt)
+  
+  alignmentFilePaths <- unlist(alignmentFilePaths)
+  
+  resL <- suppressPackageStartupMessages(
+    BiocParallel::bplapply(X = alignmentFilePaths,
+                           FUN = .propmappedWrapper,
+                           BPPARAM = BiocParallel::bpparam(),
+                           outDir))
+  
+  resDt <- data.table::as.data.table(plyr::rbind.fill(resL))
 
   message(paste(Sys.time(), paste(
     "... Write alignment summary to",
@@ -238,12 +224,16 @@ alignRsubread <- function(sce,
 }
 
 
-.propmappedWrapper <- function(i) {
+.propmappedWrapper <- function(i, outDir) {
   if (file.size(i) == 0)
     return (data.frame(Samples = i,
                        NumTotal = 0,
                        NumMapped = 0,
                        PropMapped = NA))
-  else
-    return (Rsubread::propmapped(i))
+  else {
+    resdf <- Rsubread::propmapped(i)
+    resdf$Samples <- file.path(outDir, basename(resdf$Samples))
+    return (resdf)
+  }
 }
+

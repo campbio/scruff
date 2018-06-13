@@ -7,7 +7,7 @@
 #' @param format Format of input sequence alignment files. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param outDir Output directory for UMI counting results. UMI corrected count matrix will be stored in this directory. Default is \code{"./Count"}.
 #' @param cellPerWell Number of cells per well. Can be an integer (e.g. 1) indicating the number of cells in each well or an vector with length equal to the total number of cells in the input alignment files specifying the number of cells in each file. Default is 1.
-#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.
+#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available cores divided by 2.
 #' @param outputPrefix Prefix for expression table filename. Default is \code{"countUMI"}.
 #' @param verbose Print log messages. Useful for debugging. Default to \strong{FALSE}.
 #' @param logfilePrefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
@@ -33,8 +33,7 @@
 #' umiStart = 9,
 #' umiStop = 12,
 #' keep = 75,
-#' overwrite = TRUE,
-#' cores = 4)
+#' overwrite = TRUE)
 #'
 #' # Alignment
 #' library(Rsubread)
@@ -44,16 +43,16 @@
 #' indexBase <- "GRCm38_MT"
 #' buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 #'
-#' al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 4)
+#' al <- alignRsubread(de, indexBase, overwrite = TRUE)
 #'
 #' # Counting
 #' gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
-#' sce = countUMI(al, gtf, cores = 4)
+#' sce = countUMI(al, gtf)
 #' }
 #' # or use the built-in SingleCellExperiment object generated using
 #' # example dataset (see ?sceExample)
 #' data(sceExample, package = "scruff")
-#' @import data.table foreach refGenome GenomicFeatures
+#' @import data.table refGenome GenomicFeatures
 #' @rawNamespace import(GenomicAlignments, except = c(second, last, first))
 #' @export
 countUMI <- function(sce,
@@ -61,11 +60,15 @@ countUMI <- function(sce,
                      format = "BAM",
                      outDir = "./Count",
                      cellPerWell = 1,
-                     cores = max(1, parallel::detectCores() / 2),
+                     cores = max(1, parallel::detectCores() - 2),
                      outputPrefix = "countUMI",
                      verbose = FALSE,
                      logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
-
+  
+  .checkCores(cores)
+  
+  isWindows <- .Platform$OS.type == "windows"
+  
   message(paste(Sys.time(), "Start UMI counting ..."))
   print(match.call(expand.dots = TRUE))
 
@@ -105,40 +108,58 @@ countUMI <- function(sce,
   message(paste(Sys.time(),
                 paste("... Loading TxDb file")))
   features <- suppressPackageStartupMessages(.gtfReadDb(reference, logfile))
-
-  # parallelization
-  cl <- if (verbose)
-    parallel::makeCluster(cores, outfile = logfile)
-  else
-    parallel::makeCluster(cores)
-  doParallel::registerDoParallel(cl)
-
+  
+  # parallelization BiocParallel
+  
   if (format == "SAM") {
-    alignmentFilePaths <- foreach::foreach(
-      i = alignmentFilePaths,
-      .verbose = verbose,
-      .combine = c,
-      .multicombine = TRUE
-    ) %dopar% {
-      .toBam(i, logfile, overwrite = FALSE, index = FALSE)
+    if (isWindows) {
+      alignmentFilePaths <- BiocParallel::bplapply(
+        X = alignmentFilePaths,
+        FUN = .toBam,
+        BPPARAM = BiocParallel::SnowParam(
+          workers = cores),
+        logfile, overwrite = FALSE, index = FALSE)
+    } else {
+      alignmentFilePaths <- BiocParallel::bplapply(
+        X = alignmentFilePaths,
+        FUN = .toBam,
+        BPPARAM = BiocParallel::MulticoreParam(
+          workers = cores),
+        logfile, overwrite = FALSE, index = FALSE)
     }
   }
-
-  expr <- foreach::foreach(
-    i = alignmentFilePaths,
-    .verbose = verbose,
-    .combine = cbind,
-    .multicombine = TRUE,
-    .packages = c("BiocGenerics", "S4Vectors",
-                  "GenomicFeatures", "GenomicAlignments")
-  ) %dopar% {
-    suppressPackageStartupMessages(
-      .countUmiUnit(i, features, format, logfile, verbose))
+  
+  alignmentFilePaths <- unlist(alignmentFilePaths)
+  
+  if (isWindows) {
+    exprL <- suppressPackageStartupMessages(
+      BiocParallel::bplapply(
+        X = alignmentFilePaths,
+        FUN = .countUmiUnit,
+        BPPARAM = BiocParallel::SnowParam(
+          workers = cores),
+        features,
+        format,
+        logfile,
+        verbose)
+      )
+  } else {
+    exprL <- suppressPackageStartupMessages(
+      BiocParallel::bplapply(
+        X = alignmentFilePaths,
+        FUN = .countUmiUnit,
+        BPPARAM = BiocParallel::MulticoreParam(
+          workers = cores),
+        features,
+        format,
+        logfile,
+        verbose)
+      )
   }
-
-  parallel::stopCluster(cl)
-
-  expr <- data.table::data.table(expr, keep.rownames = TRUE)
+  
+  expr <- do.call(cbind, exprL)
+  expr <- data.table::as.data.table(expr, keep.rownames = TRUE)
+  
   colnames(expr)[1] <- "geneid"
 
   message(paste(Sys.time(), paste(

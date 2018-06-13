@@ -1,34 +1,73 @@
 #' Demultiplex cell barcodes and assign cell specific reads
 #'
-#' Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory
+#' Demultiplex fastq files and write cell specific reads in compressed fastq
+#'  format to output directory
 #'
-#' @param project The project name. Default is \code{paste0("project_", Sys.Date())}.
-#' @param experiment A character vector of experiment names. Represents the group label for each FASTQ file, e.g. "patient1, patient2, ...". The number of cells in a experiment equals the length of cell barcodes \code{bc}. The length of \code{experiment} equals the number of FASTQ files to be processed.
-#' @param lane A character or character vector of flow cell lane numbers. FASTQ files from lanes having the same \code{experiment} will be concatenated. If FASTQ files from multiple lanes are already concatenated, any placeholder would be sufficient, e.g. "L001".
-#' @param read1Path A character vector of file paths to the read 1 FASTQ files. These are the read files containing UMI and cell barcode sequences.
-#' @param read2Path A character vector of file paths to the read 2 FASTQ files. These read files contain genomic transcript sequences.
-#' @param bc A character vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.
-#' @param bcStart Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).
-#' @param bcStop Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).
-#' @param bcEdit Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list. Default is 0, meaning no cell barcode correction is performed.
-#' @param umiStart Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.
-#' @param umiStop Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.
-#' @param keep Read trimming. Read length or number of nucleotides to keep for read 2 (the read that contains transcript sequence information). Longer reads will be clipped at 3' end. Shorter reads will not be affected.
-#' @param minQual Minimally acceptable Phred quality score for barcode and UMI sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.
-#' @param yieldReads The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. This parameter is passed to the \code{n} argument of the \code{FastqStreamer} function in \emph{ShortRead} package. Default is \strong{1e06}.
-#' @param outDir Output folder path for demultiplex results. Demultiplexed cell specifc FASTQ files will be stored in folders in this path, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Demultiplex"}.
-#' @param summaryPrefix Prefix for demultiplex summary filename. Default is \code{"demultiplex"}.
-#' @param overwrite Boolean indicating whether to overwrite the output directory. Default is \strong{FALSE}.
-#' @param cores Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.
-#' @param verbose Poolean indicating whether to print log messages. Useful for debugging. Default to \strong{FALSE}.
-#' @param logfilePrefix Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
-#' @return A \strong{SingleCellExperiment} object containing the demultiplex summary information as \code{colData}.
+#' @param project The project name. Default is
+#'  \code{paste0("project_", Sys.Date())}.
+#' @param experiment A character vector of experiment names. Represents the
+#'  group label for each FASTQ file, e.g. "patient1, patient2, ...". The number
+#'  of cells in a experiment equals the length of cell barcodes \code{bc}. The
+#'  length of \code{experiment} equals the number of FASTQ files to be
+#'  processed test.
+#' @param lane A character or character vector of flow cell lane numbers. FASTQ
+#'  files from lanes having the same \code{experiment} will be concatenated. If
+#'  FASTQ files from multiple lanes are already concatenated, any placeholder
+#'  would be sufficient, e.g. "L001".
+#' @param read1Path A character vector of file paths to the read 1 FASTQ files.
+#'  These are the read files containing UMI and cell barcode sequences.
+#' @param read2Path A character vector of file paths to the read 2 FASTQ files.
+#'  These read files contain genomic transcript sequences.
+#' @param bc A character vector of pre-determined cell barcodes. For example,
+#'  see \code{?barcodeExample}.
+#' @param bcStart Integer or vector of integers containing the cell barcode
+#'  start positions (inclusive, one-based numbering).
+#' @param bcStop Integer or vector of integers containing the cell barcode
+#'  stop positions (inclusive, one-based numbering).
+#' @param bcEdit Maximally allowed edit distance for barcode correction.
+#'  Barcodes with mismatches equal or fewer than this will be assigned a
+#'  corrected barcode if the inferred barcode matches uniquely in the provided
+#'  predetermined barcode list. Default is 0, meaning no cell barcode
+#'  correction is performed.
+#' @param umiStart Integer or vector of integers containing the start positions
+#'  (inclusive, one-based numbering) of UMI sequences.
+#' @param umiStop Integer or vector of integers containing the stop positions
+#'  (inclusive, one-based numbering) of UMI sequences.
+#' @param keep Read trimming. Read length or number of nucleotides to keep for
+#'  read 2 (the read that contains transcript sequence information). Longer
+#'  reads will be clipped at 3' end. Shorter reads will not be affected.
+#' @param minQual Minimally acceptable Phred quality score for barcode and UMI
+#'  sequences. Phread quality scores are calculated for each nucleotide in the
+#'  sequence. Sequences with at least one nucleotide with score lower than this
+#'  will be filtered out. Default is \strong{10}.
+#' @param yieldReads The number of reads to yield when drawing successive
+#'  subsets from a fastq file, providing the number of successive records to be
+#'  returned on each yield. This parameter is passed to the \code{n} argument
+#'  of the \code{FastqStreamer} function in \emph{ShortRead} package. Default
+#'  is \strong{1e06}.
+#' @param outDir Output folder path for demultiplex results. Demultiplexed
+#'  cell specifc FASTQ files will be stored in folders in this path,
+#'  respectively. \strong{Make sure the folder is empty.} Default is
+#'  \code{"./Demultiplex"}.
+#' @param summaryPrefix Prefix for demultiplex summary filename. Default is
+#'  \code{"demultiplex"}.
+#' @param overwrite Boolean indicating whether to overwrite the output
+#'  directory. Default is \strong{FALSE}.
+#' @param cores Number of cores used for parallelization. Default is
+#'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
+#'  cores divided by 2.
+#' @param verbose Poolean indicating whether to print log messages. Useful for
+#'  debugging. Default to \strong{FALSE}.
+#' @param logfilePrefix Prefix for log file. Default is current date and time
+#'  in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
+#' @return A \strong{SingleCellExperiment} object containing the demultiplex
+#'  summary information as \code{colData}.
 #' @examples
 #' # Demultiplex example FASTQ files
 #' data(barcodeExample, package = "scruff")
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),
 #' pattern = "\\.fastq\\.gz", full.names = TRUE)
-#' 
+#'
 #' de <- demultiplex(
 #' project = "example",
 #' experiment = c("1h1", "b1"),
@@ -41,9 +80,8 @@
 #' umiStart = 9,
 #' umiStop = 12,
 #' keep = 75,
-#' overwrite = TRUE,
-#' cores = 4)
-#' @import data.table foreach
+#' overwrite = TRUE)
+#' @import data.table
 #' @rawNamespace import(ShortRead, except = c(tables, zoom))
 #' @export
 demultiplex <- function(project = paste0("project_", Sys.Date()),
@@ -63,13 +101,17 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                         outDir = "./Demultiplex",
                         summaryPrefix = "demultiplex",
                         overwrite = FALSE,
-                        cores = max(1, parallel::detectCores() / 2),
+                        cores = max(1, parallel::detectCores() - 2),
                         verbose = FALSE,
                         logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
-
+  
+  .checkCores(cores)
+  
   message(paste(Sys.time(), "Start demultiplexing ..."))
   print(match.call(expand.dots = TRUE))
-
+  
+  isWindows <- .Platform$OS.type == "windows"
+  
   if (overwrite) {
     message(paste(Sys.time(), "All files in", outDir,  "will be deleted ..."))
   }
@@ -86,7 +128,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     print(fastqAnnot)
   }
 
-  logfile <- paste0(logfilePrefix, "_demultiplex_log.txt")
+  # logfile <- paste0(logfilePrefix, "_demultiplex_log.txt")
 
   fastqAnnotDt <- data.table::data.table(fastqAnnot)
   barcodeDt <- data.table::data.table("cell_index" = seq_len(length(bc)),
@@ -96,65 +138,99 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
   # disable threading in ShortRead package
   nthreads <- .Call(ShortRead:::.set_omp_threads, 1L)
   on.exit(.Call(ShortRead:::.set_omp_threads, nthreads))
-
-  # parallelization
-  cl <- if (verbose)
-    parallel::makeCluster(cores, outfile = logfile)
-  else
-    parallel::makeCluster(cores)
-  doParallel::registerDoParallel(cl)
-
-  resDt <- foreach::foreach(
-    i = expId,
-    .verbose = verbose,
-    .combine = rbind,
-    .multicombine = TRUE,
-    .packages = c("data.table", "ShortRead")
-  ) %dopar% {
+  
+  # parallelization BiocParallel
+  
+  if (isWindows) {
+    # Windows
     if (verbose) {
-      ## Generate a unique log file name based on given prefix and parameters
-      logfile <- paste0(logfilePrefix, "_demultiplex_", i, "_log.txt")
-      .demultiplexUnit(
-        i,
-        fastqAnnotDt,
-        barcodeDt,
-        bcStart,
-        bcStop,
-        bcEdit,
-        umiStart,
-        umiStop,
-        keep,
-        minQual,
-        yieldReads,
-        outDir,
-        summaryPrefix,
-        overwrite,
-        logfile
+      resL <- BiocParallel::bplapply(X = expId,
+                                     FUN = .demultiplexUnit,
+                                     BPPARAM = BiocParallel::SnowParam(
+                                       workers = cores),
+                                     fastqAnnotDt,
+                                     barcodeDt,
+                                     bcStart,
+                                     bcStop,
+                                     bcEdit,
+                                     umiStart,
+                                     umiStop,
+                                     keep,
+                                     minQual,
+                                     yieldReads,
+                                     outDir,
+                                     summaryPrefix,
+                                     overwrite,
+                                     logfilePrefix = logfilePrefix
       )
     } else {
-      suppressPackageStartupMessages(
-        .demultiplexUnit(
-          i,
-          fastqAnnotDt,
-          barcodeDt,
-          bcStart,
-          bcStop,
-          bcEdit,
-          umiStart,
-          umiStop,
-          keep,
-          minQual,
-          yieldReads,
-          outDir,
-          summaryPrefix,
-          overwrite,
-          logfile = NULL
-        )
+      resL <- BiocParallel::bplapply(X = expId,
+                                     FUN = .demultiplexUnit,
+                                     BPPARAM = BiocParallel::SnowParam(
+                                       workers = cores),
+                                     fastqAnnotDt,
+                                     barcodeDt,
+                                     bcStart,
+                                     bcStop,
+                                     bcEdit,
+                                     umiStart,
+                                     umiStop,
+                                     keep,
+                                     minQual,
+                                     yieldReads,
+                                     outDir,
+                                     summaryPrefix,
+                                     overwrite,
+                                     logfilePrefix = NULL
+      )
+    }
+  } else {
+    # Linux or macOS
+    if (verbose) {
+      resL <- BiocParallel::bplapply(X = expId,
+                                     FUN = .demultiplexUnit,
+                                     BPPARAM = BiocParallel::MulticoreParam(
+                                       workers = cores),
+                                     fastqAnnotDt,
+                                     barcodeDt,
+                                     bcStart,
+                                     bcStop,
+                                     bcEdit,
+                                     umiStart,
+                                     umiStop,
+                                     keep,
+                                     minQual,
+                                     yieldReads,
+                                     outDir,
+                                     summaryPrefix,
+                                     overwrite,
+                                     logfilePrefix = logfilePrefix
+      )
+    } else {
+      resL <- BiocParallel::bplapply(X = expId,
+                                     FUN = .demultiplexUnit,
+                                     BPPARAM = BiocParallel::MulticoreParam(
+                                       workers = cores),
+                                     fastqAnnotDt,
+                                     barcodeDt,
+                                     bcStart,
+                                     bcStop,
+                                     bcEdit,
+                                     umiStart,
+                                     umiStop,
+                                     keep,
+                                     minQual,
+                                     yieldReads,
+                                     outDir,
+                                     summaryPrefix,
+                                     overwrite,
+                                     logfilePrefix = NULL
       )
     }
   }
-  parallel::stopCluster(cl)
-
+  
+  resDt <- as.data.table(plyr::rbind.fill(resL))
+  
   message(paste(
     Sys.time(),
     paste(
@@ -212,7 +288,13 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                              outDir,
                              summaryPrefix,
                              overwrite,
-                             logfile) {
+                             logfilePrefix) {
+  
+  if (!is.null(logfilePrefix)) {
+    logfile <- paste0(logfilePrefix, "_demultiplex_", i, "_log.txt")
+  } else {
+    logfile <- NULL
+  }
 
   .logMessages(Sys.time(),
               "... demultiplexing experiment",
