@@ -90,7 +90,6 @@ if (!requireNamespace("Rsubread", quietly = TRUE)) {
                   umiStop = 12,
                   keep = 75,
                   cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-                  cores = 4,
                   verbose = TRUE)
 }
 ```
@@ -143,7 +142,6 @@ de <- demultiplex(project = "example",
                   keep = 75,
                   minQual = 10,
                   yieldReads = 1e+06,
-                  cores = 4,
                   verbose = TRUE,
                   overwrite = TRUE)
 ```
@@ -182,7 +180,6 @@ if (requireNamespace("Rsubread", quietly = TRUE)) {
                       unique = FALSE,
                       nBestLocations = 1,
                       format = "BAM",
-                      cores = 4,
                       overwrite = TRUE,
                       verbose = TRUE)
 }
@@ -201,7 +198,6 @@ if (requireNamespace("Rsubread", quietly = TRUE)) {
                  gtf,
                  format = "BAM",
                  cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-                 cores = 4,
                  verbose = TRUE)
 }
 ```

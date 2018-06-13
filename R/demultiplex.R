@@ -80,8 +80,7 @@
 #' umiStart = 9,
 #' umiStop = 12,
 #' keep = 75,
-#' overwrite = TRUE,
-#' cores = 4)
+#' overwrite = TRUE)
 #' @import data.table
 #' @rawNamespace import(ShortRead, except = c(tables, zoom))
 #' @export

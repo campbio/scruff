@@ -20,7 +20,7 @@
 #' # The SingleCellExperiment object returned by demultiplex function is
 #' # required for running alignRsubread function
 #' # Does not support Windows environment
-#' \dontrun{
+#' 
 #' data(barcodeExample, package = "scruff")
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),
 #' pattern = "\\.fastq\\.gz", full.names = TRUE)
@@ -37,8 +37,7 @@
 #' umiStart = 9,
 #' umiStop = 12,
 #' keep = 75,
-#' overwrite = TRUE,
-#' cores = 4)
+#' overwrite = TRUE)
 #'
 #' # Alignment
 #' library(Rsubread)
@@ -48,8 +47,7 @@
 #' indexBase <- "GRCm38_MT"
 #' buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 #'
-#' al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 4)
-#' }
+#' al <- alignRsubread(de, indexBase, overwrite = TRUE)
 #' @import data.table
 #' @export
 alignRsubread <- function(sce,

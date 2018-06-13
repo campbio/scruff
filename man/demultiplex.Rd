@@ -115,6 +115,5 @@ bcStop = 8,
 umiStart = 9,
 umiStop = 12,
 keep = 75,
-overwrite = TRUE,
-cores = 4)
+overwrite = TRUE)
 }
