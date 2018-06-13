@@ -44,16 +44,15 @@ fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 ```
 
-Build Rsubread alignment index. This is for the alignment step. For test porpurse, here we are aligning the example FASTQ files to the genes on mitochondrial chromosome only.
+Build Rsubread alignment index. This is for the alignment step. For test purpose, here we are aligning the example FASTQ files to the genes on mitochondrial chromosome only.
 
 ```{r buildindex1, results = 'hide'}
 # NOTE: Rsubread package does not support Windows environment.
 if (!requireNamespace("Rsubread", quietly = TRUE)) {
-  message(paste("Package \"Rsubread\" needed for \"alignRsubread\"",
-                "function to work.\n",
-                "Please install it if you are using Linux or macOS.\n",
-                "The function is not available in Windows environment.\n"),
-          call. = FALSE)
+  message("Package \"Rsubread\" needed for \"alignRsubread\"",
+          " function to work. ",
+          "Please install it if you are using Linux or macOS systems. ",
+          "The function is not available in Windows environment.")
   } else {
     # Create index files for GRCm38_MT.
     # For details, please refer to Rsubread user manual.
@@ -71,10 +70,9 @@ Now that everything is ready, we can run `r Rpackage("scruff")`. In experiment 1
 data(barcodeExample, package = "scruff")
 
 if (!requireNamespace("Rsubread", quietly = TRUE)) {
-  message(paste("Package \"Rsubread\" needed.\n",
-                "Please install it if you are using Linux or macOS systems.\n",
-                "The function is not available in Windows environment.\n"),
-          call. = FALSE)
+  message("Package \"Rsubread\" needed. ",
+          "Please install it if you are using Linux or macOS systems. ",
+          "The function is not available in Windows environment.")
   } else {
     sce <- scruff(project = "example",
                   experiment = c("1h1", "b1"),

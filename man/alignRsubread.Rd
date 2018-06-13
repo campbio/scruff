@@ -65,7 +65,7 @@ umiStart = 9,
 umiStop = 12,
 keep = 75,
 overwrite = TRUE,
-cores = 1)
+cores = 4)
 
 # Alignment
 library(Rsubread)
@@ -75,6 +75,6 @@ fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 indexBase <- "GRCm38_MT"
 buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 
-al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 1)
+al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 4)
 }
 }

@@ -12,23 +12,40 @@ demultiplex(project = paste0("project_", Sys.Date()), experiment, lane,
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
-\item{project}{The project name. Default is \code{paste0("project_", Sys.Date())}.}
+\item{project}{The project name. Default is
+\code{paste0("project_", Sys.Date())}.}
 
-\item{experiment}{A character vector of experiment names. Represents the group label for each FASTQ file, e.g. "patient1, patient2, ...". The number of cells in a experiment equals the length of cell barcodes \code{bc}. The length of \code{experiment} equals the number of FASTQ files to be processed.}
+\item{experiment}{A character vector of experiment names. Represents the
+group label for each FASTQ file, e.g. "patient1, patient2, ...". The number
+ of cells in a experiment equals the length of cell barcodes \code{bc}. The
+length of \code{experiment} equals the number of FASTQ files to be
+processed test.}
 
-\item{lane}{A character or character vector of flow cell lane numbers. FASTQ files from lanes having the same \code{experiment} will be concatenated. If FASTQ files from multiple lanes are already concatenated, any placeholder would be sufficient, e.g. "L001".}
+\item{lane}{A character or character vector of flow cell lane numbers. FASTQ
+files from lanes having the same \code{experiment} will be concatenated. If
+ FASTQ files from multiple lanes are already concatenated, any placeholder
+  would be sufficient, e.g. "L001".}
 
-\item{read1Path}{A character vector of file paths to the read 1 FASTQ files. These are the read files containing UMI and cell barcode sequences.}
+\item{read1Path}{A character vector of file paths to the read 1 FASTQ files.
+These are the read files containing UMI and cell barcode sequences.}
 
-\item{read2Path}{A character vector of file paths to the read 2 FASTQ files. These read files contain genomic transcript sequences.}
+\item{read2Path}{A character vector of file paths to the read 2 FASTQ files.
+These read files contain genomic transcript sequences.}
 
-\item{bc}{A character vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.}
+\item{bc}{A character vector of pre-determined cell barcodes. For example,
+see \code{?barcodeExample}.}
 
-\item{bcStart}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
+\item{bcStart}{Integer or vector of integers containing the cell barcode
+start positions (inclusive, one-based numbering).}
 
-\item{bcStop}{Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).}
+\item{bcStop}{Integer or vector of integers containing the cell barcode
+stop positions (inclusive, one-based numbering).}
 
-\item{bcEdit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list. Default is 0, meaning no cell barcode correction is performed.}
+\item{bcEdit}{Maximally allowed edit distance for barcode correction.
+Barcodes with mismatches equal or fewer than this will be assigned a
+ corrected barcode if the inferred barcode matches uniquely in the provided
+  predetermined barcode list. Default is 0, meaning no cell barcode
+   correction is performed.}
 
 \item{umiStart}{Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.}
 
@@ -56,7 +73,8 @@ demultiplex(project = paste0("project_", Sys.Date()), experiment, lane,
 A \strong{SingleCellExperiment} object containing the demultiplex summary information as \code{colData}.
 }
 \description{
-Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory
+Demultiplex fastq files and write cell specific reads in compressed fastq
+ format to output directory
 }
 \examples{
 # Demultiplex example FASTQ files
@@ -77,5 +95,5 @@ umiStart = 9,
 umiStop = 12,
 keep = 75,
 overwrite = TRUE,
-cores = 1)
+cores = 4)
 }
