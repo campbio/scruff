@@ -54,7 +54,7 @@
 #' @param overwrite Boolean indicating whether to overwrite the output
 #'  directory. Default is \strong{FALSE}.
 #' @param cores Number of cores used for parallelization. Default is
-#'  \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available
+#'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
 #'  cores divided by 2.
 #' @param verbose Poolean indicating whether to print log messages. Useful for
 #'  debugging. Default to \strong{FALSE}.
@@ -102,13 +102,17 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                         outDir = "./Demultiplex",
                         summaryPrefix = "demultiplex",
                         overwrite = FALSE,
-                        cores = max(1, parallel::detectCores() / 2),
+                        cores = max(1, parallel::detectCores() - 2),
                         verbose = FALSE,
                         logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
-
+  
+  .checkCores(cores)
+  
   message(paste(Sys.time(), "Start demultiplexing ..."))
   print(match.call(expand.dots = TRUE))
-
+  
+  isWindows <- .Platform$OS.type == "windows"
+  
   if (overwrite) {
     message(paste(Sys.time(), "All files in", outDir,  "will be deleted ..."))
   }
@@ -138,106 +142,96 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
   
   # parallelization BiocParallel
   
-  if (verbose) {
-    resL <- BiocParallel::bplapply(X = expId,
-                           FUN = .demultiplexUnit,
-                           BPPARAM = BiocParallel::bpparam(),
-                           fastqAnnotDt,
-                           barcodeDt,
-                           bcStart,
-                           bcStop,
-                           bcEdit,
-                           umiStart,
-                           umiStop,
-                           keep,
-                           minQual,
-                           yieldReads,
-                           outDir,
-                           summaryPrefix,
-                           overwrite,
-                           logfilePrefix = logfilePrefix
-                           )
+  if (isWindows) {
+    # Windows
+    if (verbose) {
+      resL <- BiocParallel::bplapply(X = expId,
+                                     FUN = .demultiplexUnit,
+                                     BPPARAM = BiocParallel::SnowParam(
+                                       workers = cores),
+                                     fastqAnnotDt,
+                                     barcodeDt,
+                                     bcStart,
+                                     bcStop,
+                                     bcEdit,
+                                     umiStart,
+                                     umiStop,
+                                     keep,
+                                     minQual,
+                                     yieldReads,
+                                     outDir,
+                                     summaryPrefix,
+                                     overwrite,
+                                     logfilePrefix = logfilePrefix
+      )
+    } else {
+      resL <- BiocParallel::bplapply(X = expId,
+                                     FUN = .demultiplexUnit,
+                                     BPPARAM = BiocParallel::SnowParam(
+                                       workers = cores),
+                                     fastqAnnotDt,
+                                     barcodeDt,
+                                     bcStart,
+                                     bcStop,
+                                     bcEdit,
+                                     umiStart,
+                                     umiStop,
+                                     keep,
+                                     minQual,
+                                     yieldReads,
+                                     outDir,
+                                     summaryPrefix,
+                                     overwrite,
+                                     logfilePrefix = NULL
+      )
+    }
   } else {
-    resL <- BiocParallel::bplapply(X = expId,
-                           FUN = .demultiplexUnit,
-                           BPPARAM = BiocParallel::bpparam(),
-                           fastqAnnotDt,
-                           barcodeDt,
-                           bcStart,
-                           bcStop,
-                           bcEdit,
-                           umiStart,
-                           umiStop,
-                           keep,
-                           minQual,
-                           yieldReads,
-                           outDir,
-                           summaryPrefix,
-                           overwrite,
-                           logfilePrefix = NULL
-    )
+    # Linux or macOS
+    if (verbose) {
+      resL <- BiocParallel::bplapply(X = expId,
+                                     FUN = .demultiplexUnit,
+                                     BPPARAM = BiocParallel::MulticoreParam(
+                                       workers = cores),
+                                     fastqAnnotDt,
+                                     barcodeDt,
+                                     bcStart,
+                                     bcStop,
+                                     bcEdit,
+                                     umiStart,
+                                     umiStop,
+                                     keep,
+                                     minQual,
+                                     yieldReads,
+                                     outDir,
+                                     summaryPrefix,
+                                     overwrite,
+                                     logfilePrefix = logfilePrefix
+      )
+    } else {
+      resL <- BiocParallel::bplapply(X = expId,
+                                     FUN = .demultiplexUnit,
+                                     BPPARAM = BiocParallel::MulticoreParam(
+                                       workers = cores),
+                                     fastqAnnotDt,
+                                     barcodeDt,
+                                     bcStart,
+                                     bcStop,
+                                     bcEdit,
+                                     umiStart,
+                                     umiStop,
+                                     keep,
+                                     minQual,
+                                     yieldReads,
+                                     outDir,
+                                     summaryPrefix,
+                                     overwrite,
+                                     logfilePrefix = NULL
+      )
+    }
   }
   
   resDt <- as.data.table(plyr::rbind.fill(resL))
   
-#   # parallelization old
-#   cl <- if (verbose)
-#     parallel::makeCluster(cores, outfile = logfile)
-#   else
-#     parallel::makeCluster(cores)
-#   doParallel::registerDoParallel(cl)
-# 
-#   resDt <- foreach::foreach(
-#     i = expId,
-#     .verbose = verbose,
-#     .combine = rbind,
-#     .multicombine = TRUE,
-#     .packages = c("data.table", "ShortRead")
-#   ) %dopar% {
-#     if (verbose) {
-#       ## Generate a unique log file name based on given prefix and parameters
-#       logfile <- paste0(logfilePrefix, "_demultiplex_", i, "_log.txt")
-#       .demultiplexUnit(
-#         i,
-#         fastqAnnotDt,
-#         barcodeDt,
-#         bcStart,
-#         bcStop,
-#         bcEdit,
-#         umiStart,
-#         umiStop,
-#         keep,
-#         minQual,
-#         yieldReads,
-#         outDir,
-#         summaryPrefix,
-#         overwrite,
-#         logfile
-#       )
-#     } else {
-#       suppressPackageStartupMessages(
-#         .demultiplexUnit(
-#           i,
-#           fastqAnnotDt,
-#           barcodeDt,
-#           bcStart,
-#           bcStop,
-#           bcEdit,
-#           umiStart,
-#           umiStop,
-#           keep,
-#           minQual,
-#           yieldReads,
-#           outDir,
-#           summaryPrefix,
-#           overwrite,
-#           logfile = NULL
-#         )
-#       )
-#     }
-#   }
-#   parallel::stopCluster(cl)
-
   message(paste(
     Sys.time(),
     paste(
