@@ -82,7 +82,7 @@
 #' keep = 75,
 #' overwrite = TRUE,
 #' cores = 4)
-#' @import data.table foreach
+#' @import data.table
 #' @rawNamespace import(ShortRead, except = c(tables, zoom))
 #' @export
 demultiplex <- function(project = paste0("project_", Sys.Date()),

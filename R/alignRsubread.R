@@ -50,7 +50,7 @@
 #'
 #' al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 4)
 #' }
-#' @import data.table foreach
+#' @import data.table
 #' @export
 alignRsubread <- function(sce,
                           index,

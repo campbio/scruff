@@ -53,7 +53,7 @@
 #' # or use the built-in SingleCellExperiment object generated using
 #' # example dataset (see ?sceExample)
 #' data(sceExample, package = "scruff")
-#' @import data.table foreach refGenome GenomicFeatures
+#' @import data.table refGenome GenomicFeatures
 #' @rawNamespace import(GenomicAlignments, except = c(second, last, first))
 #' @export
 countUMI <- function(sce,
