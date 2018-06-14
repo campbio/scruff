@@ -104,14 +104,21 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                         cores = max(1, parallel::detectCores() - 2),
                         verbose = FALSE,
                         logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
-  
+
   .checkCores(cores)
-  
+
+  if (!all(file.exists(c(read1Path, read2Path)))) {
+    stop("Partial or all FASTQ files nonexistent.",
+         "Please check paths are correct.\n",
+         read1Path,
+         read2Path)
+  }
+
   message(paste(Sys.time(), "Start demultiplexing ..."))
   print(match.call(expand.dots = TRUE))
-  
+
   isWindows <- .Platform$OS.type == "windows"
-  
+
   if (overwrite) {
     message(paste(Sys.time(), "All files in", outDir,  "will be deleted ..."))
   }
@@ -138,9 +145,9 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
   # disable threading in ShortRead package
   nthreads <- .Call(ShortRead:::.set_omp_threads, 1L)
   on.exit(.Call(ShortRead:::.set_omp_threads, nthreads))
-  
+
   # parallelization BiocParallel
-  
+
   if (isWindows) {
     # Windows
     if (verbose) {
@@ -228,9 +235,9 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
       )
     }
   }
-  
+
   resDt <- as.data.table(plyr::rbind.fill(resL))
-  
+
   message(paste(
     Sys.time(),
     paste(
@@ -289,7 +296,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                              summaryPrefix,
                              overwrite,
                              logfilePrefix) {
-  
+
   if (!is.null(logfilePrefix)) {
     logfile <- paste0(logfilePrefix, "_demultiplex_", i, "_log.txt")
   } else {

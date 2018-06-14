@@ -64,11 +64,11 @@ countUMI <- function(sce,
                      outputPrefix = "countUMI",
                      verbose = FALSE,
                      logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
-  
+
   .checkCores(cores)
-  
+
   isWindows <- .Platform$OS.type == "windows"
-  
+
   message(paste(Sys.time(), "Start UMI counting ..."))
   print(match.call(expand.dots = TRUE))
 
@@ -77,6 +77,12 @@ countUMI <- function(sce,
   }
 
   alignmentFilePaths <- SummarizedExperiment::colData(sce)$alignment_path
+
+  if (!all(file.exists(alignmentFilePaths))) {
+    stop("Partial or all alignment files nonexistent. ",
+         "Please check paths are correct.\n",
+         alignmentFilePaths)
+  }
 
   logfile <- paste0(logfilePrefix, "_countUMI_log.txt")
 
@@ -108,9 +114,9 @@ countUMI <- function(sce,
   message(paste(Sys.time(),
                 paste("... Loading TxDb file")))
   features <- suppressPackageStartupMessages(.gtfReadDb(reference, logfile))
-  
+
   # parallelization BiocParallel
-  
+
   if (format == "SAM") {
     if (isWindows) {
       alignmentFilePaths <- BiocParallel::bplapply(
@@ -127,10 +133,10 @@ countUMI <- function(sce,
           workers = cores),
         logfile, overwrite = FALSE, index = FALSE)
     }
+    alignmentFilePaths <- unlist(alignmentFilePaths)
   }
-  
-  alignmentFilePaths <- unlist(alignmentFilePaths)
-  
+
+
   if (isWindows) {
     exprL <- suppressPackageStartupMessages(
       BiocParallel::bplapply(
@@ -156,10 +162,10 @@ countUMI <- function(sce,
         verbose)
       )
   }
-  
+
   expr <- do.call(cbind, exprL)
   expr <- data.table::as.data.table(expr, keep.rownames = TRUE)
-  
+
   colnames(expr)[1] <- "geneid"
 
   message(paste(Sys.time(), paste(

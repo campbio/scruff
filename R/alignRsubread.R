@@ -20,7 +20,7 @@
 #' # The SingleCellExperiment object returned by demultiplex function is
 #' # required for running alignRsubread function
 #' # Does not support Windows environment
-#' 
+#'
 #' data(barcodeExample, package = "scruff")
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),
 #' pattern = "\\.fastq\\.gz", full.names = TRUE)
@@ -72,13 +72,19 @@ alignRsubread <- function(sce,
                "The function is not available in Windows environment.\n"),
          call. = FALSE)
   }
-  
+
   .checkCores(cores)
-  
-  message(paste(Sys.time(), "Start alignment ..."))
-  print(match.call(expand.dots = TRUE))
 
   fastqPaths <- SummarizedExperiment::colData(sce)$fastq_path
+
+  if (!all(file.exists(fastqPaths))) {
+    stop("Partial or all FASTQ files nonexistent.",
+         "Please check paths are correct.\n",
+         fastqPaths)
+  }
+
+  message(paste(Sys.time(), "Start alignment ..."))
+  print(match.call(expand.dots = TRUE))
 
   logfile <- paste0(logfilePrefix, "_alignment_log.txt")
 
@@ -116,7 +122,7 @@ alignRsubread <- function(sce,
   dir.create(file.path(outDir), showWarnings = FALSE, recursive = TRUE)
 
   # parallelization BiocParallel
-  
+
   if (verbose) {
     alignmentFilePaths <- BiocParallel::bplapply(
       X = fastqPaths,
@@ -145,15 +151,15 @@ alignRsubread <- function(sce,
                              logfile = NULL,
                              ...))
   }
-  
+
   alignmentFilePaths <- unlist(alignmentFilePaths)
-  
+
   resL <- suppressPackageStartupMessages(
     BiocParallel::bplapply(X = alignmentFilePaths,
                            FUN = .propmappedWrapper,
                            BPPARAM = BiocParallel::bpparam(),
                            outDir))
-  
+
   resDt <- data.table::as.data.table(plyr::rbind.fill(resL))
 
   message(paste(Sys.time(), paste(
