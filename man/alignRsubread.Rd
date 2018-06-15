@@ -46,7 +46,7 @@ maps will be stored in folders in this directory, respectively.
 
 \item{cores}{Number of cores used for parallelization. Default is
 \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-cores divided by 2.}
+cores minus 2.}
 
 \item{threads}{\strong{Do not change}. Number of threads/CPUs used for
 mapping for each core. Refer to \code{align} function in \code{Rsubread}

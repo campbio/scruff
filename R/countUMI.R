@@ -23,7 +23,7 @@
 #'   number of cells in each file. Default is 1.
 #' @param cores Number of cores used for parallelization. Default is
 #'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-#'  cores divided by 2.
+#'  cores minus 2.
 #' @param outputPrefix Prefix for expression table filename. Default is
 #'  \code{"countUMI"}.
 #' @param verbose Print log messages. Useful for debugging. Default to

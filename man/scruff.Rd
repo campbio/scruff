@@ -139,8 +139,8 @@ directory. Default is \strong{FALSE}.}
 debugging. Default to \strong{FALSE}.}
 
 \item{cores}{Number of cores to use for parallelization. Default is
-\code{max(1, parallel::detectCores() / 2)}, i.e. the number of available
-cores divided by 2.}
+\code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
+cores minus 2.}
 
 \item{threads}{\strong{Do not change}. Number of threads/CPUs used for
 mapping for each core. Refer to \code{align} function in \code{Rsubread}

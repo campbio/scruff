@@ -55,7 +55,7 @@
 #'  directory. Default is \strong{FALSE}.
 #' @param cores Number of cores used for parallelization. Default is
 #'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-#'  cores divided by 2.
+#'  cores minus 2.
 #' @param verbose Poolean indicating whether to print log messages. Useful for
 #'  debugging. Default to \strong{FALSE}.
 #' @param logfilePrefix Prefix for log file. Default is current date and time
