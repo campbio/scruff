@@ -192,7 +192,8 @@ alignRsubread <- function(sce,
     resL <- suppressPackageStartupMessages(
         BiocParallel::bplapply(X = alignmentFilePaths,
             FUN = .propmappedWrapper,
-            BPPARAM = BiocParallel::bpparam(),
+            BPPARAM = BiocParallel::MulticoreParam(
+                workers = cores),
             outDir))
     
     resDt <- data.table::as.data.table(plyr::rbind.fill(resL))
