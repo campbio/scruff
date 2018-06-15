@@ -101,19 +101,19 @@ Demultiplex fastq files and write cell specific reads in compressed fastq
 # Demultiplex example FASTQ files
 data(barcodeExample, package = "scruff")
 fastqs <- list.files(system.file("extdata", package = "scruff"),
-pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
+    pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
 
 de <- demultiplex(
-project = "example",
-experiment = c("1h1", "b1"),
-lane = c("L001", "L001"),
-read1Path = c(fastqs[1], fastqs[3]),
-read2Path = c(fastqs[2], fastqs[4]),
-barcodeExample,
-bcStart = 1,
-bcStop = 8,
-umiStart = 9,
-umiStop = 12,
-keep = 75,
-overwrite = TRUE)
+    project = "example",
+    experiment = c("1h1", "b1"),
+    lane = c("L001", "L001"),
+    read1Path = c(fastqs[1], fastqs[3]),
+    read2Path = c(fastqs[2], fastqs[4]),
+    barcodeExample,
+    bcStart = 1,
+    bcStop = 8,
+    umiStart = 9,
+    umiStop = 12,
+    keep = 75,
+    overwrite = TRUE)
 }

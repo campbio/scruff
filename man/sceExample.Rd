@@ -9,6 +9,8 @@
 sceExample
 }
 \description{
-An example SingleCellExperiment object containing count matrix, cell and gene annotations, and all QC metrics for mouse mitochonrial genes generated from example FASTQ reads.
+An example SingleCellExperiment object containing count matrix, cell and
+ gene annotations, and all QC metrics for mouse mitochonrial genes generated
+ from example FASTQ reads.
 }
 \keyword{datasets}

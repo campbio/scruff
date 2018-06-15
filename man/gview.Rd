@@ -10,7 +10,8 @@ gview(ensemblGenome, chr = 1, start = 1,
   arrow_length = 0.08, arrow_type = "open", text_size = 4)
 }
 \arguments{
-\item{ensemblGenome}{A 'ensemblGenome' object derived from running \code{ensemblGenome()} function from \emph{refGenome} package.}
+\item{ensemblGenome}{A 'ensemblGenome' object derived from running
+\code{ensemblGenome()} function from \emph{refGenome} package.}
 
 \item{chr}{Chromosome name. Integer or "X", "Y", "MT".}
 
@@ -22,26 +23,33 @@ gview(ensemblGenome, chr = 1, start = 1,
 
 \item{line_width}{Line weight. Default 0.5.}
 
-\item{arrow_segments}{The number of segments lines be divided to. The greater the number, more arrows there are. Default 10.}
+\item{arrow_segments}{The number of segments lines be divided to. The
+greater the number, more arrows there are. Default 10.}
 
-\item{arrow_width}{The angle of the arrow head in degrees (smaller numbers produce narrower, pointier arrows). Essentially describes the width of the arrow head. Passed to the angle parameter of arrow function. Default 30.}
+\item{arrow_width}{The angle of the arrow head in degrees (smaller numbers
+produce narrower, pointier arrows). Essentially describes the width of the
+arrow head. Passed to the angle parameter of arrow function. Default 30.}
 
-\item{arrow_length}{The length of the arrow head. Passed to the length argument of arrow function. Default 0.08.}
+\item{arrow_length}{The length of the arrow head. Passed to the length
+argument of arrow function. Default 0.08.}
 
-\item{arrow_type}{One of "open" or "closed" indicating whether the arrow head should be a closed triangle. Passed to the type argument of arrow function. Default "open".}
+\item{arrow_type}{One of "open" or "closed" indicating whether the arrow
+head should be a closed triangle. Passed to the type argument of arrow
+function. Default "open".}
 
-\item{text_size}{Size of text. Passed to the size argument of the geom_text function. Default 4.}
+\item{text_size}{Size of text. Passed to the size argument of the geom_text
+function. Default 4.}
 }
 \value{
 A ggplot object of genomic view
 }
 \description{
-Visualize reference genome. Rectangles represent exons. Arrow represents orientation of transcripts.
+Visualize reference genome. Rectangles represent exons. Arrow represents
+ orientation of transcripts.
 }
 \examples{
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 gtfEG = refGenome::ensemblGenome(dirname(gtf))
 refGenome::read.gtf(gtfEG, filename = basename(gtf))
-
 gview(gtfEG, chr = "MT")
 }
