@@ -22,7 +22,10 @@ rview(bamGA, chr = "1", start = 1, end = max(BiocGenerics::end(bamGA)),
 A ggplot object of aligned reads
 }
 \description{
-Visualize read alignments for UMI tagged single cell RNA-sequencing data. Read names must contain UMI sequences at the end delimited by "\strong{:}". Arrow represents orientation of alignment. Reads are colored by their UMI and sorted by their start positions and UMI.
+Visualize read alignments for UMI tagged single cell RNA-sequencing data.
+ Read names must contain UMI sequences at the end delimited by "\strong{:}".
+ Arrow represents orientation of alignment. Reads are colored by their UMI
+ and sorted by their start positions and UMI.
 }
 \examples{
 data(bamExample, package = "scruff")

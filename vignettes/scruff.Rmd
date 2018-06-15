@@ -29,17 +29,17 @@ library(scruff)
 
 # Get the paths to example FASTQ, FASTA, and GTF files.
 v1h1R1 <- system.file("extdata",
-                      "vandenBrink_1h1_L001_R1_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_1h1_L001_R1_001.fastq.gz",
+    package = "scruff")
 v1h1R2 <- system.file("extdata",
-                      "vandenBrink_1h1_L001_R2_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_1h1_L001_R2_001.fastq.gz",
+    package = "scruff")
 vb1R1 <- system.file("extdata",
-                      "vandenBrink_b1_L001_R1_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_b1_L001_R1_001.fastq.gz",
+    package = "scruff")
 vb1R2 <- system.file("extdata",
-                      "vandenBrink_b1_L001_R2_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_b1_L001_R2_001.fastq.gz",
+    package = "scruff")
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 ```
@@ -49,18 +49,18 @@ Build Rsubread alignment index. This is for the alignment step. For test purpose
 ```{r buildindex1, results = 'hide'}
 # NOTE: Rsubread package does not support Windows environment.
 if (!requireNamespace("Rsubread", quietly = TRUE)) {
-  message("Package \"Rsubread\" needed for \"alignRsubread\"",
-          " function to work. ",
-          "Please install it if you are using Linux or macOS systems. ",
-          "The function is not available in Windows environment.")
-  } else {
+    message("Package \"Rsubread\" needed for \"alignRsubread\"",
+        " function to work. ",
+        "Please install it if you are using Linux or macOS systems. ",
+        "The function is not available in Windows environment.")
+} else {
     # Create index files for GRCm38_MT.
     # For details, please refer to Rsubread user manual.
     # Specify the basename for Rsubread index
     indexBase <- "GRCm38_MT"
     Rsubread::buildindex(basename = indexBase,
-                         reference = fasta,
-                         indexSplit = FALSE)
+        reference = fasta,
+        indexSplit = FALSE)
 }
 ```
 
@@ -70,27 +70,27 @@ Now that everything is ready, we can run `r Rpackage("scruff")`. In experiment 1
 data(barcodeExample, package = "scruff")
 
 if (!requireNamespace("Rsubread", quietly = TRUE)) {
-  message("Package \"Rsubread\" needed. ",
-          "Please install it if you are using Linux or macOS systems. ",
-          "The function is not available in Windows environment.")
-  } else {
+    message("Package \"Rsubread\" needed. ",
+        "Please install it if you are using Linux or macOS systems. ",
+        "The function is not available in Windows environment.")
+} else {
     sce <- scruff(project = "example",
-                  experiment = c("1h1", "b1"),
-                  lane = c("L001", "L001"),
-                  read1Path = c(v1h1R1, vb1R1),
-                  read2Path = c(v1h1R2, vb1R2),
-                  bc = barcodeExample,
-                  index = indexBase,
-                  unique = FALSE,
-                  nBestLocations = 1,
-                  reference = gtf,
-                  bcStart = 1,
-                  bcStop = 8,
-                  umiStart = 9,
-                  umiStop = 12,
-                  keep = 75,
-                  cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-                  verbose = TRUE)
+        experiment = c("1h1", "b1"),
+        lane = c("L001", "L001"),
+        read1Path = c(v1h1R1, vb1R1),
+        read2Path = c(v1h1R2, vb1R2),
+        bc = barcodeExample,
+        index = indexBase,
+        unique = FALSE,
+        nBestLocations = 1,
+        reference = gtf,
+        bcStart = 1,
+        bcStop = 8,
+        umiStart = 9,
+        umiStop = 12,
+        keep = 75,
+        cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+        verbose = TRUE)
 }
 ```
 
@@ -109,17 +109,17 @@ The `r Rpackage("scruff")` package contains 4 single cell RNA-seq FASTQ example 
 ```{r loadfiles2}
 library(scruff)
 v1h1R1 <- system.file("extdata",
-                      "vandenBrink_1h1_L001_R1_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_1h1_L001_R1_001.fastq.gz",
+    package = "scruff")
 v1h1R2 <- system.file("extdata",
-                      "vandenBrink_1h1_L001_R2_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_1h1_L001_R2_001.fastq.gz",
+    package = "scruff")
 vb1R1 <- system.file("extdata",
-                      "vandenBrink_b1_L001_R1_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_b1_L001_R1_001.fastq.gz",
+    package = "scruff")
 vb1R2 <- system.file("extdata",
-                      "vandenBrink_b1_L001_R2_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_b1_L001_R2_001.fastq.gz",
+    package = "scruff")
 ```
 
 ## Demultiplex and Assign Cell Specific Reads
@@ -129,21 +129,21 @@ Now the FASTQ files are ready to be demultiplexed. `r Rpackage("scruff")` packag
 ```{r de, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
 de <- demultiplex(project = "example",
-                  experiment = c("1h1", "b1"),
-                  lane = c("L001", "L001"),
-                  read1Path = c(v1h1R1, vb1R1),
-                  read2Path = c(v1h1R2, vb1R2),
-                  barcodeExample,
-                  bcStart = 1,
-                  bcStop = 8,
-                  bcEdit = 0,
-                  umiStart = 9,
-                  umiStop = 12,
-                  keep = 75,
-                  minQual = 10,
-                  yieldReads = 1e+06,
-                  verbose = TRUE,
-                  overwrite = TRUE)
+    experiment = c("1h1", "b1"),
+    lane = c("L001", "L001"),
+    read1Path = c(v1h1R1, vb1R1),
+    read2Path = c(v1h1R2, vb1R2),
+    barcodeExample,
+    bcStart = 1,
+    bcStop = 8,
+    bcEdit = 0,
+    umiStart = 9,
+    umiStop = 12,
+    keep = 75,
+    minQual = 10,
+    yieldReads = 1e+06,
+    verbose = TRUE,
+    overwrite = TRUE)
 ```
 
 ## Alignment
@@ -151,22 +151,22 @@ de <- demultiplex(project = "example",
 `r Rpackage("scruff")` provides an alignment function `alignRsubread` which is a wrapper function to `align` in `Rsubread` package. It aligns the reads to reference sequence index and outputs sequence alignment map files in "BAM" or "SAM" format. For demonstration purpose, the built-in mitochondrial DNA sequence from GRCm38 reference assembly `GRCm38MitochondrialFasta` will be used to map the reads. First, a `r Biocpkg("Rsubread")` index for the reference sequence needs to be generated.
 
 ```{r al_files, results = 'hide'}
-# Create index files for GRCm38_MT. For details, please refer to Rsubread user manual.
+# Create index files for GRCm38_MT. For details, please refer to Rsubread
+# user manual.
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 # NOTE: Rsubread package does not support Windows environment.
 if (!requireNamespace("Rsubread", quietly = TRUE)) {
-  message(paste("Package \"Rsubread\" needed.\n",
-                "Please install it if you are using Linux or macOS systems.\n",
-                "The function is not available in Windows environment.\n"),
-          call. = FALSE)
-  } else {
+    message("Package \"Rsubread\" needed.",
+        " Please install it if you are using Linux or macOS systems.",
+        " The function is not available in Windows environment.\n")
+} else {
     # Create index files for GRCm38_MT.
     # For details, please refer to Rsubread user manual.
     # Specify the basename for Rsubread index
     indexBase <- "GRCm38_MT"
     Rsubread::buildindex(basename = indexBase,
-                         reference = fasta,
-                         indexSplit = FALSE)
+        reference = fasta,
+        indexSplit = FALSE)
 }
 ```
 
@@ -175,13 +175,13 @@ The following command maps the FASTQ files to GRCm38 mitochondrial reference seq
 ```{r al, results = 'hide', warning = FALSE, message = FALSE}
 # Align the reads using Rsubread
 if (requireNamespace("Rsubread", quietly = TRUE)) {
-  al <- alignRsubread(de,
-                      indexBase,
-                      unique = FALSE,
-                      nBestLocations = 1,
-                      format = "BAM",
-                      overwrite = TRUE,
-                      verbose = TRUE)
+    al <- alignRsubread(de,
+        indexBase,
+        unique = FALSE,
+        nBestLocations = 1,
+        format = "BAM",
+        overwrite = TRUE,
+        verbose = TRUE)
 }
 ```
 
@@ -192,13 +192,14 @@ Example GTF file `GRCm38_MT.gtf` will be used for feature counting. Currently, `
 ```{r co, results = 'hide', warning = FALSE, message = FALSE}
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 # get the molecular counts of trancsripts for each cell
-# In experiment 1h1, cell barcodes 95 and 96 are empty well controls. In experiment b1, cell barcode 95 is bulk sample containing 300 cells.
+# In experiment 1h1, cell barcodes 95 and 96 are empty well controls.
+# In experiment b1, cell barcode 95 is bulk sample containing 300 cells.
 if (requireNamespace("Rsubread", quietly = TRUE)) {
-  sce = countUMI(al,
-                 gtf,
-                 format = "BAM",
-                 cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-                 verbose = TRUE)
+    sce = countUMI(al,
+        gtf,
+        format = "BAM",
+        cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+        verbose = TRUE)
 }
 ```
 
@@ -212,17 +213,23 @@ qc <- qcplots(sceExample)
 qc
 ```
 
+Each of these boxplots show the distribution of a quality metric within and across experiments. Y axis shows the number or fraction of these metrics. Each point represents a unique cell barcode associated with the cells or bulk samples in the wells of the plate. These points are colored by the `cellPerWell` parameter which is the number of sorted cells in each well. For example, in experiment 1h1, cell barcodes 95 and 96 are empty well controls. In experiment b1, cell barcode 95 is bulk sample containing 300 cells.
+
+These quality metrics include total reads, aligned reads, reads mapped to genes, fraciont of aligned reads, fraction of gene reads out of aligned reads, fraction of gene reads out of total reads, total transcripts, mitochondrial transcripts, fraction of mitochondrial transcripts, transcribed genes, fraction of protein coding genes and transcripts, and gene detection rate. 
+
 ## Visualization of Read alignments
 
 `r Rpackage("scruff")` package provides functions to visualize read alignments on the reference genome. Reads are colored by their UMI. The following command visualize the reads mapped to gene mt-Rnr2 for the bulk sample `vandenBrink_b1_cell_0095`.
 
 ```{r gtfEG, results = 'hide', warning = FALSE, message = FALSE}
-# Visualize the reads mapped to gene "mt-Rnr2" in cell "vandenBrink_b1_cell_0095".
+# Visualize the reads mapped to gene "mt-Rnr2" in
+# cell "vandenBrink_b1_cell_0095".
 data(bamExample, package = "scruff")
 
 gtfEG = refGenome::ensemblGenome(dirname(gtf))
 refGenome::read.gtf(gtfEG, filename = basename(gtf))
 ```
+
 ```{r visualize_reads}
 # gene mt-Rnr2 starts at 1094 and ends at 2675
 start <- 1094
@@ -233,6 +240,8 @@ g2 <- gview(gtfEG, chr = "MT", start = start, end = end)
 g <- ggbio::tracks(g1, g2, heights = c(4,1), xlab = "chr MT")
 g
 ```
+
+This plot shows the read alignment information for gene mt-RNA2. The top panel shows the alignment and orientation of each read aligned to this gene. Y axis indicates the number of aligned reads at specific locations. Each arrow represents a read. The length of the arrow indicates the length of the read. The reads are colored by their UMI tags. In the bottom panel, each arrow represents an isoform of the gene. The isoforms are named by their transcript names. The grey boxes indicate the exonic regions of the transcript. X axis is the genomic coordinates on the corresponding chromosome (e.g. chr MT). It is consistent between the top and bottom panels if `legend` is set to FALSE for `rview` function.
 
 # Session Information
 
