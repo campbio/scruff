@@ -81,7 +81,7 @@
 #'     umiStop = 12,
 #'     keep = 75,
 #'     overwrite = TRUE)
-#' @import data.table
+#' @import data.table plyr
 #' @rawNamespace import(ShortRead, except = c(tables, zoom))
 #' @export
 demultiplex <- function(project = paste0("project_", Sys.Date()),
