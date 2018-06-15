@@ -100,8 +100,8 @@
 #' @param verbose Boolean indicating whether to print log messages. Useful for
 #'  debugging. Default to \strong{FALSE}.
 #' @param cores Number of cores to use for parallelization. Default is
-#'  \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available
-#'  cores divided by 2.
+#'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
+#'  cores minus 2.
 #' @param threads \strong{Do not change}. Number of threads/CPUs used for
 #'  mapping for each core. Refer to \code{align} function in \code{Rsubread}
 #'  for details. Default is \strong{1}. It should not be changed in most cases.

@@ -30,11 +30,11 @@
 #' @param format File format of sequence alignment results. \strong{"BAM"} or
 #'  \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param outDir Output directory for alignment results. Sequence alignment
-#'  maps will be stored in folders in this directory, respectively.
+#'  files will be stored in folders in this directory, respectively.
 #'  \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.
 #' @param cores Number of cores used for parallelization. Default is
 #'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-#'  cores divided by 2.
+#'  cores minus 2.
 #' @param threads \strong{Do not change}. Number of threads/CPUs used for
 #'  mapping for each core. Refer to \code{align} function in \code{Rsubread}
 #'  for details. Default is \strong{1}. It should not be changed in most cases.
@@ -49,13 +49,15 @@
 #' @param ... Additional arguments passed to the \code{align} function in
 #'  \code{Rsubread} package.
 #' @return A \strong{SingleCellExperiment} object containing the alignment
-#'  summary information in the \code{colData} slot. Contains a character vector
+#'  summary information in the \code{colData} slot. The \code{alignment_path}
+#'  column of the annotation table contains the paths to alignment files.
 #'  of the paths to output alignment files.
 #' @examples
 #' # The SingleCellExperiment object returned by demultiplex function is
 #' # required for running alignRsubread function
 #' # Does not support Windows environment
 #'
+#' \dontrun{
 #' data(barcodeExample, package = "scruff")
 #' fastqs <- list.files(system.file("extdata", package = "scruff"),
 #'     pattern = "\\.fastq\\.gz", full.names = TRUE)
@@ -83,7 +85,9 @@
 #' buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 #'
 #' al <- alignRsubread(de, indexBase, overwrite = TRUE)
+#' }
 #' @import data.table
+#' @importFrom plyr rbind.fill
 #' @export
 alignRsubread <- function(sce,
     index,
@@ -189,7 +193,8 @@ alignRsubread <- function(sce,
     resL <- suppressPackageStartupMessages(
         BiocParallel::bplapply(X = alignmentFilePaths,
             FUN = .propmappedWrapper,
-            BPPARAM = BiocParallel::bpparam(),
+            BPPARAM = BiocParallel::MulticoreParam(
+                workers = cores),
             outDir))
     
     resDt <- data.table::as.data.table(plyr::rbind.fill(resL))
