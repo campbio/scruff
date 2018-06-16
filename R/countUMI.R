@@ -68,7 +68,7 @@
 #' gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 #' sce = countUMI(al, gtf)
 #' }
-#' 
+#'
 #' # or use the built-in SingleCellExperiment object generated using
 #' # example dataset (see ?sceExample)
 #' data(sceExample, package = "scruff")
@@ -84,29 +84,29 @@ countUMI <- function(sce,
     outputPrefix = "countUMI",
     verbose = FALSE,
     logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
-    
+
     .checkCores(cores)
-    
+
     isWindows <- .Platform$OS.type == "windows"
-    
+
     message(Sys.time(), " Start UMI counting ...")
     print(match.call(expand.dots = TRUE))
-    
+
     if (ncol(sce) != length(cellPerWell) & length(cellPerWell) != 1) {
         stop("The length of cellPerWell is not equal to the column number",
             " of the SCE object.")
     }
-    
+
     alignmentFilePaths <- SummarizedExperiment::colData(sce)$alignment_path
-    
+
     if (!all(file.exists(alignmentFilePaths))) {
         stop("Partial or all alignment files nonexistent. ",
             "Please check paths are correct.\n",
             alignmentFilePaths)
     }
-    
+
     logfile <- paste0(logfilePrefix, "_countUMI_log.txt")
-    
+
     if (verbose) {
         .logMessages(Sys.time(),
             "... Start UMI counting",
@@ -124,20 +124,20 @@ countUMI <- function(sce,
             logfile = NULL,
             append = FALSE)
     }
-    
+
     message(Sys.time(),
         " ... Creating output directory",
         outDir)
     dir.create(file.path(outDir),
         showWarnings = FALSE,
         recursive = TRUE)
-    
+
     message(Sys.time(),
         " ... Loading TxDb file")
     features <- suppressPackageStartupMessages(.gtfReadDb(reference, logfile))
-    
+
     # parallelization BiocParallel
-    
+
     if (format == "SAM") {
         if (isWindows) {
             alignmentFilePaths <- BiocParallel::bplapply(
@@ -156,8 +156,8 @@ countUMI <- function(sce,
         }
         alignmentFilePaths <- unlist(alignmentFilePaths)
     }
-    
-    
+
+
     if (isWindows) {
         exprL <- suppressPackageStartupMessages(
             BiocParallel::bplapply(
@@ -183,13 +183,13 @@ countUMI <- function(sce,
                 verbose)
         )
     }
-    
+
     expr <- do.call(cbind, exprL)
     expr <- data.table::as.data.table(expr, keep.rownames = TRUE)
-    
+
     colnames(expr)[1] <- "geneid"
-    
-    message(Sys.time(), 
+
+    message(Sys.time(),
         " ... Write UMI filtered count matrix to ",
         file.path(outDir, paste0(
             format(Sys.time(),
@@ -197,15 +197,15 @@ countUMI <- function(sce,
             outputPrefix, ".tab"
         ))
     )
-    
+
     data.table::fwrite(expr, file.path(outDir, paste0(
         format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
         outputPrefix, ".tab"
     )), sep = "\t")
-    
+
     message(Sys.time(),
         " ... Add count matrix and QC metrics to SCE object.")
-    
+
     scruffsce <- SingleCellExperiment::SingleCellExperiment(
         assays = list(counts = S4Vectors::DataFrame(
             expr[!geneid %in% c("reads_mapped_to_genome",
@@ -213,16 +213,16 @@ countUMI <- function(sce,
             row.names = expr[!geneid %in% c("reads_mapped_to_genome",
                 "reads_mapped_to_genes"),
                 geneid])))
-    
+
     readmapping <- t(expr[geneid %in% c("reads_mapped_to_genome",
         "reads_mapped_to_genes"), -"geneid"])
     colnames(readmapping) <- c("reads_mapped_to_genome",
         "reads_mapped_to_genes")
-    
+
     SingleCellExperiment::isSpike(scruffsce,
         "ERCC") <- grepl("^ERCC-",
             rownames(scruffsce))
-    
+
     # get gene annotations
     gtfEG = refGenome::ensemblGenome(dirname(reference))
     refGenome::read.gtf(gtfEG, filename = basename(reference))
@@ -231,42 +231,42 @@ countUMI <- function(sce,
             "gene_name",
             "gene_biotype",
             "seqid")]))
-    
+
     SummarizedExperiment::rowData(scruffsce) <-
         S4Vectors::DataFrame(geneAnnotation[order(gene_id), ],
             row.names = geneAnnotation[order(gene_id),
                 gene_id])
-    
+
     # UMI filtered transcripts QC metrics
     # total counts exclude ERCC
     totalCounts <- base::colSums(as.data.frame(
         SummarizedExperiment::assay(scruffsce)
         [!SingleCellExperiment::isSpike(scruffsce, "ERCC"), ]))
-    
+
     # MT counts
     mtCounts <- base::colSums(as.data.frame(
         SummarizedExperiment::assay(scruffsce)
         [grep("^mt-", SummarizedExperiment::rowData(scruffsce)
             [, "gene_name"]), ]))
-    
+
     # gene number exclude ERCC
     cm <- SummarizedExperiment::assay(scruffsce)[
         !SingleCellExperiment::isSpike(scruffsce, "ERCC"), ]
-    
+
     geneNumber <- vapply(colnames(cm), function(cells) {
         sum(cm[, cells] != 0)
     }, integer(1))
-    
+
     # protein coding genes
     proteinCodingGene <- geneAnnotation[gene_biotype == "protein_coding",
         gene_id]
     proGene <- vapply(colnames(cm), function(cells) {
         sum(cm[proteinCodingGene, cells] != 0)
     }, integer(1))
-    
+
     # protein coding counts
     proCounts <- base::colSums(as.data.frame(cm[proteinCodingGene, ]))
-    
+
     SummarizedExperiment::colData(scruffsce) <-
         cbind(SummarizedExperiment::colData(sce),
             readmapping,
@@ -276,8 +276,8 @@ countUMI <- function(sce,
                 protein_coding_genes = proGene,
                 protein_coding_counts = proCounts,
                 number_of_cells = cellPerWell))
-    
-    message(Sys.time(), 
+
+    message(Sys.time(),
         " ... Save SingleCellExperiment object to ",
         file.path(outDir, paste0(
             format(Sys.time(),
@@ -285,12 +285,12 @@ countUMI <- function(sce,
             outputPrefix, "_sce.rda"
         ))
     )
-    
+
     save(scruffsce, file = file.path(outDir, paste0(
         format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
         outputPrefix, "_sce.rda"
     )))
-    
+
     message(Sys.time(), " ... UMI counting done!")
     return(scruffsce)
 }
@@ -304,7 +304,7 @@ countUMI <- function(sce,
             logfile = logfile,
             append = TRUE)
     }
-    
+
     # if sequence alignment file is empty
     if (file.size(i) == 0) {
         countUmiDt <- data.table::data.table(
@@ -313,20 +313,20 @@ countUMI <- function(sce,
                 "reads_mapped_to_genes"))
         cell <- .removeLastExtension(i)
         countUmiDt[[cell]] <- 0
-        
+
         return (data.frame(countUmiDt,
             row.names = 1,
             check.names = FALSE,
             fix.empty.names = FALSE))
     }
-    
+
     bfl <- Rsamtools::BamFile(i)
     bamGA <- GenomicAlignments::readGAlignments(bfl, use.names = TRUE)
-    
+
     genomeReads <- data.table::data.table(
         name = names(bamGA),
         seqnames = as.vector(GenomicAlignments::seqnames(bamGA)))
-    
+
     if (length(unique(genomeReads[, name])) != nrow(genomeReads)) {
         stop("Corrupt BAM file ",
             i,
@@ -334,24 +334,24 @@ countUMI <- function(sce,
             " Try rerunning demultiplexing and alignment functions",
             " with appropriate number of cores.")
     }
-    
+
     # reads mapped to genome (exclude ERCC spike-in)
     readsMappedToGenome <- nrow(
         genomeReads[!grepl("ERCC", genomeReads[, seqnames]), .(name)])
-    
+
     # UMI filtering
     ol <- GenomicAlignments::findOverlaps(features, bamGA)
-    
+
     ol.dt <- data.table::data.table(
         gene_id = base::names(features)[S4Vectors::queryHits(ol)],
         name = base::names(bamGA)[S4Vectors::subjectHits(ol)],
         pos = BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)]
     )
-    
+
     # if 0 read in the cell
     if (nrow(ol.dt) == 0) {
         readsMappedToGenes <- 0
-        
+
         # clean up
         countUmiDt <- data.table::data.table(
             gene_id = c(names(features),
@@ -363,40 +363,40 @@ countUMI <- function(sce,
             cell] <- readsMappedToGenome
         countUmiDt[gene_id == "reads_mapped_to_genes",
             cell] <- readsMappedToGenes
-        
+
         # coerce to data frame to keep rownames for cbind combination
         countUmiDt <- data.frame(countUmiDt,
             row.names = 1,
             check.names = FALSE,
             fix.empty.names = FALSE)
-        
+
     } else {
-        
+
         ol.dt[, umi := data.table::last(data.table::tstrsplit(name, ":"))]
-        
+
         # remove ambiguous gene alignments (union mode filtering)
         ol.dt <- ol.dt[!(
             base::duplicated(ol.dt, by = "name") |
                 base::duplicated(ol.dt, by = "name", fromLast = TRUE)
         ), ]
-        
+
         # reads mapped to genes
         readsMappedToGenes <- nrow(ol.dt[!grepl("ERCC", ol.dt[, gene_id ]), ])
-        
+
         # UMI filtering
-        
+
         # strict way of doing UMI correction:
         # reads with different pos are considered unique trancsript molecules
         # countUmi <- base::table(
         #     unique(ol.dt[, .(gene_id, umi, pos)])
         #     [, gene_id])
-        
+
         # The way CEL-Seq pipeline does UMI filtering:
         # Reads with different UMI tags are
         # considered unique trancsript molecules
         # Read positions do not matter
         countUmi <- base::table(unique(ol.dt[, .(gene_id, umi)])[, gene_id])
-        
+
         # clean up
         countUmiDt <- data.table::data.table(
             gene_id = c(names(features),
@@ -410,7 +410,7 @@ countUMI <- function(sce,
             cell] <- readsMappedToGenes
         countUmiDt[gene_id %in% names(countUmi),
             eval(cell) := as.numeric(countUmi[gene_id])]
-        
+
         # coerce to data frame to keep rownames for cbind combination
         countUmiDt <- data.frame(countUmiDt,
             row.names = 1,
