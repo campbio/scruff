@@ -90,7 +90,8 @@ if (!requireNamespace("Rsubread", quietly = TRUE)) {
         umiStop = 12,
         keep = 75,
         cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-        verbose = TRUE)
+        verbose = TRUE,
+        cores = 4)
 }
 ```
 
@@ -143,7 +144,8 @@ de <- demultiplex(project = "example",
     minQual = 10,
     yieldReads = 1e+06,
     verbose = TRUE,
-    overwrite = TRUE)
+    overwrite = TRUE,
+    cores = 4)
 ```
 
 ## Alignment
@@ -181,7 +183,8 @@ if (requireNamespace("Rsubread", quietly = TRUE)) {
         nBestLocations = 1,
         format = "BAM",
         overwrite = TRUE,
-        verbose = TRUE)
+        verbose = TRUE,
+        cores = 4)
 }
 ```
 
@@ -199,7 +202,8 @@ if (requireNamespace("Rsubread", quietly = TRUE)) {
         gtf,
         format = "BAM",
         cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-        verbose = TRUE)
+        verbose = TRUE,
+        cores = 4)
 }
 ```
 
@@ -213,7 +217,7 @@ qc <- qcplots(sceExample)
 qc
 ```
 
-Each of these boxplots show the distribution of a quality metric within and across experiments. Y axis shows the number or fraction of these metrics. Each point represents a unique cell barcode associated with the cells or bulk samples in the wells of the plate. These points are colored by the `cellPerWell` parameter which is the number of sorted cells in each well. For example, in experiment 1h1, cell barcodes 95 and 96 are empty well controls. In experiment b1, cell barcode 95 is bulk sample containing 300 cells.
+Each of these boxplots shows the distribution of a quality metric within and across experiments. Y axis shows the number or fraction of these metrics. Each point represents a unique cell barcode associated with the cells or bulk samples in the wells of the plate. These points are colored by the `cellPerWell` parameter which is the number of sorted cells in each well. For example, in experiment 1h1, cell barcodes 95 and 96 are empty well controls. In experiment b1, cell barcode 95 is bulk sample containing 300 cells.
 
 These quality metrics include total reads, aligned reads, reads mapped to genes, fraciont of aligned reads, fraction of gene reads out of aligned reads, fraction of gene reads out of total reads, total transcripts, mitochondrial transcripts, fraction of mitochondrial transcripts, transcribed genes, fraction of protein coding genes and transcripts, and gene detection rate. 
 
