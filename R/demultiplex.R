@@ -82,8 +82,8 @@
 #'     keep = 75,
 #'     overwrite = TRUE)
 #' @import data.table
-#' @importFrom plyr rbind.fill
 #' @rawNamespace import(ShortRead, except = c(tables, zoom))
+#' @rawNamespace import(plyr, except = c(id))
 #' @export
 demultiplex <- function(project = paste0("project_", Sys.Date()),
     experiment,
@@ -105,51 +105,51 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     cores = max(1, parallel::detectCores() - 2),
     verbose = FALSE,
     logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
-    
+
     .checkCores(cores)
-    
+
     if (!all(file.exists(c(read1Path, read2Path)))) {
         stop("Partial or all FASTQ files nonexistent.",
             "Please check paths are correct.\n",
             read1Path,
             read2Path)
     }
-    
+
     message(Sys.time(), " Start demultiplexing ...")
     print(match.call(expand.dots = TRUE))
-    
+
     isWindows <- .Platform$OS.type == "windows"
-    
+
     if (overwrite) {
         message(Sys.time(),
             " All files in ",
             outDir,
             " will be deleted ...")
     }
-    
+
     fastqAnnot <- data.table::data.table(
         project = project,
         experiment = experiment,
         lane = lane,
         read1_path = read1Path,
         read2_path = read2Path)
-    
+
     if (verbose) {
         message("Input sample information for FASTQ files:")
         print(fastqAnnot)
     }
-    
+
     fastqAnnotDt <- data.table::data.table(fastqAnnot)
     barcodeDt <- data.table::data.table("cell_index" = seq_len(length(bc)),
         "barcode" = bc)
     expId <- fastqAnnotDt[, unique(experiment)]
-    
+
     # disable threading in ShortRead package
     nthreads <- .Call(ShortRead:::.set_omp_threads, 1L)
     on.exit(.Call(ShortRead:::.set_omp_threads, nthreads))
-    
+
     # parallelization BiocParallel
-    
+
     if (isWindows) {
         # Windows
         if (verbose) {
@@ -219,7 +219,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
         } else {
             resL <- BiocParallel::bplapply(X = expId,
                 FUN = .demultiplexUnit,
-                BPPARAM = 
+                BPPARAM =
                     BiocParallel::MulticoreParam(
                         workers = cores),
                 fastqAnnotDt,
@@ -239,9 +239,9 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
             )
         }
     }
-    
+
     resDt <- as.data.table(plyr::rbind.fill(resL))
-    
+
     message(
         Sys.time(),
         " ... Write demultiplex summary for all experiments to ",
@@ -252,7 +252,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
             ".tab"
         ))
     )
-    
+
     fwrite(resDt,
         file = file.path(outDir,
             paste0(
@@ -263,24 +263,24 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                 ".tab"
             )),
         sep = "\t")
-    
+
     cellname <- resDt[!is.na(cell_index), filename]
     cellname <- gsub(
         pattern = "\\.fastq$|\\.fastq\\.gz$",
         "",
         cellname,
         ignore.case = TRUE)
-    
+
     # initialize sce object. Add demultiplex summary metadata
     message("... Initialize SingleCellExperiment object.")
     message("... Add demultiplex summary to SCE colData.")
-    
+
     summaryDF <- S4Vectors::DataFrame(resDt[!is.na(cell_index), -"filename"],
         row.names = cellname)
     placeholder <- matrix(ncol = length(cellname))
     sce <- SingleCellExperiment::SingleCellExperiment(placeholder)
     SummarizedExperiment::colData(sce) <- summaryDF
-    
+
     message(Sys.time(), " ... Demultiplex done!")
     return(sce)
 }
@@ -302,19 +302,19 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     summaryPrefix,
     overwrite,
     logfilePrefix) {
-    
+
     if (!is.null(logfilePrefix)) {
         logfile <- paste0(logfilePrefix, "_demultiplex_", i, "_log.txt")
     } else {
         logfile <- NULL
     }
-    
+
     .logMessages(Sys.time(),
         "... demultiplexing experiment",
         i,
         logfile = logfile,
         append = FALSE)
-    
+
     expMetaDt <- fastq[experiment == i, ]
     lanes <- unique(expMetaDt[, lane])
     summaryDt <- data.table::copy(barcodeDt)
@@ -326,7 +326,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
         ".fastq.gz")]
     summaryDt[, reads := 0]
     summaryDt[, percent_assigned := 0]
-    
+
     # initialize summary data table
     summaryDt <- data.table::rbindlist(
         list(
@@ -344,7 +344,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
         idcol = FALSE
     )
     summaryDt[, experiment := i]
-    
+
     if (overwrite) {
         # delete existing results
         .logMessages(
@@ -379,23 +379,23 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                 " Try re-running the function by setting overwrite to TRUE")
         }
     }
-    
+
     for (j in lanes) {
         .logMessages(Sys.time(),
             "... Processing Lane",
             j,
             logfile = logfile,
             append = TRUE)
-        
+
         f1 <- expMetaDt[lane == j, read1_path]
         f2 <- expMetaDt[lane == j, read2_path]
-        
+
         if (length(f1) > 1 || length(f2) > 1) {
             stop("Duplicate lanes detected. ",
                 "Lane should be unique for each FASTQ file. ",
                 "Try modify the sample annotation table.")
         }
-        
+
         fq1 <- ShortRead::FastqStreamer(f1, n = yieldReads)
         fq2 <- ShortRead::FastqStreamer(f2, n = yieldReads)
         repeat {
@@ -418,9 +418,9 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                     f2)
             } else if (length(fqy1) == 0 & length(fqy2) == 0)
                 break
-            
+
             summaryDt[filename == "total", reads := reads + length(fqy1)]
-            
+
             umiBcQual <- ""
             umiSeq <- ""
             bcSeq <- ""
@@ -434,7 +434,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                     umiStop[k]), sep = "_")
                 umiSeq <- .stripLeadingUnderscore(umiSeq)
             }
-            
+
             for (k in seq_len(length(bcStart))) {
                 umiBcQual <- paste0(umiBcQual,
                     substr(fqy1@quality@quality,
@@ -445,11 +445,11 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                     bcStop[k]), sep = "_")
                 bcSeq <- .stripLeadingUnderscore(bcSeq)
             }
-            
+
             minBasePhred1 <- min(methods::as(
                 Biostrings::PhredQuality(umiBcQual),
                 "IntegerList"))
-            
+
             fqyDt <- data.table::data.table(
                 rname1 = data.table::tstrsplit(fqy1@id, " ")[[1]],
                 rname2 = data.table::tstrsplit(fqy2@id, " ")[[1]],
@@ -465,15 +465,15 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                 # barcodes are separated by "_"
                 barcode = bcSeq
             )
-            
+
             # remove low quality and short R1 reads
-            
+
             fqyDt <- fqyDt[min.phred1 >= minQual &
                     length1 >= sum(bcStop - bcStart) +
                     length(bcStart) +
                     sum(umiStop - umiStart) +
                     length(umiStart), ]
-            
+
             if (bcEdit > 0) {
                 # cell barcode correction
                 fqyDt[, bc_correct := vapply(barcode,
@@ -484,14 +484,14 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
             } else {
                 fqyDt[, bc_correct := barcode]
             }
-            
+
             summaryDt[filename == "low_quality",
                 reads := reads + length(fqy1) - nrow(fqyDt)]
-            
+
             for (k in barcodeDt[, cell_index]) {
                 cellBarcode <- barcodeDt[cell_index == k, barcode]
                 cfqDt <- fqyDt[bc_correct == cellBarcode, ]
-                
+
                 dir.create(file.path(outDir, i),
                     recursive = TRUE,
                     showWarnings = FALSE)
@@ -501,7 +501,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                 if (!file.exists(outFull)) {
                     file.create(outFull, showWarnings = FALSE)
                 }
-                
+
                 # if barcode exists in fastq reads
                 if (nrow(cfqDt) != 0) {
                     fqOut <- ShortRead::ShortReadQ(
@@ -516,10 +516,10 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                 }
                 summaryDt[barcode == cellBarcode, reads := reads + nrow(cfqDt)]
             }
-            
+
             summaryDt[!(is.na(cell_index)),
                 fastq_path := file.path(outDir, experiment, filename)]
-            
+
             undeterminedDt <- fqyDt[!(bc_correct %in% barcodeDt[, barcode]), ]
             undeterminedFqOutR1 <- ShortRead::ShortReadQ(
                 sread = Biostrings::DNAStringSet(undeterminedDt[, read1]),
@@ -545,10 +545,10 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
             }
             ShortRead::writeFastq(undeterminedFqOutR1,
                 outFullUndeterminedR1, mode = "a")
-            
+
             ShortRead::writeFastq(undeterminedFqOutR2,
                 outFullUndeterminedR2, mode = "a")
-            
+
             summaryDt[filename == "undetermined",
                 reads := reads + nrow(undeterminedDt)]
             .logMessages(
@@ -562,10 +562,10 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
         close(fq1)
         close(fq2)
     }
-    
+
     summaryDt[, percent_assigned := 100 * reads /
             summaryDt[filename == "total", reads]]
-    
+
     .logMessages(
         Sys.time(),
         paste(
@@ -579,7 +579,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
         logfile = logfile,
         append = TRUE
     )
-    
+
     data.table::fwrite(summaryDt,
         file = file.path(
             outDir,
@@ -589,14 +589,14 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                     "_")
         ),
         sep = "\t")
-    
+
     .logMessages(
         Sys.time(),
         paste("... finished demultiplexing experiment", i),
         logfile = logfile,
         append = TRUE
     )
-    
+
     return(summaryDt)
 }
 

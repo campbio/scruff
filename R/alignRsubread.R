@@ -87,7 +87,7 @@
 #' al <- alignRsubread(de, indexBase, overwrite = TRUE)
 #' }
 #' @import data.table
-#' @importFrom plyr rbind.fill
+#' @rawNamespace import(plyr, except = c(id))
 #' @export
 alignRsubread <- function(sce,
     index,
@@ -103,29 +103,29 @@ alignRsubread <- function(sce,
     logfilePrefix = format(Sys.time(),
         "%Y%m%d_%H%M%S"),
     ...) {
-    
+
     if (!requireNamespace("Rsubread", quietly = TRUE)) {
         stop("Package \"Rsubread\" needed for \"alignRsubread\"",
             " function to work.",
             " Please install it if you are using Linux or macOS.",
             " The function is not available in Windows environment.")
     }
-    
+
     .checkCores(cores)
-    
+
     fastqPaths <- SummarizedExperiment::colData(sce)$fastq_path
-    
+
     if (!all(file.exists(fastqPaths))) {
         stop("Partial or all FASTQ files nonexistent.",
             " Please check paths are correct.\n",
             fastqPaths)
     }
-    
+
     message(Sys.time(), " Start alignment ...")
     print(match.call(expand.dots = TRUE))
-    
+
     logfile <- paste0(logfilePrefix, "_alignment_log.txt")
-    
+
     if (verbose) {
         .logMessages(Sys.time(),
             "... Start alignment",
@@ -135,7 +135,7 @@ alignRsubread <- function(sce,
         message("... Input fastq paths:")
         print(fastqPaths)
     }
-    
+
     if (overwrite) {
         # delete results from previous run
         message(Sys.time(), " ... Delete (if any) existing alignment results")
@@ -153,12 +153,12 @@ alignRsubread <- function(sce,
                 " by setting overwrite to TRUE")
         }
     }
-    
+
     message(Sys.time(), " ... Creating output directory ", outDir)
     dir.create(file.path(outDir), showWarnings = FALSE, recursive = TRUE)
-    
+
     # parallelization BiocParallel
-    
+
     if (verbose) {
         alignmentFilePaths <- BiocParallel::bplapply(
             X = fastqPaths,
@@ -187,19 +187,19 @@ alignRsubread <- function(sce,
                 logfile = NULL,
                 ...))
     }
-    
+
     alignmentFilePaths <- unlist(alignmentFilePaths)
-    
+
     resL <- suppressPackageStartupMessages(
         BiocParallel::bplapply(X = alignmentFilePaths,
             FUN = .propmappedWrapper,
             BPPARAM = BiocParallel::MulticoreParam(
                 workers = cores),
             outDir))
-    
+
     resDt <- data.table::as.data.table(plyr::rbind.fill(resL))
-    
-    message(Sys.time(), 
+
+    message(Sys.time(),
         " ... Write alignment summary to ",
         file.path(outDir, paste0(
             format(Sys.time(), "%Y%m%d_%H%M%S"),
@@ -208,23 +208,23 @@ alignRsubread <- function(sce,
             ".tab"
         ))
     )
-    
+
     fwrite(resDt, file.path(outDir, paste0(
         format(Sys.time(), "%Y%m%d_%H%M%S"),
         "_",
         summaryPrefix,
         ".tab"
     )), sep = "\t")
-    
+
     colnames(resDt) <- c("alignment_path",
         "reads",
         "aligned_reads_incl_ercc",
         "fraction_aligned")
-    
+
     message(Sys.time(), " ... Add alignment information to SCE colData.")
     SummarizedExperiment::colData(sce) <-
         cbind(SummarizedExperiment::colData(sce), resDt[, -"reads"])
-    
+
     message(Sys.time(), " ... Alignment done!")
     return(sce)
 }
@@ -239,9 +239,9 @@ alignRsubread <- function(sce,
     threads,
     logfile,
     ...) {
-    
+
     file.path <- .getAlignmentFilePaths(i, format, outDir)
-    
+
     if (file.size(i) == 0) {
         file.create(file.path, showWarnings = FALSE)
         return (file.path)
@@ -251,7 +251,7 @@ alignRsubread <- function(sce,
             i,
             logfile = logfile,
             append = TRUE)
-        
+
         Rsubread::align(
             index = index,
             readfile1 = i,
