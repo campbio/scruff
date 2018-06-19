@@ -207,10 +207,10 @@ countUMI <- function(sce,
         " ... Add count matrix and QC metrics to SCE object.")
 
     scruffsce <- SingleCellExperiment::SingleCellExperiment(
-        assays = list(counts = S4Vectors::DataFrame(
+        assays = list(counts = as.matrix(
             expr[!geneid %in% c("reads_mapped_to_genome",
                 "reads_mapped_to_genes"), -"geneid"],
-            row.names = expr[!geneid %in% c("reads_mapped_to_genome",
+            rownames = expr[!geneid %in% c("reads_mapped_to_genome",
                 "reads_mapped_to_genes"),
                 geneid])))
 
