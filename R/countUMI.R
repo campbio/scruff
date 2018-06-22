@@ -266,16 +266,33 @@ countUMI <- function(sce,
 
     # protein coding counts
     proCounts <- base::colSums(as.data.frame(cm[proteinCodingGene, ]))
-
-    SummarizedExperiment::colData(scruffsce) <-
-        cbind(SummarizedExperiment::colData(sce),
-            readmapping,
-            list(total_counts = totalCounts,
-                mt_counts = mtCounts,
-                genes = geneNumber,
-                protein_coding_genes = proGene,
-                protein_coding_counts = proCounts,
-                number_of_cells = cellPerWell))
+    
+    qcdf <- cbind(SummarizedExperiment::colData(sce),
+        readmapping,
+        list(total_counts = totalCounts,
+            mt_counts = mtCounts,
+            genes = geneNumber,
+            protein_coding_genes = proGene,
+            protein_coding_counts = proCounts,
+            number_of_cells = cellPerWell))
+    
+    message(Sys.time(),
+        " ... Save cell-specific quality metrics to ",
+        file.path(outDir, paste0(
+            format(Sys.time(),
+                "%Y%m%d_%H%M%S"), "_",
+            outputPrefix, "_QC.tab"
+        ))
+    )
+    
+    data.table::fwrite(qcdf,
+        sep = "\t",
+        file = file.path(outDir, paste0(
+            format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+            outputPrefix, "_QC.tab"
+        )))
+    
+    SummarizedExperiment::colData(scruffsce) <- qcdf
 
     message(Sys.time(),
         " ... Save SingleCellExperiment object to ",
