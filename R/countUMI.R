@@ -285,7 +285,7 @@ countUMI <- function(sce,
         ))
     )
     
-    data.table::fwrite(qcdf,
+    data.table::fwrite(as.data.frame(qcdf),
         sep = "\t",
         file = file.path(outDir, paste0(
             format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
