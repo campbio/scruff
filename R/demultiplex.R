@@ -9,7 +9,7 @@
 #'  group label for each FASTQ file, e.g. "patient1, patient2, ...". The number
 #'  of cells in a experiment equals the length of cell barcodes \code{bc}. The
 #'  length of \code{experiment} equals the number of FASTQ files to be
-#'  processed test.
+#'  processed.
 #' @param lane A character or character vector of flow cell lane numbers. FASTQ
 #'  files from lanes having the same \code{experiment} will be concatenated. If
 #'  FASTQ files from multiple lanes are already concatenated, any placeholder
