@@ -66,7 +66,7 @@
 #'
 #' # Counting
 #' gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
-#' sce = countUMI(al, gtf)
+#' sce = countUMI(al, gtf, cellPerWell=c(rep(1, 94), 0, 0, rep(1, 94), 300, 1))
 #' }
 #'
 #' # or use the built-in SingleCellExperiment object generated using
