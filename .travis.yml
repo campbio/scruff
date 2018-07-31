@@ -4,6 +4,8 @@ dist: trusty
 sudo: false
 warnings_are_errors: true
 bioc_required: true
+before_script:
+  - echo "BiocParallel::register(BiocParallel::SerialParam())" > ~/.Rprofile
 before_install:
 - Rscript -e 'update.packages(ask = FALSE)'
 r_check_args: "--no-build-vignettes --as-cran"
