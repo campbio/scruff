@@ -90,8 +90,7 @@ if (!requireNamespace("Rsubread", quietly = TRUE)) {
         umiStop = 12,
         keep = 75,
         cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-        verbose = TRUE,
-        cores = 4)
+        verbose = TRUE)
 }
 ```
 
