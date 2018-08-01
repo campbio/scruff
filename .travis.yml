@@ -6,6 +6,8 @@ warnings_are_errors: true
 bioc_required: true
 before_install:
 - Rscript -e 'update.packages(ask = FALSE)'
+r_build_args: "--no-build-vignettes"
+r_check_args: "--no-vignettes --no-build-vignettes --as-cran"
 notifications:
   slack:
     secure: GyK6HX/JNXwbBnXADhy3Auuvpmr5I2qCGra8aRmiIfChDJFcwIUmwhIE/uyAFF7tdx8LG+j9TjSDGME/85GvxzX6179kBPQNA8nkl22VwvNTu5mCeu+cLUq0ABATJrEFbaG/FrvHBdEROAGveh1eZvMBqXsOM4fzQqaA31IesRaQZZ4XnbVjGy/ZbyChF24z0CQapcQkkWh+OobWOkMcplwAZvE+hWdIlP+fVOK+Yr+Ds7AWctw+sO450/jGBHOM0D+on4Xzdkri6ZCAUVaV/pQZTPDzkB4o24dr/u/Af4npA3abeywBkPvjkQxiSTqFkSHv2v97x/nGvRX6r4qlAKWy8M5wVhZtKIUoEuCntSSwZRUItAbeZ8vegZeHLjoOEJyKaJBO2DYeaJmzUjQn220nW8fDjRQ/+bzgNtNNdIxJP5r8FeopfJBDIoasLjg8v6s8sJHH8EcVUcQBKNyZpefdkLQ94455JwTFgpVOcO5ZcOGV2fe4O9yuBtPoFSeIAyRcVpVf8A3T9y1AXt9rz7jT2wvL8GwbsHPV2RySKLkhNs8JVEWld7AcNM1LZ+WCgR5Va6SoXs+e5ILak9U5ld4flNkYlJ2rAiXjlPhqUppKvrqkT1xQlXRUan/H1NR7Aj66IioX8wC8YGlovK1kR4MSV8VVDWYJt9SfPyOFhRo=
