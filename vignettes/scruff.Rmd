@@ -90,8 +90,8 @@ if (!requireNamespace("Rsubread", quietly = TRUE)) {
         umiStop = 12,
         keep = 75,
         cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-        verbose = TRUE,
-        cores = 4)
+        cores = 2,
+        verbose = TRUE)
 }
 ```
 
@@ -145,7 +145,7 @@ de <- demultiplex(project = "example",
     yieldReads = 1e+06,
     verbose = TRUE,
     overwrite = TRUE,
-    cores = 4)
+    cores = 2)
 ```
 
 ## Alignment
@@ -184,7 +184,7 @@ if (requireNamespace("Rsubread", quietly = TRUE)) {
         format = "BAM",
         overwrite = TRUE,
         verbose = TRUE,
-        cores = 4)
+        cores = 2)
 }
 ```
 
@@ -203,7 +203,7 @@ if (requireNamespace("Rsubread", quietly = TRUE)) {
         format = "BAM",
         cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
         verbose = TRUE,
-        cores = 4)
+        cores = 2)
 }
 ```
 
