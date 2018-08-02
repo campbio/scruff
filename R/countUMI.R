@@ -11,7 +11,7 @@
 #'  slot contains the \strong{alignment_path} column with paths to input
 #'  cell-specific sequence alignment files (BAM or SAM format).
 #' @param reference Path to the reference GTF file. The TxDb object of the GTF
-#'  file will be generated and saved in current working directory with
+#'  file will be generated and saved in the current working directory with
 #'  ".sqlite" suffix.
 #' @param format Format of input sequence alignment files. \strong{"BAM"} or
 #'  \strong{"SAM"}. Default is \strong{"BAM"}.
@@ -134,7 +134,7 @@ countUMI <- function(sce,
 
     message(Sys.time(),
         " ... Loading TxDb file")
-    features <- suppressPackageStartupMessages(.gtfReadDb(reference, logfile))
+    features <- suppressPackageStartupMessages(.gtfReadDb(reference))
 
     # parallelization BiocParallel
 
@@ -266,7 +266,7 @@ countUMI <- function(sce,
 
     # protein coding counts
     proCounts <- base::colSums(as.data.frame(cm[proteinCodingGene, ]))
-
+    
     qcdf <- cbind(SummarizedExperiment::colData(sce),
         readmapping,
         list(total_counts = totalCounts,
@@ -275,7 +275,7 @@ countUMI <- function(sce,
             protein_coding_genes = proGene,
             protein_coding_counts = proCounts,
             number_of_cells = cellPerWell))
-
+    
     message(Sys.time(),
         " ... Save cell-specific quality metrics to ",
         file.path(outDir, paste0(
@@ -284,14 +284,14 @@ countUMI <- function(sce,
             outputPrefix, "_QC.tab"
         ))
     )
-
+    
     data.table::fwrite(as.data.frame(qcdf),
         sep = "\t",
         file = file.path(outDir, paste0(
             format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
             outputPrefix, "_QC.tab"
         )))
-
+    
     SummarizedExperiment::colData(scruffsce) <- qcdf
 
     message(Sys.time(),
@@ -349,7 +349,7 @@ countUMI <- function(sce,
             i,
             ". Duplicate read names detected.",
             " Try rerunning demultiplexing and alignment functions",
-            " with appropriate number of cores.")
+            " with appropriate number of cores and set nBestLocations = 1.")
     }
 
     # reads mapped to genome (exclude ERCC spike-in)

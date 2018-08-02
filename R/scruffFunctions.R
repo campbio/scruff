@@ -52,7 +52,7 @@
 ########################################
 
 # read gtf database and return feature GRangesList by gene ID
-.gtfReadDb <- function(gtf, logfile) {
+.gtfReadDb <- function(gtf) {
     gtf.db.file <- paste0(basename(gtf), ".sqlite")
     if ((!(file.exists(gtf))) & (!(file.exists(gtf.db.file)))) {
         stop(paste("File", gtf, "does not exist"))
