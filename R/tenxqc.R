@@ -17,11 +17,12 @@
 #' @export
 tenxqc <- function(bams,
     reference,
-    tags = c("NH", "CB", "CY", "UB", "UY", "BC", "QT"),
+    readLength = 98,
+    tags = c("NH", "CR", "CB", "CY", "UB", "UY", "BC", "QT"),
     isUnmappedQuery = NA,
-    yieldSize = 1000000) {
+    yieldSize = NA_integer_) {
     
-    .checkCores(cores)
+    #.checkCores(cores)
     
     print(match.call(expand.dots = TRUE))
     
@@ -34,25 +35,37 @@ tenxqc <- function(bams,
     param <- Rsamtools::ScanBamParam(tag = tags,
         flag = Rsamtools::scanBamFlag(isUnmappedQuery = isUnmappedQuery))
     
+    # number of aligned reads, including multimappers
     alignedReads <- 0
+    
+    # number of reads uniquely aligned to genes
     geneReads <- 0
     
-    qcdt <- data.table::data.table(cell_barcode = character(),
-        total_reads = integer(),
-        aligned_reads = integer(),
-        gene_reads = integer())
+    # plot the fraction of these two
     
     
-    #while (isIncomplete(bamfl))
+    
+    # qcdt <- data.table::data.table(cell_barcode = character(),
+    #     aligned_reads = integer(),
+    #     gene_reads = integer())
     
     bamGA <- GenomicAlignments::readGAlignments(bamfl,
         use.names = TRUE,
         param = param)
     
-    ol <- GenomicAlignments::findOverlaps(features, bamGA)
+    alignedReadsDt <- data.table::data.table(
+        name = names(bamGA),
+        cell_barcode = S4Vectors::mcols(bamGA)$CB)
+    
+    # number of aligned reads, including multimappers
+    alignedReads <- table(alignedReadsDt[, cell_barcode])
+    
+    ol <- GenomicAlignments::findOverlaps(features,
+        bamGA,
+        minoverlap = readLength/2)
     
     ol.dt <- data.table::data.table(
-        geneid = base::names(features)[S4Vectors::queryHits(ol)],
+        gene_id = base::names(features)[S4Vectors::queryHits(ol)],
         readname = base::names(bamGA)[S4Vectors::subjectHits(ol)],
         readstart = BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)],
         readend = BiocGenerics::end(bamGA)[S4Vectors::subjectHits(ol)],
@@ -60,16 +73,71 @@ tenxqc <- function(bams,
         [S4Vectors::subjectHits(ol)],
         strand = S4Vectors::decode(
             BiocGenerics::strand(bamGA))[S4Vectors::subjectHits(ol)],
-        # corrected cellular barcode
-        cb = S4Vectors::mcols(bamGA)$CB[S4Vectors::subjectHits(ol)]
+        # corrected good cellular barcodes
+        cb = S4Vectors::mcols(bamGA)$CB[S4Vectors::subjectHits(ol)],
+        cy = S4Vectors::mcols(bamGA)$CY[S4Vectors::subjectHits(ol)]
     )
     
-    readsMappedToGenmoe <- 
-    readsMappedToGenes <- nrow(ol.dt[!grepl("ERCC", ol.dt[, gene_id ]), ])
+    ol.dt <- ol.dt[!is.na(cb), ]
+    
+    # all aligned reads
+    c1.dt <- unique(ol.dt[, .(readname, readstart)])
+    
+    # uniquely mapped reads
+    c1.dt.uni <- c1.dt[!(
+        base::duplicated(c1.dt, by = "readname") |
+            base::duplicated(c1.dt, by = "readname", fromLast = TRUE)
+    ), ]
+    
+    c1.dt.uni2 <- merge(c1.dt.uni,
+        unique(ol.dt[, .(readname, gene_id)]),
+        by = "readname")
+    
+    # remove reads mapped to > 1 genes
+    # reads uniquely mapped to 1 gene
+    c1.dt.uni3 <- c1.dt.uni2[!(
+        base::duplicated(c1.dt.uni2, by = "readname") |
+            base::duplicated(c1.dt.uni2, by = "readname", fromLast = TRUE)
+    ), ]
+    
+    # reads mapped to > 1 positions
+    c1.dt.4 <- c1.dt[(
+        base::duplicated(c1.dt, by = "readname") |
+            base::duplicated(c1.dt, by = "readname", fromLast = TRUE)
+    ), ]
     
     
-
-
+    c1.dt.5 <- merge(c1.dt.4,
+        unique(ol.dt[, .(gene_id, readname)]),
+        by = "readname",
+        allow.cartesian = TRUE)
+    
+    c1.dt.6 <- unique(c1.dt.5[, .(readname, gene_id)])
+    
+    # remove reads mapped to > 1 genes
+    # reads mapped to >1 locations but 1 gene
+    c1.dt.7 <- c1.dt.6[!(
+        base::duplicated(c1.dt.6, by = "readname") |
+            base::duplicated(c1.dt.6, by = "readname", fromLast = TRUE)
+    ), ]
+    
+    # reads mapped to 1 gene
+    uniqueGeneDt <- rbind(c1.dt.uni3[, .(readname, gene_id)], c1.dt.7)
+    uniqueGeneDt <- merge(uniqueGeneDt,
+        unique(ol.dt[, .(readname, cb)]),
+        by = "readname")
+    
+    readsMappedToGenes <- table(uniqueGeneDt[, cb])
+    
+    qcdt <- data.table::data.table(cell_barcode = names(alignedReads),
+        aligned_reads = as.vector(alignedReads))
+    qcdt <- merge(qcdt,
+        data.table::data.table(cell_barcode = names(readsMappedToGenes),
+        gene_reads = as.vector(readsMappedToGenes)),
+        by = "cell_barcode",
+        all = TRUE)
+    
+    
 }
 
 
