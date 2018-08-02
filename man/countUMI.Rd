@@ -15,7 +15,7 @@ slot contains the \strong{alignment_path} column with paths to input
 cell-specific sequence alignment files (BAM or SAM format).}
 
 \item{reference}{Path to the reference GTF file. The TxDb object of the GTF
-file will be generated and saved in the current working directory with
+file will be generated and saved in current working directory with
 ".sqlite" suffix.}
 
 \item{format}{Format of input sequence alignment files. \strong{"BAM"} or
