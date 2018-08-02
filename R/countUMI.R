@@ -134,7 +134,7 @@ countUMI <- function(sce,
 
     message(Sys.time(),
         " ... Loading TxDb file")
-    features <- suppressPackageStartupMessages(.gtfReadDb(reference, logfile))
+    features <- suppressPackageStartupMessages(.gtfReadDb(reference))
 
     # parallelization BiocParallel
 
@@ -349,7 +349,7 @@ countUMI <- function(sce,
             i,
             ". Duplicate read names detected.",
             " Try rerunning demultiplexing and alignment functions",
-            " with appropriate number of cores.")
+            " with appropriate number of cores and set nBestLocations = 1.")
     }
 
     # reads mapped to genome (exclude ERCC spike-in)

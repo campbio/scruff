@@ -35,7 +35,8 @@ read. 1 by default. The allowed value is between 1 to 16 (inclusive).
 In the mapping output, "NH" tag is used to indicate how many alignments are
 reported for the read and "HI" tag is used for numbering the alignments
 reported for the same read. This argument is only applicable when unique
-option is set to \strong{FALSE}.}
+option is set to \strong{FALSE}. \code{Scruff} package does not support
+counting alignment files with \code{nBestLocations > 1}.}
 
 \item{format}{File format of sequence alignment results. \strong{"BAM"} or
 \strong{"SAM"}. Default is \strong{"BAM"}.}
