@@ -26,20 +26,20 @@ tenxqc <- function(bams,
     
     print(match.call(expand.dots = TRUE))
     
-    features <- suppressPackageStartupMessages(.gtfReadDb(reference))
+    features <- suppressPackageStartupMessages(scruff:::.gtfReadDb(reference))
 
     bamfl <- Rsamtools::BamFile(bams, yieldSize = yieldSize)
 
-    open(bamfl)
+    # open(bamfl)
 
     param <- Rsamtools::ScanBamParam(tag = tags,
         flag = Rsamtools::scanBamFlag(isUnmappedQuery = isUnmappedQuery))
     
     # number of aligned reads, including multimappers
-    alignedReads <- 0
+    # alignedReads <- 0
     
     # number of reads uniquely aligned to genes
-    geneReads <- 0
+    # geneReads <- 0
     
     # plot the fraction of these two
     
@@ -53,12 +53,14 @@ tenxqc <- function(bams,
         use.names = TRUE,
         param = param)
     
-    alignedReadsDt <- data.table::data.table(
+    # close(bamfl)
+    
+    genomeReadsDt <- data.table::data.table(
         name = names(bamGA),
         cell_barcode = S4Vectors::mcols(bamGA)$CB)
     
     # number of aligned reads, including multimappers
-    alignedReads <- table(alignedReadsDt[, cell_barcode])
+    genomeReads <- table(genomeReadsDt[, cell_barcode])
     
     ol <- GenomicAlignments::findOverlaps(features,
         bamGA,
@@ -129,16 +131,24 @@ tenxqc <- function(bams,
     
     readsMappedToGenes <- table(uniqueGeneDt[, cb])
     
-    qcdt <- data.table::data.table(cell_barcode = names(alignedReads),
-        aligned_reads = as.vector(alignedReads))
-    qcdt <- merge(qcdt,
-        data.table::data.table(cell_barcode = names(readsMappedToGenes),
-        gene_reads = as.vector(readsMappedToGenes)),
-        by = "cell_barcode",
-        all = TRUE)
+    qcdt <- data.table::data.table(cell_barcode = names(genomeReads),
+        genome_reads = as.vector(genomeReads))
+    qcdt[, gene_reads := 0]
+    qcdt[cell_barcode %in% names(readsMappedToGenes),
+      gene_reads := as.numeric(readsMappedToGenes[cell_barcode])]
     
+    data.table::fwrite(qcdt, "20180808_10xqc.tab", sep = "\t")
+    
+    # counting
+    
+    print("Done")
     
 }
+
+tenxqc(bams = "../JC-PBMC-HIGH/bam/possorted_genome_bam.bam",
+  reference = "../JC-PBMC-HIGH/gtf/GRCH38_ERCC.gtf",
+  yieldSize = 1000000
+  )
 
 
 
