@@ -19,8 +19,8 @@
 #'  matrix will be stored in this directory. Default is \code{"./Count"}.
 #' @param cellPerWell Number of cells per well. Can be an integer (e.g. 1)
 #'  indicating the number of cells in each well or an vector with length equal
-#'   to the total number of cells in the input alignment files specifying the
-#'   number of cells in each file. Default is 1.
+#'  to the total number of cells in the input alignment files specifying the
+#'  number of cells in each file. Default is 1.
 #' @param cores Number of cores used for parallelization. Default is
 #'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
 #'  cores minus 2.
