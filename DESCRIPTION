@@ -64,5 +64,5 @@ biocViews:
     Preprocessing,
     QualityControl,
     Visualization
-BugReports: https://github.com/compbiomed/singleCellTK/issues
+BugReports: https://github.com/compbiomed/scruff/issues
 

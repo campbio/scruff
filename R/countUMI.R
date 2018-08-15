@@ -19,8 +19,8 @@
 #'  matrix will be stored in this directory. Default is \code{"./Count"}.
 #' @param cellPerWell Number of cells per well. Can be an integer (e.g. 1)
 #'  indicating the number of cells in each well or an vector with length equal
-#'   to the total number of cells in the input alignment files specifying the
-#'   number of cells in each file. Default is 1.
+#'  to the total number of cells in the input alignment files specifying the
+#'  number of cells in each file. Default is 1.
 #' @param cores Number of cores used for parallelization. Default is
 #'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
 #'  cores minus 2.
@@ -134,7 +134,7 @@ countUMI <- function(sce,
 
     message(Sys.time(),
         " ... Loading TxDb file")
-    features <- suppressPackageStartupMessages(.gtfReadDb(reference, logfile))
+    features <- suppressPackageStartupMessages(.gtfReadDb(reference))
 
     # parallelization BiocParallel
 
@@ -349,7 +349,7 @@ countUMI <- function(sce,
             i,
             ". Duplicate read names detected.",
             " Try rerunning demultiplexing and alignment functions",
-            " with appropriate number of cores.")
+            " with appropriate number of cores and set nBestLocations = 1.")
     }
 
     # reads mapped to genome (exclude ERCC spike-in)
