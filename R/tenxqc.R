@@ -9,18 +9,14 @@
 #' @param experiment A character vector of experiment names. Represents the
 #'  group label for each BAM file, e.g. "patient1, patient2, ...". The
 #'  length of \code{experiment} equals the number of BAM files to be processed.
-#' @param reference Path to the Cell Ranger reference GTF file. The TxDb object
-#'  of the GTF file will be generated and saved in current working directory
-#'  with ".sqlite" suffix. Must use the same GTF file used in running the
-#'  Cellranger pipeline.
 #' @param validCb Path to the cell barcode whitelist file. By default is
-#'  \code{data(validCb, package = "scruff")} which uses file
-#'  "737K-august-2016.txt".
-#' @param filter Paths to the filtered barcode file. Should be same length and
+#'  \code{NA} which uses file "737K-august-2016.txt". Can be inspected by
+#'  calling \code{data(validCb, package = "scruff")}.
+#' @param filter Paths to the filtered barcode files. Should be same length and
 #'  order of the input BAM files. These files are named
 #'  \emph{"barcodes.tsv"} located at
 #'  \emph{outs/filtered_gene_bc_matrices/<reference_genome>/}. Default is
-#'   \code(NA) meaning no filtering is applied.
+#'  \code{NA} meaning no filtering is applied.
 #' @param yieldSize The number of records (alignments) to yield when drawing
 #'  successive subsets from a BAM file, providing the number of successive 
 #'  records to be returned on each yield. This parameter is passed to the
@@ -32,11 +28,11 @@
 #'  cores minus 2.
 #' @return ggplot object showing the number of aligned reads and reads aligned
 #'  to an gene.
+#' @import Rsamtools
 #' @export
 tenxqc <- function(bam,
     experiment,
-    reference,
-    validCb = data(validCb, package = "scruff"),
+    validCb = NA,
     filter = NA,
     yieldSize = 1000000,
     outDir = "./",
@@ -48,10 +44,18 @@ tenxqc <- function(bam,
     
     print(match.call(expand.dots = TRUE))
     
+    message(Sys.time(), " Start collecting QC metrics for BAM files ",
+        paste(bam, collapse = " "))
+    
     # SAM/BAM tags used for collecting QC metrics
     tags = c("NH", "GX", "RE", "CY", "CB", "UY", "UB", "BC", "QT", "MM")
     
-    features <- suppressPackageStartupMessages(.gtfReadDb(reference))
+    if (is.na(validCb)) {
+        data(validCb, package = "scruff", envir = environment())
+    } else {
+        validCb <- data.table::fread(validCb, header = FALSE)
+    }
+    
     
     resDt <- data.table::data.table(cell_barcode = character(),
         genome_reads = integer(),
@@ -67,10 +71,11 @@ tenxqc <- function(bam,
     
     for (i in seq_len(length(bam))) {
         
+        message(Sys.time(), " Processing file ", bam[i])
+        
         bamfl <- Rsamtools::BamFile(bam[i], yieldSize = yieldSize)
         
-        param <- Rsamtools::ScanBamParam(tag = tags,
-            flag = Rsamtools::scanBamFlag(isUnmappedQuery = isUnmappedQuery))
+        param <- Rsamtools::ScanBamParam(tag = tags)
         
         # initialize valid cell barcodes
         vcb <- data.table::as.data.table(validCb)
@@ -87,31 +92,35 @@ tenxqc <- function(bam,
         .bamIter <- .bamIterator(bamfl, param)
         
         if (isWindows) {
-            qcL <- suppressPackageStartupMessages(
-                BiocParallel::bpiterate(
-                    ITER = .bamIter,
-                    FUN = .tenxqcUnit,
-                    BPPARAM = BiocParallel::SnowParam(
-                        workers = cores),
-                    vcb = vcb)
+            qcL <- BiocParallel::bpiterate(
+                ITER = .bamIter,
+                FUN = .tenxqcUnit,
+                vcb = vcb,
+                #REDUCE = "+",
+                BPPARAM = BiocParallel::SnowParam(
+                    workers = cores)
             )
         } else {
-            qcL <- suppressPackageStartupMessages(
-                BiocParallel::bpiterate(
-                    ITER = .bamIter,
-                    FUN = .tenxqcUnit,
-                    BPPARAM = BiocParallel::MulticoreParam(
-                        workers = cores),
-                    vcb = vcb)
+            qcL <- BiocParallel::bpiterate(
+                ITER = .bamIter,
+                FUN = .tenxqcUnit,
+                vcb = vcb,
+                #REDUCE = "+",
+                BPPARAM = BiocParallel::MulticoreParam(
+                    workers = cores)
             )
         }
         
         close(bamfl)
-        
-        qcDt <- Reduce("+", qcL)
+        qcDt <- base::Reduce("+", qcL)
         qcDt <- data.table::as.data.table(qcDt, keep.rownames = TRUE)
         colnames(qcDt)[1] <- "cell_barcode"
         qcDt <- qcDt[genome_reads != 0, ]
+        
+        if (nrow(qcDt) == 0) {
+            stop("No reads are aligned to the genome in file",
+                bam[i])
+        }
         
         qcDt[, experiment := experiment[i]]
         resDt <- rbind(resDt, qcDt)
@@ -139,6 +148,8 @@ tenxqc <- function(bam,
         return (resDtFiltered)
     }
     
+    message(Sys.time(), " Finished collecting QC metrics")
+    
     return (resDt)
 }
 
@@ -161,12 +172,10 @@ tenxqc <- function(bam,
         QT = S4Vectors::mcols(bamGA)$QT,
         MM = S4Vectors::mcols(bamGA)$MM)
     
-    print(bamdt[1, ])
-    
     genomeReadsDt <- bamdt[, .(readname, CB)]
     
     # number of aligned reads, including multimappers
-    genomeReads <- table(genomeReadsDt[, CB])
+    genomeReads <- base::table(genomeReadsDt[, CB])
     
     # gene reads (uniquely mapped reads)
     # use reads (MM = 1 | MAPQ = 255)
@@ -174,13 +183,13 @@ tenxqc <- function(bam,
         .(readname, CB, GX)]
     
     # if ";" is in GX then this read is not uniquely mapped
-    geneReadsDt <- geneReadsDt[grepl(";", GX), ]
+    geneReadsDt <- geneReadsDt[!base::grepl(";", GX), ]
     
-    geneReads <- table(geneReadsDt[, CB])
+    geneReads <- base::table(geneReadsDt[, CB])
     
     qcdt <- data.table::copy(vcb)
     
-    qcdt[cell_barcode %in% geneReadsDt[, CB],
+    qcdt[cell_barcode %in% genomeReadsDt[, CB],
         genome_reads := as.numeric(genomeReads[cell_barcode])]
     
     qcdt[cell_barcode %in% geneReadsDt[, CB],

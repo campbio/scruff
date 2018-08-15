@@ -151,9 +151,8 @@
 
 # A function that returns an iterator that reads BAM files
 .bamIterator <- function(bamfl, param) {
-    
     return (function() {
-        if (isIncomplete(bamfl)) {
+        if (Rsamtools::isIncomplete(bamfl)) {
             yld <- GenomicAlignments::readGAlignments(bamfl,
                 use.names = TRUE,
                 param = param)
