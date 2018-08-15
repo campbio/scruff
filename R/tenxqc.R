@@ -51,7 +51,7 @@ tenxqc <- function(bam,
     tags = c("NH", "GX", "RE", "CY", "CB", "UY", "UB", "BC", "QT", "MM")
     
     if (is.na(validCb)) {
-        data(validCb, package = "scruff", envir = environment())
+        utils::data(validCb, package = "scruff", envir = environment())
     } else {
         validCb <- data.table::fread(validCb, header = FALSE)
     }
@@ -62,7 +62,7 @@ tenxqc <- function(bam,
         gene_reads = integer(),
         experiment = character())
     
-    if (!is.na(filter)) {
+    if (any(!is.na(filter))) {
         resDtFiltered <- data.table::data.table(cell_barcode = character(),
             genome_reads = integer(),
             gene_reads = integer(),
@@ -96,7 +96,6 @@ tenxqc <- function(bam,
                 ITER = .bamIter,
                 FUN = .tenxqcUnit,
                 vcb = vcb,
-                #REDUCE = "+",
                 BPPARAM = BiocParallel::SnowParam(
                     workers = cores)
             )
@@ -105,7 +104,6 @@ tenxqc <- function(bam,
                 ITER = .bamIter,
                 FUN = .tenxqcUnit,
                 vcb = vcb,
-                #REDUCE = "+",
                 BPPARAM = BiocParallel::MulticoreParam(
                     workers = cores)
             )
@@ -125,7 +123,7 @@ tenxqc <- function(bam,
         qcDt[, experiment := experiment[i]]
         resDt <- rbind(resDt, qcDt)
         
-        if (!is.na(filter)) {
+        if (any(!is.na(filter))) {
             filterDt <- data.table::fread(filter[i])
             colnames(filterDt)[1] <- "cb"
             resDtFiltered <- rbind(resDtFiltered,
@@ -139,7 +137,7 @@ tenxqc <- function(bam,
             format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
             "_10x_bamqc_unfiltered.tab")))
     
-    if (!is.na(filter)) {
+    if (!any(is.na(filter))) {
         data.table::fwrite(resDtFiltered,
             sep = "\t",
             file = file.path(outDir, paste0(
