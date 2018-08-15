@@ -51,7 +51,7 @@ tenxqc <- function(bam,
     tags = c("NH", "GX", "RE", "CY", "CB", "UY", "UB", "BC", "QT", "MM")
     
     if (is.na(validCb)) {
-        data(validCb, package = "scruff", envir = environment())
+        utils::data(validCb, package = "scruff", envir = environment())
     } else {
         validCb <- data.table::fread(validCb, header = FALSE)
     }
