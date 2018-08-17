@@ -9,7 +9,7 @@
 #'  to an gene.
 #' @export
 plot10x <- function(tenxqcDt) {
-    
+    tenxqcDt <- data.table::as.data.table(tenxqcDt)
     # genome reads
     g1 <- ggplot2::ggplot(data = tenxqcDt[genome_reads != 0, ],
         ggplot2::aes(
