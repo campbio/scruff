@@ -39,8 +39,7 @@ plot10x <- function(tenxqcDt) {
         ggplot2::aes(
             x = as.factor(experiment),
             y = log10(gene_reads),
-            group = as.factor(experiment),
-            color = filter)) +
+            group = as.factor(experiment)) +
         ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
         ggplot2::geom_point(ggplot2::aes(color = cells),
             position = ggplot2::position_jitter(width = 0.3, height = 0),
@@ -102,8 +101,7 @@ plot10x <- function(tenxqcDt) {
             ggplot2::aes(
                 x = as.factor(experiment),
                 y = log10(gene_reads),
-                group = as.factor(experiment),
-                color = filter)) +
+                group = as.factor(experiment)) +
             ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
             ggplot2::geom_point(ggplot2::aes(color = cells),
                 position = ggplot2::position_jitter(width = 0.3, height = 0),
