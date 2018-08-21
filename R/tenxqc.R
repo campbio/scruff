@@ -68,7 +68,7 @@ tenxqc <- function(bam,
             genome_reads = integer(),
             gene_reads = integer(),
             experiment = character(),
-            cells = chracter())
+            cells = character())
     }
     
     for (i in seq_len(length(bam))) {
