@@ -13,7 +13,7 @@ plot10x <- function(tenxqcDt) {
     tenxqcDt <- data.table::as.data.table(tenxqcDt)
     
     # genome reads
-    g1 <- ggplot2::ggplot(data = tenxqcDt[cells == "filtered", ],
+    g1 <- ggplot2::ggplot(data = tenxqcDt[cells == "Filtered", ],
         ggplot2::aes(
             x = as.factor(experiment),
             y = log10(genome_reads),
@@ -32,10 +32,10 @@ plot10x <- function(tenxqcDt) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1)) +
-        ggplot2::scale_fill_discrete(name = "Cell barcodes")
+        ggplot2::scale_colour_discrete(name = "Cell barcodes")
     
     
-    g2 <- ggplot2::ggplot(data = tenxqcDt[cells == "filtered", ],
+    g2 <- ggplot2::ggplot(data = tenxqcDt[cells == "Filtered", ],
         ggplot2::aes(
             x = as.factor(experiment),
             y = log10(gene_reads),
@@ -53,9 +53,9 @@ plot10x <- function(tenxqcDt) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1)) +
-        ggplot2::scale_fill_discrete(name = "Cell barcodes")
+        ggplot2::scale_colour_discrete(name = "Cell barcodes")
     
-    g3 <- ggplot2::ggplot(data = tenxqcDt[cells == "filtered", ],
+    g3 <- ggplot2::ggplot(data = tenxqcDt[cells == "Filtered", ],
         ggplot2::aes(
             x = as.factor(experiment),
             y = gene_reads/genome_reads,
@@ -72,9 +72,9 @@ plot10x <- function(tenxqcDt) {
         ggplot2::theme(axis.title.y = ggplot2::element_blank()) +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1)) +
-        ggplot2::scale_fill_discrete(name = "Cell barcodes")
+        ggplot2::scale_colour_discrete(name = "Cell barcodes")
     
-    if ("unfiltered" %in% tenxqcDt[, cells]) {
+    if ("Unfiltered" %in% tenxqcDt[, cells]) {
         g4 <- ggplot2::ggplot(data = tenxqcDt,
             ggplot2::aes(
                 x = as.factor(experiment),
@@ -94,7 +94,7 @@ plot10x <- function(tenxqcDt) {
             .themePublication() +
             ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1)) +
-            ggplot2::scale_fill_discrete(name = "Cell barcodes")
+            ggplot2::scale_colour_discrete(name = "Cell barcodes")
         
         
         g5 <- ggplot2::ggplot(data = tenxqcDt,
@@ -115,7 +115,7 @@ plot10x <- function(tenxqcDt) {
             .themePublication() +
             ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1)) +
-            ggplot2::scale_fill_discrete(name = "Cell barcodes")
+            ggplot2::scale_colour_discrete(name = "Cell barcodes")
         
         g6 <- ggplot2::ggplot(data = tenxqcDt,
             ggplot2::aes(
@@ -134,7 +134,7 @@ plot10x <- function(tenxqcDt) {
             ggplot2::theme(axis.title.y = ggplot2::element_blank()) +
             ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1)) +
-            ggplot2::scale_fill_discrete(name = "Cell barcodes")
+            ggplot2::scale_colour_discrete(name = "Cell barcodes")
         
         return (list(g1, g2, g3, g4, g5, g6))
     }

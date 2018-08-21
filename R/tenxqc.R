@@ -60,15 +60,13 @@ tenxqc <- function(bam,
     resDt <- data.table::data.table(cell_barcode = character(),
         genome_reads = integer(),
         gene_reads = integer(),
-        experiment = character(),
-        cells = character())
+        experiment = character())
     
     if (any(!is.na(filter))) {
         resDtFiltered <- data.table::data.table(cell_barcode = character(),
             genome_reads = integer(),
             gene_reads = integer(),
-            experiment = character(),
-            cells = character())
+            experiment = character())
     }
     
     for (i in seq_len(length(bam))) {
