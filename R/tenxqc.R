@@ -60,13 +60,15 @@ tenxqc <- function(bam,
     resDt <- data.table::data.table(cell_barcode = character(),
         genome_reads = integer(),
         gene_reads = integer(),
-        experiment = character())
+        experiment = character(),
+        cells = character())
     
     if (any(!is.na(filter))) {
         resDtFiltered <- data.table::data.table(cell_barcode = character(),
             genome_reads = integer(),
             gene_reads = integer(),
-            experiment = character())
+            experiment = character(),
+            cells = chracter())
     }
     
     for (i in seq_len(length(bam))) {
@@ -131,6 +133,11 @@ tenxqc <- function(bam,
         }
     }
     
+    resDt[, cells := "Unfiltered"]
+    
+    message(Sys.time(), " Finished collecting QC metrics")
+    message(Sys.time(), " Write QC results to output directory")
+    
     data.table::fwrite(resDt,
         sep = "\t",
         file = file.path(outDir, paste0(
@@ -138,16 +145,22 @@ tenxqc <- function(bam,
             "_10x_bamqc_unfiltered.tab")))
     
     if (!any(is.na(filter))) {
+        resDtFiltered[, cells := "Filtered"]
         data.table::fwrite(resDtFiltered,
             sep = "\t",
             file = file.path(outDir, paste0(
                 format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
                 "_10x_bamqc_filtered.tab")))
-        return (resDtFiltered)
+        # clean the returned table
+        allCellsDt <- rbind(resDtFiltered, resDt)
+        
+        allCellsDt <- allCellsDt[!(base::duplicated(allCellsDt,
+            by = c("cell_barcode",
+                "genome_reads",
+                "gene_reads",
+                "experiment"))), ]
+        return (allCellsDt)
     }
-    
-    message(Sys.time(), " Finished collecting QC metrics")
-    
     return (resDt)
 }
 
