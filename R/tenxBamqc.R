@@ -204,6 +204,8 @@ tenxBamqc <- function(bam,
         CB = S4Vectors::mcols(bamGA)$CB,
         MM = S4Vectors::mcols(bamGA)$MM)
     
+    bamdt[, CB := data.table::tstrsplit(CB, "-")[[1]]]
+    
     genomeReadsDt <- bamdt[, .(readname, CB)]
     
     # number of aligned reads, including multimappers
