@@ -14,6 +14,7 @@ plot10x <- function(tenxqcDt) {
     
     # genome reads
     if ("Filtered" %in% tenxqcDt[, cells]) {
+        
         g1 <- ggplot2::ggplot(data = tenxqcDt[cells == "Filtered", ],
             ggplot2::aes(
                 x = as.factor(experiment),
@@ -25,15 +26,17 @@ plot10x <- function(tenxqcDt) {
                 size = 0.5,
                 alpha = 0.5
             ) +
-            ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
             ggplot2::xlab("Experiment") +
             ggplot2::ggtitle("Reads aligned to reference genome") +
-            ggplot2::scale_y_continuous(labels = scales::comma,
-                limits = c(0, NA)) +
+            ggplot2::scale_y_continuous(name = "Reads",
+                limits = c(0, NA),
+                labels = scales::math_format(10^.x)) +
+            ggplot2::annotation_logticks(sides = "l") +
             .themePublication() +
             ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1)) +
             ggplot2::scale_colour_discrete(name = "Cell barcodes")
+        
         
         g2 <- ggplot2::ggplot(data = tenxqcDt[cells == "Filtered", ],
             ggplot2::aes(
@@ -45,11 +48,12 @@ plot10x <- function(tenxqcDt) {
                 position = ggplot2::position_jitter(width = 0.3, height = 0),
                 size = 0.5,
                 alpha = 0.5) +
-            ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
             ggplot2::xlab("Experiment") +
             ggplot2::ggtitle("Reads mapped to genes") +
-            ggplot2::scale_y_continuous(labels = scales::comma,
-                limits = c(0, NA)) +
+            ggplot2::scale_y_continuous(name = "Reads",
+                limits = c(0, NA),
+                labels = scales::math_format(10^.x)) +
+            ggplot2::annotation_logticks(sides = "l") +
             .themePublication() +
             ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1)) +
@@ -87,11 +91,12 @@ plot10x <- function(tenxqcDt) {
                 size = 0.5,
                 alpha = 0.5
             ) +
-            ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
             ggplot2::xlab("Experiment") +
             ggplot2::ggtitle("Reads aligned to reference genome") +
-            ggplot2::scale_y_continuous(labels = scales::comma,
-                limits = c(0, NA)) +
+            ggplot2::scale_y_continuous(name = "Reads",
+                limits = c(0, NA),
+                labels = scales::math_format(10^.x)) +
+            ggplot2::annotation_logticks(sides = "l") +
             .themePublication() +
             ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1)) +
@@ -111,8 +116,10 @@ plot10x <- function(tenxqcDt) {
             ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
             ggplot2::xlab("Experiment") +
             ggplot2::ggtitle("Reads mapped to genes") +
-            ggplot2::scale_y_continuous(labels = scales::comma,
-                limits = c(0, NA)) +
+            ggplot2::scale_y_continuous(name = "Reads",
+                limits = c(0, NA),
+                labels = scales::math_format(10^.x)) +
+            ggplot2::annotation_logticks(sides = "l") +
             .themePublication() +
             ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1)) +
