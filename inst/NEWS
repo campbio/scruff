@@ -1,6 +1,6 @@
-# 1.0.0
+# 0.99.33
 
-scruff release
+* Add QC visualization functions for 10X BAM files
 
 # 0.99.11
 
