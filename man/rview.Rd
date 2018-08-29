@@ -29,5 +29,6 @@ Visualize read alignments for UMI tagged single cell RNA-sequencing data.
 }
 \examples{
 data(bamExample, package = "scruff")
-rview(bamExample, chr = "MT", legend = TRUE)
+g <- rview(bamExample, chr = "MT", legend = TRUE)
+g
 }

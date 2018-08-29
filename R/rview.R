@@ -13,7 +13,8 @@
 #' @return A ggplot object of aligned reads
 #' @examples
 #' data(bamExample, package = "scruff")
-#' rview(bamExample, chr = "MT", legend = TRUE)
+#' g <- rview(bamExample, chr = "MT", legend = TRUE)
+#' g
 #' @import ggbio
 #' @export
 rview <- function(bamGA,

@@ -17,6 +17,9 @@
 #'  \emph{"barcodes.tsv"} located at
 #'  \emph{outs/filtered_gene_bc_matrices/<reference_genome>/}. Default is
 #'  \code{NA} meaning no filtering is applied.
+#' @param tags BAM tags used for collecting QC metrics. Contains
+#'  non-standard tags locally-defined by Cell Ranger pipeline. Should not be
+#'  changed in most cases.
 #' @param yieldSize The number of records (alignments) to yield when drawing
 #'  successive subsets from a BAM file, providing the number of successive 
 #'  records to be returned on each yield. This parameter is passed to the
@@ -28,12 +31,40 @@
 #'  cores minus 2.
 #' @return ggplot object showing the number of aligned reads and reads aligned
 #'  to an gene.
+#' @examples
+#' # first 5000 records in the bam file downloaded from here:
+#' # http://sra-download.ncbi.nlm.nih.gov/srapub_files/
+#' # SRR5167880_E18_20160930_Neurons_Sample_01.bam
+#' # see details here:
+#' # https://trace.ncbi.nlm.nih.gov/Traces/sra/?study=SRP096558
+#' # and here:
+#' # https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE93421
+#' bamfile10x <- system.file("extdata",
+#'     "SRR5167880_E18_20160930_Neurons_Sample_01_5000.bam",
+#'     package = "scruff")
+#' 
+#' # library(TENxBrainData)
+#' # library(data.table)
+#' # tenx <- TENxBrainData()
+#' # # get filtered barcodes for sample 01
+#' # filteredBcIndex <- tstrsplit(colData(tenx)[, "Barcode"], "-")[[2]] == 1
+#' # filteredBc <- colData(tenx)[filteredBcIndex, ][["Barcode"]]
+#' 
+#' filteredBc <- system.file("extdata",
+#'     "SRR5167880_E18_20160930_Neurons_Sample_01_filtered_barcode.tsv",
+#'     package = "scruff")
+#' # QC results are saved to current working directory
+#' qcDt <- tenxBamqc(bam = bamfile10x,
+#'     experiment = "Neurons_Sample_01",
+#'     filter = filteredBc)
+#' qcDt
 #' @import Rsamtools
 #' @export
-tenxqc <- function(bam,
+tenxBamqc <- function(bam,
     experiment,
     validCb = NA,
     filter = NA,
+    tags = c("NH", "GX", "CB", "MM"),
     yieldSize = 1000000,
     outDir = "./",
     cores = max(1, parallel::detectCores() - 2)) {
@@ -46,9 +77,6 @@ tenxqc <- function(bam,
     
     message(Sys.time(), " Start collecting QC metrics for BAM files ",
         paste(bam, collapse = " "))
-    
-    # SAM/BAM tags used for collecting QC metrics
-    tags = c("NH", "GX", "RE", "CY", "CB", "UY", "UB", "BC", "QT", "MM")
     
     if (is.na(validCb)) {
         utils::data(validCb, package = "scruff", envir = environment())
@@ -82,7 +110,7 @@ tenxqc <- function(bam,
         
         colnames(vcb)[1] <- "cell_barcode"
         
-        vcb[, cell_barcode := paste0(cell_barcode, "-1")]
+        #vcb[, cell_barcode := paste0(cell_barcode, "-1")]
         vcb[, genome_reads := 0]
         vcb[, gene_reads := 0]
         
@@ -94,7 +122,7 @@ tenxqc <- function(bam,
         if (isWindows) {
             qcL <- BiocParallel::bpiterate(
                 ITER = .bamIter,
-                FUN = .tenxqcUnit,
+                FUN = .tenxBamqcUnit,
                 vcb = vcb,
                 BPPARAM = BiocParallel::SnowParam(
                     workers = cores)
@@ -102,7 +130,7 @@ tenxqc <- function(bam,
         } else {
             qcL <- BiocParallel::bpiterate(
                 ITER = .bamIter,
-                FUN = .tenxqcUnit,
+                FUN = .tenxBamqcUnit,
                 vcb = vcb,
                 BPPARAM = BiocParallel::MulticoreParam(
                     workers = cores)
@@ -124,8 +152,9 @@ tenxqc <- function(bam,
         resDt <- rbind(resDt, qcDt)
         
         if (any(!is.na(filter))) {
-            filterDt <- data.table::fread(filter[i])
+            filterDt <- data.table::fread(filter[i], header = FALSE)
             colnames(filterDt)[1] <- "cb"
+            filterDt[, cb := data.table::tstrsplit(cb, "-")[[1]]]
             resDtFiltered <- rbind(resDtFiltered,
                 qcDt[cell_barcode %in% filterDt[, cb], ])
         }
@@ -163,7 +192,7 @@ tenxqc <- function(bam,
 }
 
 
-.tenxqcUnit <- function(bamGA, vcb, ...) {
+.tenxBamqcUnit <- function(bamGA, vcb, ...) {
     
     bamdt <- data.table::data.table(readname = base::names(bamGA),
         chr = as.vector(GenomicAlignments::seqnames(bamGA)),
@@ -172,14 +201,10 @@ tenxqc <- function(bam,
         readend = BiocGenerics::end(bamGA),
         NH = S4Vectors::mcols(bamGA)$NH,
         GX = S4Vectors::mcols(bamGA)$GX,
-        RE = S4Vectors::mcols(bamGA)$RE,
-        CY = S4Vectors::mcols(bamGA)$CY,
         CB = S4Vectors::mcols(bamGA)$CB,
-        UY = S4Vectors::mcols(bamGA)$UY,
-        UB = S4Vectors::mcols(bamGA)$UB,
-        BC = S4Vectors::mcols(bamGA)$BC,
-        QT = S4Vectors::mcols(bamGA)$QT,
         MM = S4Vectors::mcols(bamGA)$MM)
+    
+    bamdt[, CB := data.table::tstrsplit(CB, "-")[[1]]]
     
     genomeReadsDt <- bamdt[, .(readname, CB)]
     
@@ -197,6 +222,14 @@ tenxqc <- function(bam,
     geneReads <- base::table(geneReadsDt[, CB])
     
     qcdt <- data.table::copy(vcb)
+    
+    # sanity check
+    if (nrow(qcdt[cell_barcode %in% genomeReadsDt[, CB], ]) !=
+            length(unique(genomeReadsDt[!is.na(CB), CB]))) {
+        stop("Some of the corrected cell barcodes in the BAM file do not exist",
+            " in barcode whitelist. Maybe you are using an older version of ",
+            "cell barcode whitelist with 14-base-long barcodes?")
+    }
     
     qcdt[cell_barcode %in% genomeReadsDt[, CB],
         genome_reads := as.numeric(genomeReads[cell_barcode])]
