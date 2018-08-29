@@ -4,7 +4,7 @@
 \name{bamExample}
 \alias{bamExample}
 \title{Example GAlignments Object}
-\format{A GAlignments object.}
+\format{A \code{GAlignments} object.}
 \usage{
 bamExample
 }
