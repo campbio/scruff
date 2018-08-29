@@ -223,6 +223,14 @@ tenxBamqc <- function(bam,
     
     qcdt <- data.table::copy(vcb)
     
+    # sanity check
+    if (nrow(qcdt[cell_barcode %in% genomeReadsDt[, CB], ]) !=
+            length(unique(genomeReadsDt[!is.na(CB), CB]))) {
+        stop("Some of the corrected cell barcodes in the BAM file do not exist",
+            " in barcode whitelist. Maybe you are using an older version of ",
+            "cell barcode whitelist with 14-base-long barcodes?")
+    }
+    
     qcdt[cell_barcode %in% genomeReadsDt[, CB],
         genome_reads := as.numeric(genomeReads[cell_barcode])]
     
