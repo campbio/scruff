@@ -1,4 +1,10 @@
-# 0.99.34
+# 0.99.36
+
+* Fix a bug where MT reads are not identified. 
+* Add ERCC to rowData of sce object.
+* Change plot style. Add minor log ticks
+
+# 0.99.35
 
 * Add QC visualization functions for 10X BAM files
 
