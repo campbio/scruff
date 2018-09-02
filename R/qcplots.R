@@ -10,7 +10,6 @@
 #' @examples
 #' data(sceExample, package = "scruff")
 #' qcplots(sceExample)
-#' @import grid
 #' @export
 qcplots <- function(sce) {
     qcDt <- data.table::as.data.table(SummarizedExperiment::colData(sce))
@@ -28,11 +27,7 @@ qcplots <- function(sce) {
     g12 <- .plotFracProteinCodingGenes(qcDt)
     g13 <- .plotFracProteinCodingTranscripts(qcDt)
     g14 <- .plotGenesPerMillionReads(qcDt)
-    return (gridExtra::marrangeGrob(
-        list(g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13, g14),
-        ncol = 1,
-        nrow = 2,
-        top = NULL))
+    return (list(g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13, g14))
 }
 
 
@@ -48,13 +43,16 @@ qcplots <- function(sce) {
             position = ggplot2::position_jitter(width = 0.3, height = 0),
             size = 0.5
         ) +
-        ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
         ggplot2::xlab("Experiment") +
         ggplot2::ggtitle("Total reads") +
         ggplot2::labs(color = "Cells/well") +
-        ggplot2::scale_y_continuous(labels = scales::comma,
-            limits = c(0, NA)) +
-        .themePublication()
+        ggplot2::scale_y_continuous(name = "Reads",
+            limits = c(0, NA),
+            labels = scales::math_format(10^.x)) +
+        ggplot2::annotation_logticks(sides = "l") +
+        .themePublication() +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
+            hjust = 1))
     return (g)
 }
 
@@ -71,13 +69,16 @@ qcplots <- function(sce) {
             position = ggplot2::position_jitter(width = 0.3, height = 0),
             size = 0.5
         ) +
-        ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
         ggplot2::xlab("Experiment") +
         ggplot2::ggtitle("Reads aligned to reference genome") +
         ggplot2::labs(color = "Cells/well") +
-        ggplot2::scale_y_continuous(labels = scales::comma,
-            limits = c(0, NA)) +
-        .themePublication()
+        ggplot2::scale_y_continuous(name = "Reads",
+            limits = c(0, NA),
+            labels = scales::math_format(10^.x)) +
+        ggplot2::annotation_logticks(sides = "l") +
+        .themePublication() +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
+            hjust = 1))
     return (g)
 }
 
@@ -93,13 +94,16 @@ qcplots <- function(sce) {
             ggplot2::aes(color = as.factor(number_of_cells)),
             position = ggplot2::position_jitter(width = 0.3, height = 0),
             size = 0.5) +
-        ggplot2::ylab(expression(bold(Log[10]*"Reads"))) +
         ggplot2::xlab("Experiment") +
         ggplot2::ggtitle("Reads mapped to genes") +
         ggplot2::labs(color = "Cells/well") +
-        ggplot2::scale_y_continuous(labels = scales::comma,
-            limits = c(0, NA)) +
-        .themePublication()
+        ggplot2::scale_y_continuous(name = "Reads",
+            limits = c(0, NA),
+            labels = scales::math_format(10^.x)) +
+        ggplot2::annotation_logticks(sides = "l") +
+        .themePublication() +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
+            hjust = 1))
     return (g)
 }
 
@@ -120,7 +124,9 @@ qcplots <- function(sce) {
         ggplot2::ggtitle("Fraction of aligned reads to total reads") +
         ggplot2::labs(color = "Cells/well") +
         .themePublication() + 
-        ggplot2::theme(axis.title.y = ggplot2::element_blank())
+        ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+            axis.text.x = ggplot2::element_text(angle = 45,
+                hjust = 1))
     return (g)
 }
 
@@ -141,7 +147,9 @@ qcplots <- function(sce) {
         ggplot2::ggtitle("Fraction of gene reads out of aligned reads") +
         ggplot2::labs(color = "Cells/well") +
         .themePublication() +
-        ggplot2::theme(axis.title.y = ggplot2::element_blank())
+        ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+            axis.text.x = ggplot2::element_text(angle = 45,
+                hjust = 1))
     return (g)
 }
 
@@ -162,7 +170,9 @@ qcplots <- function(sce) {
         ggplot2::ggtitle("Fraction of gene reads out of total reads") +
         ggplot2::labs(color = "Cells/well") +
         .themePublication() +
-        ggplot2::theme(axis.title.y = ggplot2::element_blank())
+        ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+            axis.text.x = ggplot2::element_text(angle = 45,
+                hjust = 1))
     return (g)
 }
 
@@ -178,13 +188,16 @@ qcplots <- function(sce) {
             ggplot2::aes(color = as.factor(number_of_cells)),
             position = ggplot2::position_jitter(width = 0.3, height = 0),
             size = 0.5) +
-        ggplot2::ylab(expression(bold(Log[10]*"Counts"))) +
         ggplot2::xlab("Experiment") +
         ggplot2::ggtitle("Total transcripts") +
         ggplot2::labs(color = "Cells/well") +
-        ggplot2::scale_y_continuous(labels = scales::comma,
-            limits = c(0, NA)) +
-        .themePublication()
+        ggplot2::scale_y_continuous(name = "Counts",
+            limits = c(0, NA),
+            labels = scales::math_format(10^.x)) +
+        ggplot2::annotation_logticks(sides = "l") +
+        .themePublication() +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
+            hjust = 1))
     return (g)
 }
 
@@ -200,13 +213,16 @@ qcplots <- function(sce) {
             ggplot2::aes(color = as.factor(number_of_cells)),
             position = ggplot2::position_jitter(width = 0.3, height = 0),
             size = 0.5) +
-        ggplot2::ylab(expression(bold(Log[10]*"Counts"))) +
         ggplot2::xlab("Experiment") +
         ggplot2::ggtitle("Mitochondrial transcripts") +
         ggplot2::labs(color = "Cells/well") +
-        ggplot2::scale_y_continuous(labels = scales::comma,
-            limits = c(0, NA)) +
-        .themePublication()
+        ggplot2::scale_y_continuous(name = "Counts",
+            limits = c(0, NA),
+            labels = scales::math_format(10^.x)) +
+        ggplot2::annotation_logticks(sides = "l") +
+        .themePublication() +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
+            hjust = 1))
     return (g)
 }
 
@@ -227,7 +243,9 @@ qcplots <- function(sce) {
         ggplot2::ggtitle("Fraction of mitochondrial transcripts") +
         ggplot2::labs(color = "Cells/well") +
         .themePublication() +
-        ggplot2::theme(axis.title.y = ggplot2::element_blank())
+        ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+            axis.text.x = ggplot2::element_text(angle = 45,
+                hjust = 1))
     return (g)
 }
 
@@ -243,13 +261,16 @@ qcplots <- function(sce) {
             ggplot2::aes(color = as.factor(number_of_cells)),
             position = ggplot2::position_jitter(width = 0.3, height = 0),
             size = 0.5) +
-        ggplot2::ylab(expression(bold(Log[10]*"Genes"))) +
         ggplot2::xlab("Experiment") +
         ggplot2::ggtitle("Transcribed genes") +
         ggplot2::labs(color = "Cells/well") +
-        ggplot2::scale_y_continuous(labels = scales::comma,
-            limits = c(0, NA)) +
-        .themePublication()
+        ggplot2::scale_y_continuous(name = "Genes",
+            limits = c(0, NA),
+            labels = scales::math_format(10^.x)) +
+        ggplot2::annotation_logticks(sides = "l") +
+        .themePublication() +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
+            hjust = 1))
     return (g)
 }
 
@@ -270,7 +291,9 @@ qcplots <- function(sce) {
         ggplot2::ggtitle("Fraction of protein coding genes") +
         ggplot2::labs(color = "Cells/well") +
         .themePublication() +
-        ggplot2::theme(axis.title.y = ggplot2::element_blank())
+        ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+            axis.text.x = ggplot2::element_text(angle = 45,
+                hjust = 1))
     return (g)
 }
 
@@ -291,7 +314,9 @@ qcplots <- function(sce) {
         ggplot2::ggtitle("Fraction of protein coding transcripts") +
         ggplot2::labs(color = "Cells/well") +
         .themePublication() +
-        ggplot2::theme(axis.title.y = ggplot2::element_blank())
+        ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+            axis.text.x = ggplot2::element_text(angle = 45,
+                hjust = 1))
     return (g)
 }
 
@@ -308,17 +333,19 @@ qcplots <- function(sce) {
             position = ggplot2::position_jitter(width = 0.3,
                 height = 0),
             size = 0.5) +
-        ggplot2::ylab(
-            expression(bold(paste(Log[10],
-                "(Genes x 1000000 / total reads)")))) +
         ggplot2::ggtitle(
             paste("Genes detected divided by total number of reads",
                 "sequenced per million")) +
         ggplot2::xlab("Experiment") +
         ggplot2::labs(color = "Cells/well") +
-        ggplot2::scale_y_continuous(labels = scales::comma,
-            limits = c(0, NA)) +
-        .themePublication()
+        ggplot2::scale_y_continuous(name = expression(bold(
+            "(Genes x 1000000 / total reads)")),
+            limits = c(0, NA),
+            labels = scales::math_format(10^.x)) +
+        ggplot2::annotation_logticks(sides = "l") +
+        .themePublication() +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
+            hjust = 1))
     return (g)
 }
 
