@@ -135,9 +135,9 @@ countUMI <- function(sce,
     message(Sys.time(),
         " ... Loading TxDb file")
     features <- suppressPackageStartupMessages(.gtfReadDb(reference))
-
+    GenomeInfoDb::seqlevelsStyle(features) <- "NCBI"
+    
     # parallelization BiocParallel
-
     if (format == "SAM") {
         if (isWindows) {
             alignmentFilePaths <- BiocParallel::bplapply(
@@ -231,7 +231,18 @@ countUMI <- function(sce,
             "gene_name",
             "gene_biotype",
             "seqid")]))
-
+    
+    if (length(grep("ERCC", names(features))) > 0) {
+        ercc <- features[grep("ERCC", names(features))]
+        erccDt <- data.table::data.table(
+            gene_id = base::names(ercc),
+            gene_name = base::names(ercc),
+            gene_biotype = "ERCC",
+            seqid = "ERCC"
+        )
+        geneAnnotation <- rbind(geneAnnotation, erccDt)
+    }
+    
     SummarizedExperiment::rowData(scruffsce) <-
         S4Vectors::DataFrame(geneAnnotation[order(gene_id), ],
             row.names = geneAnnotation[order(gene_id),
@@ -246,9 +257,9 @@ countUMI <- function(sce,
     # MT counts
     mtCounts <- base::colSums(as.data.frame(
         SummarizedExperiment::assay(scruffsce)
-        [grep("^mt-", SummarizedExperiment::rowData(scruffsce)
-            [, "gene_name"]), ]))
-
+        [grep("MT", SummarizedExperiment::rowData(scruffsce)
+            [, "seqid"], ignore.case = TRUE), ]))
+    
     # gene number exclude ERCC
     cm <- SummarizedExperiment::assay(scruffsce)[
         !SingleCellExperiment::isSpike(scruffsce, "ERCC"), ]
@@ -339,7 +350,8 @@ countUMI <- function(sce,
 
     bfl <- Rsamtools::BamFile(i)
     bamGA <- GenomicAlignments::readGAlignments(bfl, use.names = TRUE)
-
+    GenomeInfoDb::seqlevelsStyle(bamGA) <- "NCBI"
+    
     genomeReads <- data.table::data.table(
         name = names(bamGA),
         seqnames = as.vector(GenomicAlignments::seqnames(bamGA)))
