@@ -32,8 +32,6 @@ The following figures are generated using data from [(Van den Brink et al. 2017)
 
 ![scruff gene_reads_fraction_out_of_total_reads](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_06.png)
 
-![scruff gene_reads_fraction_out_of_total_reads](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_06.png)
-
 ![scruff transcripts](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_07.png)
 
 ![scruff mt_transcripts](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_08.png)
