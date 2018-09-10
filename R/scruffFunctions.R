@@ -163,6 +163,38 @@
     })
 }
 
+# Check cell barcodes
+.checkCellBarcodes <- function(bc, bcStart, bcStop, verbose) {
+    if (bcStop < bcStart) {
+        stop("bcStop ",
+            bcStop,
+            " should be equal or greater than bcStart ",
+            bcStart)
+    }
+    
+    if (verbose) {
+        message("Cell barcode input vector:\n")
+        print(bc)
+    }
+    
+    if (length(bc) < 10) {
+        warning("Length of cell barcode vector is less than 10!")
+    }
+    
+    if (length(unique(nchar(bc))) > 1) {
+        warning("The cell barcode input vector has variable lengths!")
+    } else {
+        bcL <- bcStop - bcStart + 1
+        if (unique(nchar(bc)) != bcL) {
+            stop("The number of barcode bases in cell barcode input file is ",
+                unique(nchar(bc)),
+                " but the number is ",
+                bcL,
+                " between 'bcStart' and 'bcStop'!")
+        }
+    }
+}
+
 
 ########################################
 ###### Plotting helper functions #######
