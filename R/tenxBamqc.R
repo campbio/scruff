@@ -169,7 +169,7 @@ tenxBamqc <- function(bam,
         sep = "\t",
         file = file.path(outDir, paste0(
             format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-            "_10x_bamqc_unfiltered.tab")))
+            "_10x_bamqc_unfiltered.tsv")))
     
     if (!any(is.na(filter))) {
         resDtFiltered[, cells := "Filtered"]
@@ -177,7 +177,7 @@ tenxBamqc <- function(bam,
             sep = "\t",
             file = file.path(outDir, paste0(
                 format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-                "_10x_bamqc_filtered.tab")))
+                "_10x_bamqc_filtered.tsv")))
         # clean the returned table
         allCellsDt <- rbind(resDtFiltered, resDt)
         
@@ -186,6 +186,13 @@ tenxBamqc <- function(bam,
                 "genome_reads",
                 "gene_reads",
                 "experiment"))), ]
+        
+        data.table::fwrite(allCellsDt,
+            sep = "\t",
+            file = file.path(outDir, paste0(
+                format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+                "_10x_bamqc_all.tsv")))
+        
         return (allCellsDt)
     }
     return (resDt)

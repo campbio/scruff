@@ -4,11 +4,13 @@
 \alias{tenxBamqcplot}
 \title{Visualize 10X read alignment data}
 \usage{
-tenxBamqcplot(tenxBamqcDt)
+tenxBamqcplot(tenxBamqcDt, include = c("filtered", "all"))
 }
 \arguments{
 \item{tenxBamqcDt}{A data frame or \code{data.table} object containing the
 genome_reads and gene_reads columns.}
+
+\item{include}{Reads from which type of cell barcodes are shown in the plots. One of "filtered" which shows filtered cell barcodes only or "all" which shows both filrered and unfiltered plots.}
 }
 \value{
 ggplot object showing the number of aligned reads and reads aligned

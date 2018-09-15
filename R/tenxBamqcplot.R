@@ -5,6 +5,7 @@
 #'
 #' @param tenxBamqcDt A data frame or \code{data.table} object containing the
 #'  genome_reads and gene_reads columns.
+#' @param include Reads from which type of cell barcodes are shown in the plots. One of "filtered" which shows filtered cell barcodes only or "all" which shows both filrered and unfiltered plots.
 #' @return ggplot object showing the number of aligned reads and reads aligned
 #'  to an gene.
 #' @examples
@@ -38,8 +39,8 @@
 #' g <- tenxBamqcplot(qcDt)
 #' g
 #' @export
-tenxBamqcplot <- function(tenxBamqcDt) {
-    
+tenxBamqcplot <- function(tenxBamqcDt, include = c("filtered", "all")) {
+    include <- match.arg(include)
     tenxBamqcDt <- data.table::as.data.table(tenxBamqcDt)
     
     # genome reads
@@ -109,7 +110,7 @@ tenxBamqcplot <- function(tenxBamqcDt) {
             ggplot2::scale_colour_discrete(name = "Cell barcodes")
     }
     
-    if ("Unfiltered" %in% tenxBamqcDt[, cells]) {
+    if (include == "all" & "Unfiltered" %in% tenxBamqcDt[, cells]) {
         g4 <- ggplot2::ggplot(data = tenxBamqcDt,
             ggplot2::aes(
                 x = as.factor(experiment),
@@ -175,12 +176,18 @@ tenxBamqcplot <- function(tenxBamqcDt) {
             ggplot2::scale_colour_discrete(name = "Cell barcodes")
     }
     
-    if ("Unfiltered" %in% tenxBamqcDt[, cells] &
-            "Filtered" %in% tenxBamqcDt[, cells]) {
-        return (list(g1, g2, g3, g4, g5, g6))
-    } else if ("Filtered" %in% tenxBamqcDt[, cells]) {
-        return (list(g1, g2, g3))
-    } else {
-        return (list(g4, g5, g6))
+    if (include == "all") {
+        if ("Unfiltered" %in% tenxBamqcDt[, cells] &
+                "Filtered" %in% tenxBamqcDt[, cells]) {
+            return (list(g1, g2, g3, g4, g5, g6))
+        } else if ("Filtered" %in% tenxBamqcDt[, cells]) {
+            return (list(g1, g2, g3))
+        } else {
+            return (list(g4, g5, g6))
+        }
+    }  else {
+            if ("Filtered" %in% tenxBamqcDt[, cells]){
+                return (list(g1, g2, g3))
+        }
     }
 }
