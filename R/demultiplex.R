@@ -262,7 +262,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                     "%Y%m%d_%H%M%S"),
                 "_",
                 summaryPrefix,
-                ".tab"
+                ".tsv"
             )),
         sep = "\t")
 
@@ -587,7 +587,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
             outDir,
             i,
             paste(expMetaDt[, unique(project)],
-                summaryPrefix, i, ".tab", sep =
+                summaryPrefix, i, ".tsv", sep =
                     "_")
         ),
         sep = "\t")
