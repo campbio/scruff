@@ -70,14 +70,11 @@
     
     gtf.db <- tryCatch(
         suppressPackageStartupMessages(AnnotationDbi::loadDb(gtf.db.file)),
-        error = function(e)
-            stop(
-                paste(
-                    "Error loading database file. Delete the file",
+        error = function(e) {
+            stop("Error loading database file. Delete the file",
                     gtf.db.file,
-                    "and try again."
-                )
-            )
+                    "and try again.")
+        }
     )
     return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
 }
@@ -193,6 +190,30 @@
                 " between 'bcStart' and 'bcStop'!")
         }
     }
+}
+
+
+.getGeneAnnotationRefGenome <- function(reference, features) {
+    gtfEG = refGenome::ensemblGenome(dirname(reference))
+    refGenome::read.gtf(gtfEG, filename = basename(reference))
+    geneAnnotation <- data.table::data.table(
+        unique(refGenome::getGeneTable(gtfEG)[, c("gene_id",
+            "gene_name",
+            "gene_biotype",
+            "seqid")]))
+    geneAnnotation <- geneAnnotation[order(gene_id), ]
+    
+    if (length(grep("ERCC", names(features))) > 0) {
+        ercc <- features[grep("ERCC", names(features))]
+        erccDt <- data.table::data.table(
+            gene_id = base::names(ercc),
+            gene_name = base::names(ercc),
+            gene_biotype = "ERCC",
+            seqid = "ERCC"
+        )
+        geneAnnotation <- rbind(geneAnnotation, erccDt)
+    }
+    return (geneAnnotation)
 }
 
 
