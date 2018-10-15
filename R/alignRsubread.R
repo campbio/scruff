@@ -206,7 +206,7 @@ alignRsubread <- function(sce,
             format(Sys.time(), "%Y%m%d_%H%M%S"),
             "_",
             summaryPrefix,
-            ".tsv"
+            ".tab"
         ))
     )
 
@@ -214,7 +214,7 @@ alignRsubread <- function(sce,
         format(Sys.time(), "%Y%m%d_%H%M%S"),
         "_",
         summaryPrefix,
-        ".tsv"
+        ".tab"
     )), sep = "\t")
 
     colnames(resDt) <- c("alignment_path",

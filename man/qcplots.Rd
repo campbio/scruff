@@ -7,8 +7,8 @@
 qcplots(sce)
 }
 \arguments{
-\item{sce}{An \code{SingleCellExperiment} object returned from [scruff],
-[countUMI], or [tenxBamqc] function.}
+\item{sce}{An \code{SingleCellExperiment} object returned from \code{scruff}
+or \code{countUMI} function.}
 }
 \value{
 A list of \code{grobs} objects ready for plotting

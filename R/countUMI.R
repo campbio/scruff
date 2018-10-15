@@ -135,13 +135,7 @@ countUMI <- function(sce,
     message(Sys.time(),
         " ... Loading TxDb file")
     features <- suppressPackageStartupMessages(.gtfReadDb(reference))
-    tryCatch(
-        GenomeInfoDb::seqlevelsStyle(features) <- "NCBI",
-        error = function(e) {
-            warning("found no sequence renaming map compatible with seqname",
-                " style 'NCBI' for the input reference ", basename(reference))
-        }
-    )
+    GenomeInfoDb::seqlevelsStyle(features) <- "NCBI"
     
     # parallelization BiocParallel
     if (format == "SAM") {
@@ -226,31 +220,33 @@ countUMI <- function(sce,
         "reads_mapped_to_genes")
 
     SingleCellExperiment::isSpike(scruffsce,
-        "ERCC") <- grepl("ERCC-",
+        "ERCC") <- grepl("^ERCC-",
             rownames(scruffsce))
 
-    geneAnnotation <- .getGeneAnnotationRefGenome(reference, features)
+    # get gene annotations
+    gtfEG = refGenome::ensemblGenome(dirname(reference))
+    refGenome::read.gtf(gtfEG, filename = basename(reference))
+    geneAnnotation <- data.table::data.table(
+        unique(refGenome::getGeneTable(gtfEG)[, c("gene_id",
+            "gene_name",
+            "gene_biotype",
+            "seqid")]))
+    
+    if (length(grep("ERCC", names(features))) > 0) {
+        ercc <- features[grep("ERCC", names(features))]
+        erccDt <- data.table::data.table(
+            gene_id = base::names(ercc),
+            gene_name = base::names(ercc),
+            gene_biotype = "ERCC",
+            seqid = "ERCC"
+        )
+        geneAnnotation <- rbind(geneAnnotation, erccDt)
+    }
     
     SummarizedExperiment::rowData(scruffsce) <-
         S4Vectors::DataFrame(geneAnnotation[order(gene_id), ],
             row.names = geneAnnotation[order(gene_id),
                 gene_id])
-    
-    message(Sys.time(),
-        " ... Save gene annotation data to ",
-        file.path(outDir, paste0(
-            format(Sys.time(),
-                "%Y%m%d_%H%M%S"), "_",
-            outputPrefix, "_gene_annot.tsv"
-        ))
-    )
-    
-    data.table::fwrite(geneAnnotation,
-        sep = "\t",
-        file = file.path(outDir, paste0(
-            format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-            outputPrefix, "_gene_annot.tsv"
-        )))
 
     # UMI filtered transcripts QC metrics
     # total counts exclude ERCC
@@ -296,7 +292,7 @@ countUMI <- function(sce,
         file.path(outDir, paste0(
             format(Sys.time(),
                 "%Y%m%d_%H%M%S"), "_",
-            outputPrefix, "_QC.tsv"
+            outputPrefix, "_QC.tab"
         ))
     )
     
@@ -304,7 +300,7 @@ countUMI <- function(sce,
         sep = "\t",
         file = file.path(outDir, paste0(
             format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-            outputPrefix, "_QC.tsv"
+            outputPrefix, "_QC.tab"
         )))
     
     SummarizedExperiment::colData(scruffsce) <- qcdf
@@ -354,13 +350,7 @@ countUMI <- function(sce,
 
     bfl <- Rsamtools::BamFile(i)
     bamGA <- GenomicAlignments::readGAlignments(bfl, use.names = TRUE)
-    tryCatch(
-        GenomeInfoDb::seqlevelsStyle(bamGA) <- "NCBI",
-        error = function(e) {
-            warning("found no sequence renaming map compatible with seqname",
-                " style 'NCBI' for the BAM file ", basename(i))
-        }
-    )
+    GenomeInfoDb::seqlevelsStyle(bamGA) <- "NCBI"
     
     genomeReads <- data.table::data.table(
         name = names(bamGA),
