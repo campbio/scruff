@@ -90,8 +90,9 @@ debugging. Default to \strong{FALSE}.}
 in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 }
 \value{
-A \strong{SingleCellExperiment} object containing the demultiplex
- summary information as \code{colData}.
+A \link[SingleCellExperiment]{SingleCellExperiment} object
+ containing the demultiplex summary information as
+  \link[SummarizedExperiment]{colData}.
 }
 \description{
 Demultiplex fastq files and write cell specific reads in compressed fastq
