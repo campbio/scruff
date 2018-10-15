@@ -100,13 +100,6 @@ tenxBamqc <- function(bam,
         reads_mapped_to_genes = integer(),
         experiment = character())
     
-#     if (any(!is.na(filter))) {
-#         resDtFiltered <- data.table::data.table(cell_barcode = character(),
-#             genome_reads = integer(),
-#             gene_reads = integer(),
-#             experiment = character())
-#     }
-    
     for (i in seq_len(length(bam))) {
         
         message(Sys.time(), " Processing file ", bam[i])
