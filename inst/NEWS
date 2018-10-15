@@ -1,4 +1,18 @@
-# 0.99.33
+# 0.99.38
+
+* Add option to plot only filtered cells in tenxBamqcplot
+
+# 0.99.37
+
+* Throw error if barcode input is not right
+
+# 0.99.36
+
+* Fix a bug where MT reads are not identified. 
+* Add ERCC to rowData of sce object.
+* Change plot style. Add minor log ticks
+
+# 0.99.35
 
 * Add QC visualization functions for 10X BAM files
 

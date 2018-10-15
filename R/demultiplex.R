@@ -107,7 +107,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
 
     .checkCores(cores)
-
+    
     if (!all(file.exists(c(read1Path, read2Path)))) {
         stop("Partial or all FASTQ files nonexistent.",
             "Please check paths are correct.\n",
@@ -138,6 +138,8 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
         message("Input sample information for FASTQ files:")
         print(fastqAnnot)
     }
+    
+    .checkCellBarcodes(bc, bcStart, bcStop, verbose)
 
     fastqAnnotDt <- data.table::data.table(fastqAnnot)
     barcodeDt <- data.table::data.table("cell_index" = seq_len(length(bc)),
@@ -260,7 +262,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                     "%Y%m%d_%H%M%S"),
                 "_",
                 summaryPrefix,
-                ".tab"
+                ".tsv"
             )),
         sep = "\t")
 
@@ -585,7 +587,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
             outDir,
             i,
             paste(expMetaDt[, unique(project)],
-                summaryPrefix, i, ".tab", sep =
+                summaryPrefix, i, ".tsv", sep =
                     "_")
         ),
         sep = "\t")

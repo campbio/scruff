@@ -211,7 +211,7 @@ if (requireNamespace("Rsubread", quietly = TRUE)) {
 
 The data quality diagnostic information are contained in the `colData` of the returned `SingleCellExperiment` object `sce`. They can be visualized using the `qcplots` function.
 
-```{r qc2, warning = FALSE}
+```{r qc2, warning = FALSE, message = FALSE, echo = TRUE, results = "hide"}
 data(sceExample, package = "scruff")
 qc <- qcplots(sceExample)
 qc
