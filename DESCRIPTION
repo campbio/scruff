@@ -61,5 +61,6 @@ biocViews:
     WorkflowStep,
     Preprocessing,
     QualityControl,
-    Visualization
+    Visualization,
+    ImmunoOncology
 BugReports: https://github.com/compbiomed/scruff/issues
