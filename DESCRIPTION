@@ -1,6 +1,6 @@
 Package: scruff
 Title: Single Cell RNA-Seq UMI Filtering Facilitator (scruff)
-Version: 0.99.39
+Version: 1.1.1
 Date: 2018-08-29
 Authors@R: c(person("Zhe", "Wang",
                     email = "zhe@bu.edu",
@@ -61,5 +61,6 @@ biocViews:
     WorkflowStep,
     Preprocessing,
     QualityControl,
-    Visualization
+    Visualization,
+    ImmunoOncology
 BugReports: https://github.com/compbiomed/scruff/issues
