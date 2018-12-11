@@ -223,15 +223,31 @@ countUMI <- function(sce,
     scruffsce <- SingleCellExperiment::SingleCellExperiment(
         assays = list(counts = as.matrix(
             expr[!geneid %in% c("reads_mapped_to_genome",
-                "reads_mapped_to_genes"), -"geneid"],
+                "reads_mapped_to_genes",
+                "median_reads_per_umi",
+                "avg_reads_per_umi",
+                "median_reads_per_corrected_umi",
+                "avg_reads_per_corrected_umi"), -"geneid"],
             rownames = expr[!geneid %in% c("reads_mapped_to_genome",
-                "reads_mapped_to_genes"),
+                "reads_mapped_to_genes",
+                "median_reads_per_umi",
+                "avg_reads_per_umi",
+                "median_reads_per_corrected_umi",
+                "avg_reads_per_corrected_umi"),
                 geneid])))
 
     readmapping <- t(expr[geneid %in% c("reads_mapped_to_genome",
-        "reads_mapped_to_genes"), -"geneid"])
+        "reads_mapped_to_genes",
+        "median_reads_per_umi",
+        "avg_reads_per_umi",
+        "median_reads_per_corrected_umi",
+        "avg_reads_per_corrected_umi"), -"geneid"])
     colnames(readmapping) <- c("reads_mapped_to_genome",
-        "reads_mapped_to_genes")
+        "reads_mapped_to_genes",
+        "median_reads_per_umi",
+        "avg_reads_per_umi",
+        "median_reads_per_corrected_umi",
+        "avg_reads_per_corrected_umi")
 
     SingleCellExperiment::isSpike(scruffsce,
         "ERCC") <- grepl("ERCC-",
@@ -350,7 +366,11 @@ countUMI <- function(sce,
         countUmiDt <- data.table::data.table(
             gene_id = c(sort(names(features)),
                 "reads_mapped_to_genome",
-                "reads_mapped_to_genes"))
+                "reads_mapped_to_genes",
+                "median_reads_per_umi",
+                "avg_reads_per_umi",
+                "median_reads_per_corrected_umi",
+                "avg_reads_per_corrected_umi"))
         cell <- .removeLastExtension(i)
         countUmiDt[[cell]] <- 0
 
@@ -396,21 +416,27 @@ countUMI <- function(sce,
         pos = BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)]
     )
 
-    # if 0 read in the cell
+    # remove ambiguous gene alignments (union mode filtering)
+    oldt <- oldt[!(
+        base::duplicated(oldt, by = "name") |
+            base::duplicated(oldt, by = "name", fromLast = TRUE)
+    ), ]
+    
+    # if 0 count in the cell
     if (nrow(oldt) == 0) {
-        readsMappedToGenes <- 0
-
         # clean up
         countUmiDt <- data.table::data.table(
             gene_id = c(names(features),
                 "reads_mapped_to_genome",
-                "reads_mapped_to_genes"))
+                "reads_mapped_to_genes",
+                "median_reads_per_umi",
+                "avg_reads_per_umi",
+                "median_reads_per_corrected_umi",
+                "avg_reads_per_corrected_umi"))
         cell <- .removeLastExtension(i)
         countUmiDt[[cell]] <- 0
         countUmiDt[gene_id == "reads_mapped_to_genome",
             cell] <- readsMappedToGenome
-        countUmiDt[gene_id == "reads_mapped_to_genes",
-            cell] <- readsMappedToGenes
 
         # coerce to data frame to keep rownames for cbind combination
         countUmiDt <- data.frame(countUmiDt,
@@ -419,22 +445,21 @@ countUMI <- function(sce,
             fix.empty.names = FALSE)
 
     } else {
-        # remove ambiguous gene alignments (union mode filtering)
-        oldt <- oldt[!(
-            base::duplicated(oldt, by = "name") |
-                base::duplicated(oldt, by = "name", fromLast = TRUE)
-        ), ]
-        
         # move UMI to a separate column
-        #oldt[, c("umi", "inferred_umi") := data.table::last(
-        #    data.table::tstrsplit(name, ":"))]
-        
         oldt[, umi := data.table::last(data.table::tstrsplit(name, ":"))]
         oldt[, inferred_umi := umi]
         
         # reads mapped to genes
         readsMappedToGenes <- nrow(oldt[!grepl("ERCC", oldt[, gene_id ]), ])
-
+        
+        # median number of reads per umi
+        rpu <- table(oldt[, umi])
+        medReadsUmi <- median(rpu)
+        avgReadsUmi <- mean(rpu)
+        
+        medReadsUmic <- 0
+        avgReadsUmic <- 0
+        
         # UMI filtering and correction
 
         # strict way of doing UMI filtering:
@@ -474,8 +499,11 @@ countUMI <- function(sce,
                         decreasing = TRUE)
                     j <- j + 1
                 }
-                
             }
+            # after correction median numbre of reads per umi
+            rpuc <- table(oldt[, inferred_umi])
+            medReadsUmic <- median(rpuc)
+            avgReadsUmic <- mean(rpuc)
         }
         
         countUmi <- base::table(unique(oldt[,
@@ -485,13 +513,25 @@ countUMI <- function(sce,
         countUmiDt <- data.table::data.table(
             gene_id = c(names(features),
                 "reads_mapped_to_genome",
-                "reads_mapped_to_genes"))
+                "reads_mapped_to_genes",
+                "median_reads_per_umi",
+                "avg_reads_per_umi",
+                "median_reads_per_corrected_umi",
+                "avg_reads_per_corrected_umi"))
         cell <- .removeLastExtension(i)
         countUmiDt[[cell]] <- 0
         countUmiDt[gene_id == "reads_mapped_to_genome",
             cell] <- readsMappedToGenome
         countUmiDt[gene_id == "reads_mapped_to_genes",
             cell] <- readsMappedToGenes
+        countUmiDt[gene_id == "median_reads_per_umi",
+            cell] <- medReadsUmi
+        countUmiDt[gene_id == "avg_reads_per_umi",
+            cell] <- avgReadsUmi
+        countUmiDt[gene_id == "median_reads_per_corrected_umi",
+            cell] <- medReadsUmic
+        countUmiDt[gene_id == "avg_reads_per_corrected_umi",
+            cell] <- avgReadsUmic
         countUmiDt[gene_id %in% names(countUmi),
             eval(cell) := as.numeric(countUmi[gene_id])]
 
