@@ -4,7 +4,7 @@
 \alias{countUMI}
 \title{Count the number of UMIs for each gene and output count matrix}
 \usage{
-countUMI(sce, reference, format = "BAM", outDir = "./Count",
+countUMI(sce, reference, umiEdit = 0, format = "BAM", outDir = "./Count",
   cellPerWell = 1, cores = max(1, parallel::detectCores() - 2),
   outputPrefix = "countUMI", verbose = FALSE,
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
@@ -17,6 +17,13 @@ cell-specific sequence alignment files (BAM or SAM format).}
 \item{reference}{Path to the reference GTF file. The TxDb object of the GTF
 file will be generated and saved in the current working directory with
 ".sqlite" suffix.}
+
+\item{umiEdit}{Maximally allowed Hamming distance for UMI correction. For
+read alignments in each gene, by comparing to a more abundant UMI with more
+reads, UMIs having fewer reads and with mismatches equal or fewer than
+\code{umiEdit} will be assigned a corrected UMI (the UMI with more reads).
+Default is 0, meaning no UMI correction is performed. Doing UMI correction
+will decrease the number of transcripts per gene.}
 
 \item{format}{Format of input sequence alignment files. \strong{"BAM"} or
 \strong{"SAM"}. Default is \strong{"BAM"}.}

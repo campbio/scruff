@@ -13,6 +13,12 @@
 #' @param reference Path to the reference GTF file. The TxDb object of the GTF
 #'  file will be generated and saved in the current working directory with
 #'  ".sqlite" suffix.
+#' @param umiEdit Maximally allowed Hamming distance for UMI correction. For
+#'  read alignments in each gene, by comparing to a more abundant UMI with more
+#'  reads, UMIs having fewer reads and with mismatches equal or fewer than
+#'  \code{umiEdit} will be assigned a corrected UMI (the UMI with more reads).
+#'  Default is 0, meaning no UMI correction is performed. Doing UMI correction
+#'  will decrease the number of transcripts per gene.
 #' @param format Format of input sequence alignment files. \strong{"BAM"} or
 #'  \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param outDir Output directory for UMI counting results. UMI corrected count
@@ -77,6 +83,7 @@
 #' @export
 countUMI <- function(sce,
     reference,
+    umiEdit = 0,
     format = "BAM",
     outDir = "./Count",
     cellPerWell = 1,
@@ -173,7 +180,7 @@ countUMI <- function(sce,
                 BPPARAM = BiocParallel::SnowParam(
                     workers = cores),
                 features,
-                format,
+                umiEdit,
                 logfile,
                 verbose)
         )
@@ -185,7 +192,7 @@ countUMI <- function(sce,
                 BPPARAM = BiocParallel::MulticoreParam(
                     workers = cores),
                 features,
-                format,
+                umiEdit,
                 logfile,
                 verbose)
         )
@@ -329,7 +336,7 @@ countUMI <- function(sce,
 }
 
 
-.countUmiUnit <- function(i, features, format, logfile, verbose) {
+.countUmiUnit <- function(i, features, umiEdit, logfile, verbose) {
     if (verbose) {
         .logMessages(Sys.time(),
             "... UMI counting sample",
@@ -383,14 +390,14 @@ countUMI <- function(sce,
     # UMI filtering
     ol <- GenomicAlignments::findOverlaps(features, bamGA)
 
-    ol.dt <- data.table::data.table(
+    oldt <- data.table::data.table(
         gene_id = base::names(features)[S4Vectors::queryHits(ol)],
         name = base::names(bamGA)[S4Vectors::subjectHits(ol)],
         pos = BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)]
     )
 
     # if 0 read in the cell
-    if (nrow(ol.dt) == 0) {
+    if (nrow(oldt) == 0) {
         readsMappedToGenes <- 0
 
         # clean up
@@ -412,31 +419,67 @@ countUMI <- function(sce,
             fix.empty.names = FALSE)
 
     } else {
-
-        ol.dt[, umi := data.table::last(data.table::tstrsplit(name, ":"))]
-
         # remove ambiguous gene alignments (union mode filtering)
-        ol.dt <- ol.dt[!(
-            base::duplicated(ol.dt, by = "name") |
-                base::duplicated(ol.dt, by = "name", fromLast = TRUE)
+        oldt <- oldt[!(
+            base::duplicated(oldt, by = "name") |
+                base::duplicated(oldt, by = "name", fromLast = TRUE)
         ), ]
-
+        
+        # move UMI to a separate column
+        #oldt[, c("umi", "inferred_umi") := data.table::last(
+        #    data.table::tstrsplit(name, ":"))]
+        
+        oldt[, umi := data.table::last(data.table::tstrsplit(name, ":"))]
+        oldt[, inferred_umi := umi]
+        
         # reads mapped to genes
-        readsMappedToGenes <- nrow(ol.dt[!grepl("ERCC", ol.dt[, gene_id ]), ])
+        readsMappedToGenes <- nrow(oldt[!grepl("ERCC", oldt[, gene_id ]), ])
 
-        # UMI filtering
+        # UMI filtering and correction
 
-        # strict way of doing UMI correction:
+        # strict way of doing UMI filtering:
         # reads with different pos are considered unique trancsript molecules
         # countUmi <- base::table(
-        #     unique(ol.dt[, .(gene_id, umi, pos)])
+        #     unique(oldt[, .(gene_id, umi, pos)])
         #     [, gene_id])
 
         # The way CEL-Seq pipeline does UMI filtering:
         # Reads with different UMI tags are
         # considered unique trancsript molecules
         # Read positions do not matter
-        countUmi <- base::table(unique(ol.dt[, .(gene_id, umi)])[, gene_id])
+        
+        # UMI correction
+        
+        if (umiEdit != 0) {
+            for (g in unique(oldt[, gene_id])) {
+                
+                umis <- sort(table(oldt[gene_id == g, inferred_umi]),
+                    decreasing = TRUE)
+                j <- 1
+                
+                while (j < length(umis)) {
+                    u <- names(umis)[j]
+                    sdm <- stringdist::stringdistmatrix(u, names(umis),
+                        method = "hamming", nthread = 1)
+                    sdm[which(sdm == 0)] <- NA
+                    mindist <- min(sdm, na.rm = TRUE)
+                    
+                    if (mindist <= umiEdit & mindist != 0) {
+                        inds <- which(sdm == mindist)
+                        oldt[umi %in% names(umis)[inds],
+                            inferred_umi := names(umis)[j]]
+                    }
+                    
+                    umis <- sort(table(oldt[gene_id == g, inferred_umi]),
+                        decreasing = TRUE)
+                    j <- j + 1
+                }
+                
+            }
+        }
+        
+        countUmi <- base::table(unique(oldt[,
+            .(gene_id, inferred_umi)])[, gene_id])
 
         # clean up
         countUmiDt <- data.table::data.table(
