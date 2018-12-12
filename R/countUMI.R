@@ -417,10 +417,11 @@ countUMI <- function(sce,
     )
 
     # remove ambiguous gene alignments (union mode filtering)
-    oldt <- oldt[!(
-        base::duplicated(oldt, by = "name") |
-            base::duplicated(oldt, by = "name", fromLast = TRUE)
-    ), ]
+    if (nrow(oldt) != 0) {
+        oldt <- oldt[!(
+            base::duplicated(oldt, by = "name") |
+                base::duplicated(oldt, by = "name", fromLast = TRUE)), ]
+    }
     
     # if 0 count in the cell
     if (nrow(oldt) == 0) {
