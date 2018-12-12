@@ -64,7 +64,7 @@ if (!requireNamespace("Rsubread", quietly = TRUE)) {
 }
 ```
 
-Now that everything is ready, we can run `r Rpackage("scruff")`. In experiment 1h1, cell barcodes 95 and 96 are empty well controls. In experiment b1, cell barcode 95 is bulk sample containing 300 cells. These information can be set by the `cellPerWell` argument. `r Rpackage("scruff")` makes use of the `r Biocpkg("SingleCellExperiment")` package. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
+Now that everything is ready, we can run `r Rpackage("scruff")`. In experiment 1h1, cell barcodes 95 and 96 are empty well controls. In experiment b1, cell barcode 95 is bulk sample containing 300 cells. These information can be set by the `cellPerWell` argument. We apply cell barcode and UMI correction by setting `bcEdit` to 1 and `umiEdit` to 1. `r Rpackage("scruff")` makes use of the `r Biocpkg("SingleCellExperiment")` package. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
 
 ```{r scruff, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
@@ -86,8 +86,10 @@ if (!requireNamespace("Rsubread", quietly = TRUE)) {
         reference = gtf,
         bcStart = 1,
         bcStop = 8,
+        bcEdit = 1,
         umiStart = 9,
         umiStop = 12,
+        umiEdit = 1,
         keep = 75,
         cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
         cores = 2,
@@ -125,7 +127,7 @@ vb1R2 <- system.file("extdata",
 
 ## Demultiplex and Assign Cell Specific Reads
 
-Now the FASTQ files are ready to be demultiplexed. `r Rpackage("scruff")` package provides built-in predefined cell barcodes `barcodeExample` for demultiplexing the example dataset. In the example FASTQ files, read 1 contains cell barcode and UMI sequence information. Read 2 contains transcript sequences. The barcode sequence of each read starts at base 1 and ends at base 8. The UMI sequence starts at base 9 and ends at base 12. They can be set via `bcStart`, `bcStop`, and `umiStart`, `umiStop` arguments. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example FASTQ reads and trims reads longer than 75 nucleotides. The command returns a `SingleCellExperiment` object whose `colData` contains the cell index, barcode, reads, percentage of reads assigned, sample, and FASTQ file path information for each cell. By default, the cell specific demultiplexed fastq.gz files are stored in `./Demultiplex` folder.
+Now the FASTQ files are ready to be demultiplexed. `r Rpackage("scruff")` package provides built-in predefined cell barcodes `barcodeExample` for demultiplexing the example dataset. In the example FASTQ files, read 1 contains cell barcode and UMI sequence information. Read 2 contains transcript sequences. The barcode sequence of each read starts at base 1 and ends at base 8. The UMI sequence starts at base 9 and ends at base 12. They can be set via `bcStart`, `bcStop`, and `umiStart`, `umiStop` arguments. Cell barcode correction can be set by `bcEdit` parameter. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example FASTQ reads and trims reads longer than 75 nucleotides. The command returns a `SingleCellExperiment` object whose `colData` contains the cell index, barcode, reads, percentage of reads assigned, sample, and FASTQ file path information for each cell. By default, the cell specific demultiplexed fastq.gz files are stored in `./Demultiplex` folder.
 
 ```{r de, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
@@ -137,7 +139,7 @@ de <- demultiplex(project = "example",
     barcodeExample,
     bcStart = 1,
     bcStop = 8,
-    bcEdit = 0,
+    bcEdit = 1,
     umiStart = 9,
     umiStop = 12,
     keep = 75,
@@ -190,7 +192,7 @@ if (requireNamespace("Rsubread", quietly = TRUE)) {
 
 ## UMI correction and Generation of Count Matrix
 
-Example GTF file `GRCm38_MT.gtf` will be used for feature counting. Currently, `r Rpackage("scruff")` applies the union counting mode of the HTSeq Python package. The following command generates the UMI filtered count matrix for the example dataset.
+Example GTF file `GRCm38_MT.gtf` will be used for feature counting. Currently, `r Rpackage("scruff")` applies the union counting mode of the HTSeq Python package. The following command generates the UMI corrected count matrix for the example dataset by allowing correction of UMIs with Hamming distances smaller than 1 for each gene in each cell.
 
 ```{r co, results = 'hide', warning = FALSE, message = FALSE}
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
@@ -200,6 +202,7 @@ gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 if (requireNamespace("Rsubread", quietly = TRUE)) {
     sce = countUMI(al,
         gtf,
+        umiEdit = 1,
         format = "BAM",
         cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
         verbose = TRUE,
@@ -219,11 +222,11 @@ qc
 
 Each of these boxplots shows the distribution of a quality metric within and across experiments. Y axis shows the number or fraction of these metrics. Each point represents a unique cell barcode associated with the cells or bulk samples in the wells of the plate. These points are colored by the `cellPerWell` parameter which is the number of sorted cells in each well. For example, in experiment 1h1, cell barcodes 95 and 96 are empty well controls. In experiment b1, cell barcode 95 is a bulk sample containing 300 cells.
 
-These quality metrics include total reads, aligned reads, reads mapped to genes, fraciont of aligned reads, fraction of gene reads out of aligned reads, fraction of gene reads out of total reads, total transcripts, mitochondrial transcripts, fraction of mitochondrial transcripts, transcribed genes, fraction of protein coding genes and transcripts, and gene detection rate. 
+These quality metrics include total reads, aligned reads, reads mapped to genes, fraciont of aligned reads, fraction of gene reads out of aligned reads, fraction of gene reads out of total reads, total transcripts, mitochondrial transcripts, fraction of mitochondrial transcripts, transcribed genes, fraction of protein coding genes and transcripts, median and average number of reads per corrected or uncorrectd UMI, and gene detection rate. 
 
 ## Visualization of Read mapping locations
 
-`r Rpackage("scruff")` package provides function to visualize read alignment locations at specified genomic coordinates on the reference genome. The following command visualize the reads mapped to gene mt-Rnr2 for the bulk sample `vandenBrink_b1_cell_0095`. Reads are colored by their UMI tags. 
+`r Rpackage("scruff")` package provides function to visualize read alignment locations at specified genomic coordinates on the reference genome. The following command visualize the reads mapped to gene mt-Rnr2 for the bulk sample `vandenBrink_b1_cell_0095`. Reads are colored by their uncorrected UMI tags. 
 
 ```{r gtfEG, results = 'hide', warning = FALSE, message = FALSE}
 # Visualize the reads mapped to gene "mt-Rnr2" in

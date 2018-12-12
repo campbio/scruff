@@ -24,7 +24,7 @@
 #'  start positions (inclusive, one-based numbering).
 #' @param bcStop Integer or vector of integers containing the cell barcode
 #'  stop positions (inclusive, one-based numbering).
-#' @param bcEdit Maximally allowed edit distance for barcode correction.
+#' @param bcEdit Maximally allowed Hamming distance for barcode correction.
 #'  Barcodes with mismatches equal or fewer than this will be assigned a
 #'  corrected barcode if the inferred barcode matches uniquely in the provided
 #'  predetermined barcode list. Default is 0, meaning no cell barcode
