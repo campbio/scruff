@@ -160,6 +160,32 @@
     })
 }
 
+
+# A function that returns an iterator that reads FASTQ read1 and read2 files
+.fastqIterator <- function(fq1, fq2) {
+    done <- FALSE
+    return (function() {
+        if (done) {
+            return(NULL)
+        }
+        
+        yld1 <- ShortRead::yield(fq1)
+        yld2 <- ShortRead::yield(fq2)
+        if (length(yld1) != length(yld2)) {
+            stop("Unequal number of reads",
+                " between read1 and read2 fastq files: ",
+                fq1,
+                fq2)
+        } else if (length(yld1) == 0L & length(yld2) == 0L) {
+            done <<- TRUE
+            return (NULL)
+        } else {
+            return (list(yld1, yld2))
+        }
+    })
+}
+
+
 # Check cell barcodes
 .checkCellBarcodes <- function(bc, bcStart, bcStop, verbose) {
     if (bcStop < bcStart) {
