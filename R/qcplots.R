@@ -479,6 +479,10 @@ qcplots <- function(sce) {
         return (NULL)
     }
     
+    if (sum(qcDt[, median_reads_per_corrected_umi]) == 0) {
+        return (NULL)
+    }
+    
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -506,6 +510,10 @@ qcplots <- function(sce) {
 
 .plotAvgReadsPerCorrectedUMI <- function(qcDt) {
     if (!"avg_reads_per_corrected_umi" %in% colnames(qcDt)) {
+        return (NULL)
+    }
+    
+    if (sum(qcDt[, avg_reads_per_corrected_umi]) == 0) {
         return (NULL)
     }
     
