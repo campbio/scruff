@@ -475,8 +475,7 @@ qcplots <- function(sce) {
 
 
 .plotMedReadsPerCorrectedUMI <- function(qcDt) {
-    if (!"median_reads_per_corrected_umi" %in% colnames(qcDt) |
-            sum(qcDt[, median_reads_per_corrected_umi]) == 0) {
+    if (!"median_reads_per_corrected_umi" %in% colnames(qcDt)) {
         return (NULL)
     }
     
@@ -506,8 +505,7 @@ qcplots <- function(sce) {
 
 
 .plotAvgReadsPerCorrectedUMI <- function(qcDt) {
-    if (!"avg_reads_per_corrected_umi" %in% colnames(qcDt) |
-            sum(qcDt[, median_reads_per_corrected_umi]) == 0) {
+    if (!"avg_reads_per_corrected_umi" %in% colnames(qcDt)) {
         return (NULL)
     }
     
