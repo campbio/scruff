@@ -156,7 +156,7 @@ qcplots <- function(sce) {
 
 .plotGeneToGenomeFraction <- function(qcDt) {
     if (!("reads_mapped_to_genome" %in% colnames(qcDt) &
-            "reads_mapped_to_genome" %in% colnames(qcDt))) {
+            "reads_mapped_to_genes" %in% colnames(qcDt))) {
         return (NULL)
     }
     
