@@ -97,8 +97,7 @@ qcplots <- function(sce) {
 
 
 .plotReadsMappedToGenes <- function(qcDt) {
-    if (!("reads_mapped_to_genes" %in% colnames(qcDt) &
-            "reads" %in% colnames(qcDt))) {
+    if (!"reads_mapped_to_genes" %in% colnames(qcDt)) {
         return (NULL)
     }
     
