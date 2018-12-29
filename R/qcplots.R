@@ -97,8 +97,7 @@ qcplots <- function(sce) {
 
 
 .plotReadsMappedToGenes <- function(qcDt) {
-    if (!("reads_mapped_to_genes" %in% colnames(qcDt) &
-            "reads" %in% colnames(qcDt))) {
+    if (!"reads_mapped_to_genes" %in% colnames(qcDt)) {
         return (NULL)
     }
     
@@ -156,7 +155,7 @@ qcplots <- function(sce) {
 
 .plotGeneToGenomeFraction <- function(qcDt) {
     if (!("reads_mapped_to_genome" %in% colnames(qcDt) &
-            "reads_mapped_to_genome" %in% colnames(qcDt))) {
+            "reads_mapped_to_genes" %in% colnames(qcDt))) {
         return (NULL)
     }
     
@@ -479,6 +478,10 @@ qcplots <- function(sce) {
         return (NULL)
     }
     
+    if (sum(qcDt[, median_reads_per_corrected_umi]) == 0) {
+        return (NULL)
+    }
+    
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -506,6 +509,10 @@ qcplots <- function(sce) {
 
 .plotAvgReadsPerCorrectedUMI <- function(qcDt) {
     if (!"avg_reads_per_corrected_umi" %in% colnames(qcDt)) {
+        return (NULL)
+    }
+    
+    if (sum(qcDt[, avg_reads_per_corrected_umi]) == 0) {
         return (NULL)
     }
     
