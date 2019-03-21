@@ -88,7 +88,7 @@
 #' al <- alignRsubread(de, indexBase, overwrite = TRUE)
 #' }
 #' @import data.table
-#' @rawNamespace import(plyr, except = c(id))
+#' @importFrom plyr rbind.fill
 #' @export
 alignRsubread <- function(sce,
     index,

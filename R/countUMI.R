@@ -78,7 +78,7 @@
 #' # or use the built-in SingleCellExperiment object generated using
 #' # example dataset (see ?sceExample)
 #' data(sceExample, package = "scruff")
-#' @import data.table refGenome GenomicFeatures
+#' @import data.table rtracklayer GenomicFeatures
 #' @rawNamespace import(GenomicAlignments, except = c(second, last, first))
 #' @export
 countUMI <- function(sce,
@@ -249,16 +249,19 @@ countUMI <- function(sce,
         "median_reads_per_corrected_umi",
         "avg_reads_per_corrected_umi")
 
-    SingleCellExperiment::isSpike(scruffsce,
-        "ERCC") <- grepl("ERCC-",
-            rownames(scruffsce))
-    
-    geneAnnotation <- .getGeneAnnotationRefGenome(reference, features)
+    geneAnnotation <- .getGeneAnnotation(reference, features)
     
     SummarizedExperiment::rowData(scruffsce) <-
         S4Vectors::DataFrame(geneAnnotation[order(gene_id), ],
-            row.names = geneAnnotation[order(gene_id),
-                gene_id])
+            row.names = geneAnnotation[order(gene_id), gene_id])
+    
+    #  SingleCellExperiment::isSpike(scruffsce,
+    #      "ERCC") <- grepl("ERCC-",
+    #          rownames(scruffsce))
+    
+    SingleCellExperiment::isSpike(scruffsce,
+        "ERCC") <- which(SummarizedExperiment::rowData(scruffsce)[,
+            "source"] == "ERCC")
     
     message(Sys.time(),
         " ... Save gene annotation data to ",
@@ -286,7 +289,7 @@ countUMI <- function(sce,
     mtCounts <- base::colSums(as.data.frame(
         SummarizedExperiment::assay(scruffsce)
         [grep("MT", SummarizedExperiment::rowData(scruffsce)
-            [, "seqid"], ignore.case = TRUE), ]))
+            [, "seqnames"], ignore.case = TRUE), ]))
     
     # gene number exclude ERCC
     cm <- SummarizedExperiment::assay(scruffsce)[

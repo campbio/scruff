@@ -84,7 +84,7 @@
 #'     overwrite = TRUE)
 #' @import data.table
 #' @rawNamespace import(ShortRead, except = c(tables, zoom))
-#' @rawNamespace import(plyr, except = c(id))
+#' @importFrom plyr rbind.fill
 #' @export
 demultiplex <- function(project = paste0("project_", Sys.Date()),
     experiment,
