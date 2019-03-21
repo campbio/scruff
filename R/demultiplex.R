@@ -24,7 +24,7 @@
 #'  start positions (inclusive, one-based numbering).
 #' @param bcStop Integer or vector of integers containing the cell barcode
 #'  stop positions (inclusive, one-based numbering).
-#' @param bcEdit Maximally allowed edit distance for barcode correction.
+#' @param bcEdit Maximally allowed Hamming distance for barcode correction.
 #'  Barcodes with mismatches equal or fewer than this will be assigned a
 #'  corrected barcode if the inferred barcode matches uniquely in the provided
 #'  predetermined barcode list. Default is 0, meaning no cell barcode
@@ -84,7 +84,7 @@
 #'     overwrite = TRUE)
 #' @import data.table
 #' @rawNamespace import(ShortRead, except = c(tables, zoom))
-#' @rawNamespace import(plyr, except = c(id))
+#' @importFrom plyr rbind.fill
 #' @export
 demultiplex <- function(project = paste0("project_", Sys.Date()),
     experiment,
@@ -107,6 +107,10 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     verbose = FALSE,
     logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
 
+    if (length(project) > 1) {
+        stop("Project should be length 1")
+    }
+    
     .checkCores(cores)
     
     if (!all(file.exists(c(read1Path, read2Path)))) {

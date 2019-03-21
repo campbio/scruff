@@ -88,7 +88,7 @@
 #' al <- alignRsubread(de, indexBase, overwrite = TRUE)
 #' }
 #' @import data.table
-#' @rawNamespace import(plyr, except = c(id))
+#' @importFrom plyr rbind.fill
 #' @export
 alignRsubread <- function(sce,
     index,
@@ -174,19 +174,19 @@ alignRsubread <- function(sce,
             logfile,
             ...)
     } else {
-        alignmentFilePaths <- suppressPackageStartupMessages(
-            BiocParallel::bplapply(X = fastqPaths,
-                FUN = .alignRsubreadUnit,
-                BPPARAM = BiocParallel::MulticoreParam(
-                    workers = cores),
-                index,
-                unique,
-                nBestLocations,
-                format,
-                outDir,
-                threads,
-                logfile = NULL,
-                ...))
+        invisible(capture.output(alignmentFilePaths <-
+                BiocParallel::bplapply(X = fastqPaths,
+                    FUN = .alignRsubreadUnit,
+                    BPPARAM = BiocParallel::MulticoreParam(
+                        workers = cores),
+                    index,
+                    unique,
+                    nBestLocations,
+                    format,
+                    outDir,
+                    threads,
+                    logfile = NULL,
+                    ...), type = "message"))
     }
 
     alignmentFilePaths <- unlist(alignmentFilePaths)

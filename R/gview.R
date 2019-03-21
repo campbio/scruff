@@ -3,8 +3,7 @@
 #' Visualize reference genome. Rectangles represent exons. Arrow represents
 #'  orientation of transcripts.
 #'
-#' @param ensemblGenome A 'ensemblGenome' object derived from running
-#'  \code{ensemblGenome()} function from \emph{refGenome} package.
+#' @param gtfFile A genome annotation file in GTF format.
 #' @param chr Chromosome name. Integer or "X", "Y", "MT".
 #' @param start Genomic coordinate of the start position.
 #' @param end Genomic coordinate of the end position.
@@ -25,16 +24,15 @@
 #' @return A ggplot object of genomic view
 #' @examples
 #' gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
-#' gtfEG = refGenome::ensemblGenome(dirname(gtf))
-#' refGenome::read.gtf(gtfEG, filename = basename(gtf))
-#' g <- gview(gtfEG, chr = "MT")
+#' g <- gview(gtf, chr = "MT")
 #' g
-#' @import refGenome
+#' @import rtracklayer
 #' @export
-gview <- function(ensemblGenome,
+gview <- function(gtfFile,
     chr = 1,
     start = 1,
-    end = max(refGenome::getGtf(ensemblGenome)$end),
+    end = max(data.table::as.data.table(
+        rtracklayer::import(gtfFile))[seqnames == chr, end]),
     rect_width = 0.3,
     line_width = 0.5,
     arrow_segments = 10,
@@ -92,7 +90,7 @@ gview <- function(ensemblGenome,
                 level := txdt[transcript_id == tx, level]]
         }
         
-        exons <- dt[feature == "exon", ]
+        exons <- dt[type == "exon", ]
         
         for (i in seq_len(nrow(exons))) {
             x1 <- exons[i, start]
@@ -181,10 +179,9 @@ gview <- function(ensemblGenome,
     
     
     # convert to data.table
-    gtfDt <- data.table::data.table(
-        refGenome::getGtf(ensemblGenome)[, c("id",
-            "seqid",
-            "feature",
+    gtfDt <- data.table::as.data.table(
+        rtracklayer::import(gtfFile))[type != "gene", c("seqnames",
+            "type",
             "start",
             "end",
             "strand",
@@ -193,14 +190,14 @@ gview <- function(ensemblGenome,
             "exon_number",
             "gene_id",
             "transcript_name",
-            "transcript_id")])
+            "transcript_id")]
     
     # use new variables to avoid ambiguity
     begin <- start
-    st <- end
+    ed <- end
     
     # subset features
-    gtfDt <- gtfDt[end >= begin & start <= st & seqid == chr, ]
+    gtfDt <- gtfDt[end >= begin & start <= ed & seqnames == chr, ]
     
     # aggregate transcripts
     txdt <- .getTxdt(gtfDt)

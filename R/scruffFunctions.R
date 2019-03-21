@@ -160,6 +160,32 @@
     })
 }
 
+
+# A function that returns an iterator that reads FASTQ read1 and read2 files
+.fastqIterator <- function(fq1, fq2) {
+    done <- FALSE
+    return (function() {
+        if (done) {
+            return(NULL)
+        }
+        
+        yld1 <- ShortRead::yield(fq1)
+        yld2 <- ShortRead::yield(fq2)
+        if (length(yld1) != length(yld2)) {
+            stop("Unequal number of reads",
+                " between read1 and read2 fastq files: ",
+                fq1,
+                fq2)
+        } else if (length(yld1) == 0L & length(yld2) == 0L) {
+            done <<- TRUE
+            return (NULL)
+        } else {
+            return (list(yld1, yld2))
+        }
+    })
+}
+
+
 # Check cell barcodes
 .checkCellBarcodes <- function(bc, bcStart, bcStop, verbose) {
     if (bcStop < bcStart) {
@@ -193,26 +219,49 @@
 }
 
 
-.getGeneAnnotationRefGenome <- function(reference, features) {
-    gtfEG = refGenome::ensemblGenome(dirname(reference))
-    refGenome::read.gtf(gtfEG, filename = basename(reference))
-    geneAnnotation <- data.table::data.table(
-        unique(refGenome::getGeneTable(gtfEG)[, c("gene_id",
-            "gene_name",
-            "gene_biotype",
-            "seqid")]))
-    geneAnnotation <- geneAnnotation[order(gene_id), ]
+# .getGeneAnnotationRefGenome <- function(reference, features) {
+#     gtfEG = refGenome::ensemblGenome(dirname(reference))
+#     refGenome::read.gtf(gtfEG, filename = basename(reference))
+#     geneAnnotation <- data.table::data.table(
+#         unique(refGenome::getGeneTable(gtfEG)[, c("gene_id",
+#             "gene_name",
+#             "gene_biotype",
+#             "seqid")]))
+#     geneAnnotation <- geneAnnotation[order(gene_id), ]
+#     
+#     if (length(grep("ERCC", names(features))) > 0) {
+#         ercc <- features[grep("ERCC", names(features))]
+#         erccDt <- data.table::data.table(
+#             gene_id = base::names(ercc),
+#             gene_name = base::names(ercc),
+#             gene_biotype = "ERCC",
+#             seqid = "ERCC"
+#         )
+#         geneAnnotation <- rbind(geneAnnotation, erccDt)
+#     }
+#     return (geneAnnotation)
+# }
+
+
+.getGeneAnnotation <- function(reference, features) {
+    gtf <- rtracklayer::import(reference)
     
-    if (length(grep("ERCC", names(features))) > 0) {
-        ercc <- features[grep("ERCC", names(features))]
-        erccDt <- data.table::data.table(
-            gene_id = base::names(ercc),
-            gene_name = base::names(ercc),
-            gene_biotype = "ERCC",
-            seqid = "ERCC"
-        )
-        geneAnnotation <- rbind(geneAnnotation, erccDt)
-    }
+    geneAnnotation <- data.table::as.data.table(gtf)
+    
+    geneAnnotation <- unique(geneAnnotation[type == "gene" |
+            source == "ERCC", c("gene_id",
+        "gene_name",
+        "gene_biotype",
+        "seqnames",
+        "start",
+        "end",
+        "width",
+        "strand",
+        "source")])
+    geneAnnotation <- geneAnnotation[order(gene_id), ]
+    geneAnnotation[source == "ERCC", gene_name := gene_id]
+    geneAnnotation[source == "ERCC", gene_biotype := source]
+    
     return (geneAnnotation)
 }
 

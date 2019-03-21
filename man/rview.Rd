@@ -4,8 +4,8 @@
 \alias{rview}
 \title{Visualize aligned reads}
 \usage{
-rview(bamGA, chr = "1", start = 1, end = max(BiocGenerics::end(bamGA)),
-  legend = FALSE)
+rview(bamGA, chr = "1", start = 1,
+  end = max(BiocGenerics::end(bamGA)), legend = FALSE)
 }
 \arguments{
 \item{bamGA}{A GenomicAlignment object}
