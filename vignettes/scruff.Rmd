@@ -232,9 +232,6 @@ These quality metrics include total reads, aligned reads, reads mapped to genes,
 # Visualize the reads mapped to gene "mt-Rnr2" in
 # cell "vandenBrink_b1_cell_0095".
 data(bamExample, package = "scruff")
-
-gtfEG = refGenome::ensemblGenome(dirname(gtf))
-refGenome::read.gtf(gtfEG, filename = basename(gtf))
 ```
 
 ```{r visualize_reads}
@@ -243,7 +240,7 @@ start <- 1094
 end <- 2675
 
 g1 <- rview(bamExample, chr = "MT", start = start, end = end)
-g2 <- gview(gtfEG, chr = "MT", start = start, end = end)
+g2 <- gview(gtf, chr = "MT", start = start, end = end)
 g <- ggbio::tracks(g1, g2, heights = c(4,1), xlab = "chr MT")
 g
 ```
