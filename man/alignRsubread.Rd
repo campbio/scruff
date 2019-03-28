@@ -6,9 +6,9 @@
 \usage{
 alignRsubread(sce, index, unique = FALSE, nBestLocations = 1,
   format = "BAM", outDir = "./Alignment", cores = max(1,
-  parallel::detectCores() - 2), threads = 1, summaryPrefix = "alignment",
-  overwrite = FALSE, verbose = FALSE, logfilePrefix = format(Sys.time(),
-  "\%Y\%m\%d_\%H\%M\%S"), ...)
+  parallel::detectCores() - 2), threads = 1,
+  summaryPrefix = "alignment", overwrite = FALSE, verbose = FALSE,
+  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"), ...)
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object of which the \code{colData}

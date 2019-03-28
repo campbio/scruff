@@ -32,7 +32,7 @@
 #'  start positions (inclusive, one-based numbering).
 #' @param bcStop Integer or vector of integers containing the cell barcode
 #'  stop positions (inclusive, one-based numbering).
-#' @param bcEdit Maximally allowed edit distance for barcode correction.
+#' @param bcEdit Maximally allowed Hamming distance for barcode correction.
 #'  Barcodes with mismatches equal or fewer than this will be assigned a
 #'   corrected barcode if the inferred barcode matches uniquely in the provided
 #'   predetermined barcode list. Default is 0, meaning no cell barcode
@@ -41,6 +41,12 @@
 #'  (inclusive, one-based numbering) of UMI sequences.
 #' @param umiStop Integer or vector of integers containing the stop positions
 #'  (inclusive, one-based numbering) of UMI sequences.
+#' @param umiEdit Maximally allowed Hamming distance for UMI correction. For
+#'  read alignments in each gene, by comparing to a more abundant UMI with more
+#'  reads, UMIs having fewer reads and with mismatches equal or fewer than
+#'  \code{umiEdit} will be assigned a corrected UMI (the UMI with more reads).
+#'  Default is 0, meaning no UMI correction is performed. Doing UMI correction
+#'  will decrease the number of transcripts per gene.
 #' @param keep Read trimming. Read length or number of nucleotides to keep for
 #'  read 2 (the read that contains transcript sequence information). Longer
 #'  reads will be clipped at 3' end. Shorter reads will not be affected. This
@@ -161,6 +167,7 @@ scruff <- function(project = paste0("project_", Sys.Date()),
     bcEdit = 0,
     umiStart,
     umiStop,
+    umiEdit = 0,
     keep,
     cellPerWell = 1,
     unique = FALSE,
@@ -227,6 +234,7 @@ scruff <- function(project = paste0("project_", Sys.Date()),
     co <- countUMI(
         sce = al,
         reference = reference,
+        umiEdit = umiEdit,
         format = alignmentFileFormat,
         outDir = countUmiOutDir,
         cellPerWell = cellPerWell,

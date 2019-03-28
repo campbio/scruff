@@ -72,8 +72,8 @@
         suppressPackageStartupMessages(AnnotationDbi::loadDb(gtf.db.file)),
         error = function(e) {
             stop("Error loading database file. Delete the file",
-                gtf.db.file,
-                "and try again.")
+                    gtf.db.file,
+                    "and try again.")
         }
     )
     return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
@@ -160,6 +160,32 @@
     })
 }
 
+
+# A function that returns an iterator that reads FASTQ read1 and read2 files
+.fastqIterator <- function(fq1, fq2) {
+    done <- FALSE
+    return (function() {
+        if (done) {
+            return(NULL)
+        }
+        
+        yld1 <- ShortRead::yield(fq1)
+        yld2 <- ShortRead::yield(fq2)
+        if (length(yld1) != length(yld2)) {
+            stop("Unequal number of reads",
+                " between read1 and read2 fastq files: ",
+                fq1,
+                fq2)
+        } else if (length(yld1) == 0L & length(yld2) == 0L) {
+            done <<- TRUE
+            return (NULL)
+        } else {
+            return (list(yld1, yld2))
+        }
+    })
+}
+
+
 # Check cell barcodes
 .checkCellBarcodes <- function(bc, bcStart, bcStop, verbose) {
     if (bcStop < bcStart) {
@@ -193,131 +219,51 @@
 }
 
 
-.getGeneAnnotationRefGenome <- function(reference, features) {
-    gtfEG = refGenome::ensemblGenome(dirname(reference))
-    refGenome::read.gtf(gtfEG, filename = basename(reference))
-    geneAnnotation <- data.table::data.table(
-        unique(refGenome::getGeneTable(gtfEG)[, c("gene_id",
-            "gene_name",
-            "gene_biotype",
-            "seqid")]))
-    geneAnnotation <- geneAnnotation[order(gene_id), ]
+# .getGeneAnnotationRefGenome <- function(reference, features) {
+#     gtfEG = refGenome::ensemblGenome(dirname(reference))
+#     refGenome::read.gtf(gtfEG, filename = basename(reference))
+#     geneAnnotation <- data.table::data.table(
+#         unique(refGenome::getGeneTable(gtfEG)[, c("gene_id",
+#             "gene_name",
+#             "gene_biotype",
+#             "seqid")]))
+#     geneAnnotation <- geneAnnotation[order(gene_id), ]
+#     
+#     if (length(grep("ERCC", names(features))) > 0) {
+#         ercc <- features[grep("ERCC", names(features))]
+#         erccDt <- data.table::data.table(
+#             gene_id = base::names(ercc),
+#             gene_name = base::names(ercc),
+#             gene_biotype = "ERCC",
+#             seqid = "ERCC"
+#         )
+#         geneAnnotation <- rbind(geneAnnotation, erccDt)
+#     }
+#     return (geneAnnotation)
+# }
+
+
+.getGeneAnnotation <- function(reference) {
+    gtf <- rtracklayer::import(reference)
     
-    if (length(grep("ERCC", names(features))) > 0) {
-        ercc <- features[grep("ERCC", names(features))]
-        erccDt <- data.table::data.table(
-            gene_id = base::names(ercc),
-            gene_name = base::names(ercc),
-            gene_biotype = "ERCC",
-            seqid = "ERCC"
-        )
-        geneAnnotation <- rbind(geneAnnotation, erccDt)
-    }
+    geneAnnotation <- data.table::as.data.table(gtf)
+    
+    geneAnnotation <- unique(geneAnnotation[type == "gene" |
+            source == "ERCC", c("gene_id",
+        "gene_name",
+        "gene_biotype",
+        "seqnames",
+        "start",
+        "end",
+        "width",
+        "strand",
+        "source")])
+    geneAnnotation <- geneAnnotation[order(gene_id), ]
+    geneAnnotation[source == "ERCC", gene_name := gene_id]
+    geneAnnotation[source == "ERCC", gene_biotype := source]
+    
     return (geneAnnotation)
 }
-
-
-# merge hash table for 10X BAM file counting
-.mergeHashCbGeneUmi <- function(hashCb1, hashCb2) {
-    cb1 = ls(hashCb1)
-    cb2 = ls(hashCb2)
-    
-    for (cb in cb2) {
-        if (cb %in% cb1) {
-            # if cell barcodes intersect
-            g1 <- ls(hashCb1[[cb]])
-            g2 <- ls(hashCb2[[cb]])
-            for (g in g2) {
-                if (g %in% g1) {
-                    # if genes intersect
-                    umi1 <- hashCb1[[cb]][[g]]
-                    umi2 <- hashCb2[[cb]][[g]]
-                    hashCb1[[cb]][[g]] <- union(umi1, umi2)
-                } else {
-                    # else append g to hashCb1[[cb]]
-                    hashCb1[[cb]][[g]] <- hashCb2[[cb]][[g]]
-                }
-            }
-        } else {
-            # else append cb to hashCb1
-            hashCb1[[cb]] <- hashCb2[[cb]]
-        }
-    }
-    return (hashCb1)
-}
-
-
-.getGeneFromEnv <- function(env) {
-    vapply(env, function(env) {
-        genes <- lapply(ls(env), function(x) {get(x, envir = env)})
-        return (length(genes))},
-        integer(1)
-    )
-}
-
-
-.getUMICountsFromEnv <- function(env) {
-    vapply(env, function(env) {
-        genes <- lapply(ls(env), function(x) {get(x, envir = env)})
-        return (sum(vapply(genes, length, integer(1))))
-    }, integer(1))
-}
-
-
-.getTopNBarcodesFromEnv <- function(N, env) {
-    allBarcodeUMICounts <- sort(.getUMICountsFromEnv(env), decreasing = TRUE)
-    firstNBarcodes <- allBarcodeUMICounts[seq_len(N)]
-    return (firstNBarcodes)
-}
-
-
-.getUMICountsFromCell <- function(cellEnv) {
-    UMIs <- sapply(ls(cellEnv),
-        function(x) {get(x, envir = cellEnv)},
-        simplify = FALSE,
-        USE.NAMES = TRUE)
-    return (vapply(UMIs, length, integer(1)))
-}
-
-
-.getFilteredBarcode <- function(N, env, percentile = 0.99, orderRatio = 10) {
-    allUMICounts <- .getUMICountsFromEnv(env)
-    topNUMICounts <- .getTopNBarcodesFromEnv(N = N, env)
-    topNUMISum <- sum(topNUMICounts)
-    m <- topNUMISum * percentile
-    filteredBarcodes <- allUMICounts[which(allUMICounts > m/orderRatio)]
-    return (filteredBarcodes)
-}
-
-
-.subsetEnv <- function(env, filteredBarcodes) {
-    newEnv <- new.env()
-    for (i in seq_len(length(filteredBarcodes))) {
-        newEnv[[filteredBarcodes[i]]] <- env[[filteredBarcodes[i]]]
-    }
-    return (newEnv)
-}
-
-
-.getFilteredUMICountsTable <- function(fliteredEnv,
-    filteredBarcodes,
-    geneAnnotation,
-    experiment) {
-    
-    resDt <- data.table::data.table(geneid = geneAnnotation[, gene_id])    
-    cells <- paste(experiment, filteredBarcodes, sep = "_")
-    filteredCounts <- .getUMICountsFromEnv(fliteredEnv)
-    for (i in seq_len(length(filteredBarcodes))) {
-        resDt[[cells[i]]] <- 0
-        UMIs <- .getUMICountsFromCell(fliteredEnv[[filteredBarcodes[i]]])
-        resDt[geneid %in% ls(fliteredEnv[[filteredBarcodes[i]]]),
-            eval(cells[i]) := as.numeric(UMIs[geneid])]
-    }
-    
-    return (resDt)
-}
-
-
 
 
 ########################################
