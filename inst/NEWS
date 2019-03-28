@@ -1,7 +1,8 @@
-# 1.1.3
+# 1.0.3
 
 * Replaced refGenome package dependency with rtracklayer
 * Hide Rsubread alignment messages when verbose == FALSE
+* Removed features arg in .getGeneAnnotation
 
 # 1.0.2
 
