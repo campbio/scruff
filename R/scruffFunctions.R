@@ -243,7 +243,7 @@
 # }
 
 
-.getGeneAnnotation <- function(reference, features) {
+.getGeneAnnotation <- function(reference) {
     gtf <- rtracklayer::import(reference)
     
     geneAnnotation <- data.table::as.data.table(gtf)
