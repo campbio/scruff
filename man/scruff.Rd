@@ -4,10 +4,11 @@
 \alias{scruff}
 \title{Run scruff pipeline}
 \usage{
-scruff(project = paste0("project_", Sys.Date()), experiment, lane, read1Path,
-  read2Path, bc, index, reference, bcStart, bcStop, bcEdit = 0, umiStart,
-  umiStop, keep, cellPerWell = 1, unique = FALSE, nBestLocations = 1,
-  minQual = 10, yieldReads = 1e+06, alignmentFileFormat = "BAM",
+scruff(project = paste0("project_", Sys.Date()), experiment, lane,
+  read1Path, read2Path, bc, index, reference, bcStart, bcStop,
+  bcEdit = 0, umiStart, umiStop, umiEdit = 0, keep, cellPerWell = 1,
+  unique = FALSE, nBestLocations = 1, minQual = 10,
+  yieldReads = 1e+06, alignmentFileFormat = "BAM",
   demultiplexOutDir = "./Demultiplex", alignmentOutDir = "./Alignment",
   countUmiOutDir = "./Count", demultiplexSummaryPrefix = "demultiplex",
   alignmentSummaryPrefix = "alignment", countPrefix = "countUMI",
@@ -52,7 +53,7 @@ start positions (inclusive, one-based numbering).}
 \item{bcStop}{Integer or vector of integers containing the cell barcode
 stop positions (inclusive, one-based numbering).}
 
-\item{bcEdit}{Maximally allowed edit distance for barcode correction.
+\item{bcEdit}{Maximally allowed Hamming distance for barcode correction.
 Barcodes with mismatches equal or fewer than this will be assigned a
  corrected barcode if the inferred barcode matches uniquely in the provided
  predetermined barcode list. Default is 0, meaning no cell barcode
@@ -63,6 +64,13 @@ Barcodes with mismatches equal or fewer than this will be assigned a
 
 \item{umiStop}{Integer or vector of integers containing the stop positions
 (inclusive, one-based numbering) of UMI sequences.}
+
+\item{umiEdit}{Maximally allowed Hamming distance for UMI correction. For
+read alignments in each gene, by comparing to a more abundant UMI with more
+reads, UMIs having fewer reads and with mismatches equal or fewer than
+\code{umiEdit} will be assigned a corrected UMI (the UMI with more reads).
+Default is 0, meaning no UMI correction is performed. Doing UMI correction
+will decrease the number of transcripts per gene.}
 
 \item{keep}{Read trimming. Read length or number of nucleotides to keep for
 read 2 (the read that contains transcript sequence information). Longer

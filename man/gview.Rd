@@ -4,14 +4,14 @@
 \alias{gview}
 \title{Visualize gene isoforms}
 \usage{
-gview(ensemblGenome, chr = 1, start = 1,
-  end = max(refGenome::getGtf(ensemblGenome)$end), rect_width = 0.3,
-  line_width = 0.5, arrow_segments = 10, arrow_width = 30,
-  arrow_length = 0.08, arrow_type = "open", text_size = 4)
+gview(gtfFile, chr = 1, start = 1,
+  end = max(data.table::as.data.table(rtracklayer::import(gtfFile))[seqnames
+  == chr, end]), rect_width = 0.3, line_width = 0.5,
+  arrow_segments = 10, arrow_width = 30, arrow_length = 0.08,
+  arrow_type = "open", text_size = 4)
 }
 \arguments{
-\item{ensemblGenome}{A 'ensemblGenome' object derived from running
-\code{ensemblGenome()} function from \emph{refGenome} package.}
+\item{gtfFile}{A genome annotation file in GTF format.}
 
 \item{chr}{Chromosome name. Integer or "X", "Y", "MT".}
 
@@ -49,8 +49,6 @@ Visualize reference genome. Rectangles represent exons. Arrow represents
 }
 \examples{
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
-gtfEG = refGenome::ensemblGenome(dirname(gtf))
-refGenome::read.gtf(gtfEG, filename = basename(gtf))
-g <- gview(gtfEG, chr = "MT")
+g <- gview(gtf, chr = "MT")
 g
 }

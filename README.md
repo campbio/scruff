@@ -20,18 +20,28 @@ vignette("scruff")
 
 The following figures are generated using data from [(Van den Brink et al. 2017)](https://www.nature.com/articles/nmeth.4437) and **scruff** package.
 
-![scruff total_and_aligned_reads](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20171204_vandenBrink_qc_color_Page_10.png)
+![scruff total_reads](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_01.png)
 
-![scruff gene_reads_fraction_alignment](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20171204_vandenBrink_qc_color_Page_11.png)
+![scruff aligned_reads](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_02.png)
 
-![scruff fraction_alignment](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20171204_vandenBrink_qc_color_Page_12.png)
+![scruff gene_reads](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_03.png)
 
-![scruff transcript_and_MT](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20171204_vandenBrink_qc_color_Page_13.png)
+![scruff aligned_reads_fraction](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_04.png)
 
-![scruff fraction_MT_genes](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20171204_vandenBrink_qc_color_Page_14.png)
+![scruff gene_reads_fraction_out_of_aligned_reads](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_05.png)
 
-![scruff fraction_pro_coding_genes_transcript](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20171204_vandenBrink_qc_color_Page_15.png)
+![scruff gene_reads_fraction_out_of_total_reads](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_06.png)
 
-![scruff gene_detection](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20171204_vandenBrink_qc_color_Page_16.png)
+![scruff transcripts](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_07.png)
 
+![scruff mt_transcripts](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_08.png)
 
+![scruff mt_transcripts_fraction](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_09.png)
+
+![scruff genes](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_10.png)
+
+![scruff protein_coding_genes_fraction](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_11.png)
+
+![scruff protein_coding_transcripts_fraction](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_12.png)
+
+![scruff detection_power](https://github.com/compbiomed/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_13.png)

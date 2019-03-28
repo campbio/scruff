@@ -5,11 +5,12 @@
 \title{Demultiplex cell barcodes and assign cell specific reads}
 \usage{
 demultiplex(project = paste0("project_", Sys.Date()), experiment, lane,
-  read1Path, read2Path, bc, bcStart, bcStop, bcEdit = 0, umiStart, umiStop,
-  keep, minQual = 10, yieldReads = 1e+06, outDir = "./Demultiplex",
-  summaryPrefix = "demultiplex", overwrite = FALSE, cores = max(1,
-  parallel::detectCores() - 2), verbose = FALSE,
-  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
+  read1Path, read2Path, bc, bcStart, bcStop, bcEdit = 0, umiStart,
+  umiStop, keep, minQual = 10, yieldReads = 1e+06,
+  outDir = "./Demultiplex", summaryPrefix = "demultiplex",
+  overwrite = FALSE, cores = max(1, parallel::detectCores() - 2),
+  verbose = FALSE, logfilePrefix = format(Sys.time(),
+  "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
 \item{project}{The project name. Default is
@@ -41,7 +42,7 @@ start positions (inclusive, one-based numbering).}
 \item{bcStop}{Integer or vector of integers containing the cell barcode
 stop positions (inclusive, one-based numbering).}
 
-\item{bcEdit}{Maximally allowed edit distance for barcode correction.
+\item{bcEdit}{Maximally allowed Hamming distance for barcode correction.
 Barcodes with mismatches equal or fewer than this will be assigned a
 corrected barcode if the inferred barcode matches uniquely in the provided
 predetermined barcode list. Default is 0, meaning no cell barcode
@@ -90,8 +91,9 @@ debugging. Default to \strong{FALSE}.}
 in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 }
 \value{
-A \strong{SingleCellExperiment} object containing the demultiplex
- summary information as \code{colData}.
+A \link[SingleCellExperiment]{SingleCellExperiment} object
+ containing the demultiplex summary information as
+  \link[SummarizedExperiment]{colData}.
 }
 \description{
 Demultiplex fastq files and write cell specific reads in compressed fastq
