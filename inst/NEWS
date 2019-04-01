@@ -1,3 +1,8 @@
+# 1.1.5
+
+* Add messages reading GTF file
+* check gene_biotype column in GTF file before calculating the protein coding genes and counts
+
 # 1.1.4
 
 * Removed features arg in .getGeneAnnotation
