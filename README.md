@@ -4,7 +4,14 @@
 
 ## Installation Instructions
 
-To install `scruff` using `devtools`:
+To install the latest stable release of `scruff` from [Bioconductor](http://bioconductor.org/packages/scruff/):
+```
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("scruff")
+```
+
+To install the development version of `scruff` from GitHub using `devtools`:
 ```
 library(devtools)
 install_github("campbio/scruff")
@@ -12,10 +19,8 @@ install_github("campbio/scruff")
 
 ## Package User Guide
 
-An introduction to `scruff` package is available within the package as a vignette which can be opened via running 
-```
-vignette("scruff")
-```
+An introduction to `scruff` package is available [here](http://bioconductor.org/packages/release/bioc/vignettes/scruff/inst/doc/scruff.pdf).
+
 ## Example QC plots
 
 The following figures are generated using data from [(Van den Brink et al. 2017)](https://www.nature.com/articles/nmeth.4437) and **scruff** package.
