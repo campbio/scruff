@@ -28,15 +28,17 @@ An introduction to `scruff` package is available [here](http://bioconductor.org/
 
 <p align="center"><img src="https://github.com/campbio/scruff/raw/master/data-raw/figure/20190312_scruff_figure_5.png" height="400"></p>
 
-Run time benchmarks for selected scRNA-seq preprocessing packages. FASTQ files from the example dataset [(Van den Brink et al. 2017)](https://www.nature.com/articles/nmeth.4437) were subsampled to have a total read number of 0.1, 0.5, 1.0, 5.0, and 10.0 million. Each of the subsampled datasets was processed by [celseq2](https://github.com/yanailab/celseq2), [scPipe](https://doi.org/10.1371/journal.pcbi.1006361), and **scruff**. All 3 packages were parallelized with 16 cores. The job was run on a cluster node with 2 eight-core 2.6 GHz Intel Xeon E5-2670 CPUs and 256 GB memory
+Run time benchmarks for selected scRNA-seq preprocessing packages. FASTQ files from the example dataset [(Van den Brink et al. 2017)](https://www.nature.com/articles/nmeth.4437) were subsampled to have a total read number of 0.1, 0.5, 1.0, 5.0, and 10.0 million. Each of the subsampled datasets was processed by [celseq2](https://github.com/yanailab/celseq2), [scPipe](https://doi.org/10.1371/journal.pcbi.1006361), and **scruff**. All 3 packages were parallelized with 16 cores. The job was run on a cluster node with 2 eight-core 2.6 GHz Intel Xeon E5-2670 CPUs and 256 GB memory.
 
 ## Example QC plots
 
-The following selected QC plots are generated using data from [(Van den Brink et al. 2017)](https://www.nature.com/articles/nmeth.4437) and **scruff** package. Metrics and QC plots reported by **scruff** includes total number of reads, number of reads mapped to reference genome, number of reads mapped to genes, fraction of mapped reads to total reads, fraction of reads mapped to genes to reads mapped to genome, fraction of reads mapped to genes to total number of reads, total number of transcripts, number of mitochondrial transcripts, fraction of mitochondrial transcripts, number of transcribed genes, fraction of protein coding genes, fraction of protein coding transcripts, median and average number of reads per corrected and uncorrected UMI counts, and the number of detected genes divided by total number of reads sequenced per million
+The following selected QC plots are generated using data from [(Van den Brink et al. 2017)](https://www.nature.com/articles/nmeth.4437) and **scruff** package. Metrics and QC plots reported by **scruff** includes total number of reads, number of reads mapped to reference genome, number of reads mapped to genes, fraction of mapped reads to total reads, fraction of reads mapped to genes to reads mapped to genome, fraction of reads mapped to genes to total number of reads, total number of transcripts, number of mitochondrial transcripts, fraction of mitochondrial transcripts, number of transcribed genes, fraction of protein coding genes, fraction of protein coding transcripts, median and average number of reads per corrected and uncorrected UMI counts, and the number of detected genes divided by total number of reads sequenced per million.
 
 ![scruff total_reads](https://github.com/campbio/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_01.png)
 
 ![scruff aligned_reads_fraction](https://github.com/campbio/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_04.png)
+
+These are boxplots with overlaying points. Each point represents a well (unique cell barcode) and is colored by the number of cells sorted in the well by FACS. Each boxplot denotes a different experiment (i.e. plate). Sample *mouse c library 2* have similar number of total reads but much less fraction of aligned reads compared to other experiments, showing its poor quality.
 
 ## Read alignment visualization colored by UMI
 
