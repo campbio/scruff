@@ -24,16 +24,30 @@ install_github("campbio/scruff")
 
 An introduction to `scruff` package is available [here](http://bioconductor.org/packages/release/bioc/vignettes/scruff/inst/doc/scruff.pdf).
 
+## Speed
+
+<p align="center"><img src="https://github.com/campbio/scruff/raw/master/data-raw/figure/20190312_scruff_figure_5.png" height="400"></p>
+
+Run time benchmarks for selected scRNA-seq preprocessing packages. FASTQ files from the example dataset [(Van den Brink et al. 2017)](https://www.nature.com/articles/nmeth.4437) were subsampled to have a total read number of 0.1, 0.5, 1.0, 5.0, and 10.0 million. Each of the subsampled datasets was processed by [celseq2](https://github.com/yanailab/celseq2), [scPipe](https://doi.org/10.1371/journal.pcbi.1006361), and **scruff**. All 3 packages were parallelized with 16 cores. The job was run on a cluster node with 2 eight-core 2.6 GHz Intel Xeon E5-2670 CPUs and 256 GB memory
+
 ## Example QC plots
 
-The following figures are generated using data from [(Van den Brink et al. 2017)](https://www.nature.com/articles/nmeth.4437) and **scruff** package.
+The following selected QC plots are generated using data from [(Van den Brink et al. 2017)](https://www.nature.com/articles/nmeth.4437) and **scruff** package. Metrics and QC plots reported by **scruff** includes total number of reads, number of reads mapped to reference genome, number of reads mapped to genes, fraction of mapped reads to total reads, fraction of reads mapped to genes to reads mapped to genome, fraction of reads mapped to genes to total number of reads, total number of transcripts, number of mitochondrial transcripts, fraction of mitochondrial transcripts, number of transcribed genes, fraction of protein coding genes, fraction of protein coding transcripts, median and average number of reads per corrected and uncorrected UMI counts, and the number of detected genes divided by total number of reads sequenced per million
 
 ![scruff total_reads](https://github.com/campbio/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_01.png)
 
-![scruff aligned_reads](https://github.com/campbio/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_02.png)
-
 ![scruff aligned_reads_fraction](https://github.com/campbio/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_04.png)
 
-![scruff mt_transcripts_fraction](https://github.com/campbio/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_09.png)
+## Read alignment visualization colored by UMI
 
-![scruff protein_coding_genes_fraction](https://github.com/campbio/scruff/raw/master/data-raw/figure/20180907_vdb_newplots_ercc_edit_Page_11.png)
+![read_alignment_UMI](https://github.com/campbio/scruff/raw/master/data-raw/figure/20190124_scruff_figure_3.png)
+
+125 reads were mapped to the gene Fos in cell 30 of mouse b library 1 from the example CEL-Seq dataset [(Van den Brink et al. 2017)](https://www.nature.com/articles/nmeth.4437). Upper panel shows the visualization of read alignments. Reads are represented by arrows and are colored by their UMIs. The direction of the arrow represents the mapping strand of the read. Lower panel shows the visualization of gene isoforms. Gene isoforms are labeled by their transcript names. Grey rectangles represent exons.
+
+## QC plots for 10X Genomics data.
+
+![read_alignment_UMI](https://github.com/campbio/scruff/raw/master/data-raw/figure/20181221_scruff_figure_4.png)
+
+BAM files for 6 PBMC datasets ([3K](https://support.10xgenomics.com/single-cell-gene-expression/datasets/1.1.0/pbmc3k), [6K](https://support.10xgenomics.com/single-cell-gene-expression/datasets/1.1.0/pbmc6k), [4K](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k), [8K](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc8k), [1K](https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.0/pbmc_1k_v3), [10K](https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.0/pbmc_10k_v3)) were downloaded from 10X Genomics website and processed by **scruff** to obtain (a) the number of reads aligned to reference genome, (b) the number of reads mapped to genes, and (c) the fraction of reads mapped to genes out of total number of aligned reads.
+
+
