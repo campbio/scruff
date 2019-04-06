@@ -187,11 +187,11 @@ scruff <- function(project = paste0("project_", Sys.Date()),
     cores = max(1, parallel::detectCores() - 2),
     threads = 1,
     ...) {
-    
+
     # run pipeline
     message(Sys.time(), " Start running scruff ...")
     print(match.call(expand.dots = TRUE))
-    
+
     de <- demultiplex(
         project = project,
         experiment = experiment,
@@ -214,7 +214,7 @@ scruff <- function(project = paste0("project_", Sys.Date()),
         cores = cores,
         logfilePrefix = logfilePrefix
     )
-    
+
     al <- alignRsubread(
         sce = de,
         index = index,
@@ -230,7 +230,7 @@ scruff <- function(project = paste0("project_", Sys.Date()),
         logfilePrefix = logfilePrefix,
         ...
     )
-    
+
     co <- countUMI(
         sce = al,
         reference = reference,
@@ -243,9 +243,8 @@ scruff <- function(project = paste0("project_", Sys.Date()),
         verbose = verbose,
         logfilePrefix = logfilePrefix
     )
-    
-    message(Sys.time(), " Finished running scruff ...")
-    
-    return (co)
-}
 
+    message(Sys.time(), " Finished running scruff ...")
+
+    return(co)
+}
