@@ -53,6 +53,8 @@
 
 # read gtf database and return feature GRangesList by gene ID
 .gtfReadDb <- function(gtf) {
+    message(Sys.time(),
+        " ... Reading GTF file ", gtf, " as GRangesList object")
     gtf.db.file <- paste0(basename(gtf), ".sqlite")
     if ((!(file.exists(gtf))) & (!(file.exists(gtf.db.file)))) {
         stop(paste("File", gtf, "does not exist"))
@@ -244,6 +246,9 @@
 
 
 .getGeneAnnotation <- function(reference) {
+    message(Sys.time(),
+        " ... Reading GTF file ",
+        reference, " as data.table object")
     gtf <- rtracklayer::import(reference)
     
     geneAnnotation <- data.table::as.data.table(gtf)
@@ -263,6 +268,15 @@
     geneAnnotation[source == "ERCC", gene_biotype := source]
     
     return (geneAnnotation)
+}
+
+
+.checkGTF <- function(gtfDt, cnames) {
+    for (i in cnames) {
+        if (!(i %in% colnames(gtfDt))) {
+            warning("GTF file does not contain ", i, " column")
+        }
+    }
 }
 
 

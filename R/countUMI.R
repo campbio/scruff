@@ -93,6 +93,19 @@ countUMI <- function(sce,
     logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
 
     .checkCores(cores)
+    geneAnnotation <- .getGeneAnnotation(reference)
+    
+    gtfcolnames <- c("gene_id",
+        "gene_name",
+        "gene_biotype",
+        "seqnames",
+        "start",
+        "end",
+        "width",
+        "strand",
+        "source")
+    
+    .checkGTF(geneAnnotation, gtfcolnames)
 
     isWindows <- .Platform$OS.type == "windows"
 
@@ -248,8 +261,6 @@ countUMI <- function(sce,
         "avg_reads_per_umi",
         "median_reads_per_corrected_umi",
         "avg_reads_per_corrected_umi")
-
-    geneAnnotation <- .getGeneAnnotation(reference)
     
     SummarizedExperiment::rowData(scruffsce) <-
         S4Vectors::DataFrame(geneAnnotation[order(gene_id), ],
@@ -299,15 +310,15 @@ countUMI <- function(sce,
         sum(cm[, cells] != 0)
     }, integer(1))
 
-    # protein coding genes
-    proteinCodingGene <- geneAnnotation[gene_biotype == "protein_coding",
-        gene_id]
-    proGene <- vapply(colnames(cm), function(cells) {
-        sum(cm[proteinCodingGene, cells] != 0)
-    }, integer(1))
-
-    # protein coding counts
-    proCounts <- base::colSums(as.data.frame(cm[proteinCodingGene, ]))
+    # protein coding genes and counts
+    if ("gene_biotype" %in% colnames(geneAnnotation)) {
+        proteinCodingGene <- geneAnnotation[gene_biotype == "protein_coding",
+            gene_id]
+        proGene <- vapply(colnames(cm), function(cells) {
+            sum(cm[proteinCodingGene, cells] != 0)
+        }, integer(1))
+        proCounts <- base::colSums(as.data.frame(cm[proteinCodingGene, ]))
+    }
     
     qcdf <- cbind(SummarizedExperiment::colData(sce),
         readmapping,
