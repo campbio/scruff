@@ -311,7 +311,7 @@ countUMI <- function(sce,
     }, integer(1))
 
     # protein coding genes and counts
-    if (gene_biotype %in% colnames(geneAnnotation)) {
+    if ("gene_biotype" %in% colnames(geneAnnotation)) {
         proteinCodingGene <- geneAnnotation[gene_biotype == "protein_coding",
             gene_id]
         proGene <- vapply(colnames(cm), function(cells) {
