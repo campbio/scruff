@@ -1,9 +1,9 @@
 #' Visualize data quality
-#' 
+#'
 #' Visualize data quality from the \code{colData} of the
 #'  \code{SingleCellExperiment} object and return a list of figures in
 #'  \code{arrangelist} object.
-#' 
+#'
 #' @param sce An \code{SingleCellExperiment} object returned from [scruff],
 #'  [countUMI], or [tenxBamqc] function.
 #' @return A list of \code{grobs} objects ready for plotting
@@ -13,7 +13,7 @@
 #' @export
 qcplots <- function(sce) {
     qcDt <- data.table::as.data.table(SummarizedExperiment::colData(sce))
-    
+
     g1 <- .plotTotalReads(qcDt)
     g2 <- .plotReadsMappedToGenome(qcDt)
     g3 <- .plotReadsMappedToGenes(qcDt)
@@ -31,16 +31,16 @@ qcplots <- function(sce) {
     g15 <- .plotMedReadsPerCorrectedUMI(qcDt)
     g16 <- .plotAvgReadsPerCorrectedUMI(qcDt)
     g17 <- .plotGenesPerMillionReads(qcDt)
-    return (list(g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13,
+    return(list(g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13,
         g14, g15, g16, g17))
 }
 
 
 .plotTotalReads <- function(qcDt) {
     if (!"reads" %in% colnames(qcDt)) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -62,15 +62,15 @@ qcplots <- function(sce) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotReadsMappedToGenome <- function(qcDt) {
     if (!"reads_mapped_to_genome" %in% colnames(qcDt)) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -92,15 +92,15 @@ qcplots <- function(sce) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotReadsMappedToGenes <- function(qcDt) {
     if (!"reads_mapped_to_genes" %in% colnames(qcDt)) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -121,16 +121,16 @@ qcplots <- function(sce) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotGenomeReadsFraction <- function(qcDt) {
     if (!("reads_mapped_to_genome" %in% colnames(qcDt) &
             "reads" %in% colnames(qcDt))) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -145,20 +145,20 @@ qcplots <- function(sce) {
         ggplot2::xlab("Experiment") +
         ggplot2::ggtitle("Fraction of aligned reads to total reads") +
         ggplot2::labs(color = "Cells") +
-        .themePublication() + 
+        .themePublication() +
         ggplot2::theme(axis.title.y = ggplot2::element_blank(),
             axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotGeneToGenomeFraction <- function(qcDt) {
     if (!("reads_mapped_to_genome" %in% colnames(qcDt) &
             "reads_mapped_to_genes" %in% colnames(qcDt))) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -177,16 +177,16 @@ qcplots <- function(sce) {
         ggplot2::theme(axis.title.y = ggplot2::element_blank(),
             axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotGeneToTotalFraction <- function(qcDt) {
     if (!("reads_mapped_to_genes" %in% colnames(qcDt) &
             "reads" %in% colnames(qcDt))) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -205,15 +205,15 @@ qcplots <- function(sce) {
         ggplot2::theme(axis.title.y = ggplot2::element_blank(),
             axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotCounts <- function(qcDt) {
     if (!"total_counts" %in% colnames(qcDt)) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -234,15 +234,15 @@ qcplots <- function(sce) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotMtCounts <- function(qcDt) {
     if (!"mt_counts" %in% colnames(qcDt)) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -263,16 +263,16 @@ qcplots <- function(sce) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotMtCountsFraction <- function(qcDt) {
     if (!("mt_counts" %in% colnames(qcDt) &
             "total_counts" %in% colnames(qcDt))) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -291,15 +291,15 @@ qcplots <- function(sce) {
         ggplot2::theme(axis.title.y = ggplot2::element_blank(),
             axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotGenes <- function(qcDt) {
     if (!"genes" %in% colnames(qcDt)) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -320,16 +320,16 @@ qcplots <- function(sce) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotFracProteinCodingGenes <- function(qcDt) {
     if (!("protein_coding_genes" %in% colnames(qcDt) &
             "genes" %in% colnames(qcDt))) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -348,16 +348,16 @@ qcplots <- function(sce) {
         ggplot2::theme(axis.title.y = ggplot2::element_blank(),
             axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotFracProteinCodingTranscripts <- function(qcDt) {
     if (!("protein_coding_counts" %in% colnames(qcDt) &
             "total_counts" %in% colnames(qcDt))) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -376,15 +376,15 @@ qcplots <- function(sce) {
         ggplot2::theme(axis.title.y = ggplot2::element_blank(),
             axis.text.x = ggplot2::element_text(angle = 45,
                 hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotGenesPerMillionReads <- function(qcDt) {
     if (!"reads" %in% colnames(qcDt)) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -409,15 +409,15 @@ qcplots <- function(sce) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotMedReadsPerUMI <- function(qcDt) {
     if (!"median_reads_per_umi" %in% colnames(qcDt)) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -439,15 +439,15 @@ qcplots <- function(sce) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotAvgReadsPerUMI <- function(qcDt) {
     if (!"avg_reads_per_umi" %in% colnames(qcDt)) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -469,19 +469,19 @@ qcplots <- function(sce) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotMedReadsPerCorrectedUMI <- function(qcDt) {
     if (!"median_reads_per_corrected_umi" %in% colnames(qcDt)) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     if (sum(qcDt[, median_reads_per_corrected_umi]) == 0) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -503,19 +503,19 @@ qcplots <- function(sce) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1))
-    return (g)
+    return(g)
 }
 
 
 .plotAvgReadsPerCorrectedUMI <- function(qcDt) {
     if (!"avg_reads_per_corrected_umi" %in% colnames(qcDt)) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     if (sum(qcDt[, avg_reads_per_corrected_umi]) == 0) {
-        return (NULL)
+        return(NULL)
     }
-    
+
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
@@ -537,6 +537,6 @@ qcplots <- function(sce) {
         .themePublication() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
             hjust = 1))
-    return (g)
+    return(g)
 }
 

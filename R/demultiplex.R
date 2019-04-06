@@ -110,9 +110,9 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     if (length(project) > 1) {
         stop("Project should be length 1")
     }
-    
+
     .checkCores(cores)
-    
+
     if (!all(file.exists(c(read1Path, read2Path)))) {
         stop("Partial or all FASTQ files nonexistent.",
             "Please check paths are correct.\n",
@@ -143,7 +143,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
         message("Input sample information for FASTQ files:")
         print(fastqAnnot)
     }
-    
+
     .checkCellBarcodes(bc, bcStart, bcStop, verbose)
 
     fastqAnnotDt <- data.table::data.table(fastqAnnot)
@@ -408,8 +408,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
         repeat {
             fqy1 <- ShortRead::yield(fq1)
             fqy2 <- ShortRead::yield(fq2)
-            if (length(fqy1) != length(fqy2))
-            {
+            if (length(fqy1) != length(fqy2)) {
                 .logMessages(
                     Sys.time(),
                     "Stop. Unequal number of reads",
@@ -423,8 +422,9 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
                     " between read1 and read2 fastq files:",
                     f1,
                     f2)
-            } else if (length(fqy1) == 0 & length(fqy2) == 0)
+            } else if (length(fqy1) == 0 & length(fqy2) == 0) {
                 break
+            }
 
             summaryDt[filename == "total", reads := reads + length(fqy1)]
 

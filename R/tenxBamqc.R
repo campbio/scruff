@@ -24,7 +24,7 @@
 #'  non-standard tags locally-defined by Cell Ranger pipeline. Should not be
 #'  changed in most cases.
 #' @param yieldSize The number of records (alignments) to yield when drawing
-#'  successive subsets from a BAM file, providing the number of successive 
+#'  successive subsets from a BAM file, providing the number of successive
 #'  records to be returned on each yield. This parameter is passed to the
 #'  \code{yieldSize} argument of the \link[Rsamtools]{BamFile} function in
 #'  \link[Rsamtools]{Rsamtools} package. Default is \strong{1e06}.
@@ -45,14 +45,14 @@
 #' bamfile10x <- system.file("extdata",
 #'     "SRR5167880_E18_20160930_Neurons_Sample_01_5000.bam",
 #'     package = "scruff")
-#' 
+#'
 #' # library(TENxBrainData)
 #' # library(data.table)
 #' # tenx <- TENxBrainData()
 #' # # get filtered barcodes for sample 01
 #' # filteredBcIndex <- tstrsplit(colData(tenx)[, "Barcode"], "-")[[2]] == 1
 #' # filteredBc <- colData(tenx)[filteredBcIndex, ][["Barcode"]]
-#' 
+#'
 #' filteredBc <- system.file("extdata",
 #'     "SRR5167880_E18_20160930_Neurons_Sample_01_filtered_barcode.tsv",
 #'     package = "scruff")
@@ -71,58 +71,58 @@ tenxBamqc <- function(bam,
     yieldSize = 1000000,
     outDir = "./",
     cores = max(1, parallel::detectCores() - 2)) {
-    
+
     .checkCores(cores)
-    
+
     isWindows <- .Platform$OS.type == "windows"
-    
+
     print(match.call(expand.dots = TRUE))
-    
+
     if (length(experiment) != length(bam)) {
         stop("'bam' and 'experiment' have unequal lengths!")
     }
-    
+
     if (length(experiment) != length(filter)) {
         stop("'bam' and 'filter' have unequal lengths!")
     }
-    
+
     message(Sys.time(), " Start collecting QC metrics for BAM files ",
         paste(bam, collapse = " "))
-    
+
     if (is.na(validCb)) {
         utils::data(validCb, package = "scruff", envir = environment())
     } else {
         validCb <- data.table::fread(validCb, header = FALSE)
     }
-    
-    
+
+
     resDt <- data.table::data.table(cell_barcode = character(),
         reads_mapped_to_genome = integer(),
         reads_mapped_to_genes = integer(),
         experiment = character())
-    
+
     for (i in seq_len(length(bam))) {
-        
+
         message(Sys.time(), " Processing file ", bam[i])
-        
+
         bamfl <- Rsamtools::BamFile(bam[i], yieldSize = yieldSize)
-        
+
         param <- Rsamtools::ScanBamParam(tag = tags)
-        
+
         # initialize valid cell barcodes
         vcb <- data.table::as.data.table(validCb)
-        
+
         colnames(vcb)[1] <- "cell_barcode"
-        
+
         #vcb[, cell_barcode := paste0(cell_barcode, "-1")]
         vcb[, reads_mapped_to_genome := 0]
         vcb[, reads_mapped_to_genes := 0]
-        
+
         open(bamfl)
-        
+
         # Initialize iterator
         .bamIter <- .bamIterator(bamfl, param)
-        
+
         if (isWindows) {
             qcL <- BiocParallel::bpiterate(
                 ITER = .bamIter,
@@ -140,18 +140,18 @@ tenxBamqc <- function(bam,
                     workers = cores)
             )
         }
-        
+
         close(bamfl)
         qcDt <- base::Reduce("+", qcL)
         qcDt <- data.table::as.data.table(qcDt, keep.rownames = TRUE)
         colnames(qcDt)[1] <- "cell_barcode"
         qcDt <- qcDt[reads_mapped_to_genome != 0, ]
-        
+
         if (nrow(qcDt) == 0) {
             stop("No reads are aligned to the genome in file",
                 bam[i])
         }
-        
+
         filterDt <- data.table::fread(filter[i], header = FALSE)
         colnames(filterDt)[1] <- "cb"
         filterDt[, cb := data.table::tstrsplit(cb, "-")[[1]]]
@@ -159,28 +159,28 @@ tenxBamqc <- function(bam,
         qcDt[, experiment := experiment[i]]
         resDt <- rbind(resDt, qcDt)
     }
-    
+
     resDt[, number_of_cells := TRUE]
-    
+
     message(Sys.time(), " Finished collecting QC metrics")
     message(Sys.time(), " Write QC results to output directory")
-    
+
     data.table::fwrite(resDt,
         sep = "\t",
         file = file.path(outDir, paste0(
             format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
             "_10x_bamqc_filtered.tsv")))
-    
+
     scruffsce <- SingleCellExperiment::SingleCellExperiment(
         matrix(ncol = nrow(resDt)))
-    
+
     summaryDF <- S4Vectors::DataFrame(resDt,
         row.names = paste(resDt[, cell_barcode],
             resDt[, experiment],
             sep = "-"))
-    
+
     SummarizedExperiment::colData(scruffsce) <- summaryDF
-    
+
     message(Sys.time(),
         " ... Save SingleCellExperiment object to ",
         file.path(outDir, paste0(
@@ -188,17 +188,17 @@ tenxBamqc <- function(bam,
                 "%Y%m%d_%H%M%S"), "_10X_QC_sce.rda"
         ))
     )
-    
+
     save(scruffsce, file = file.path(outDir, paste0(
         format(Sys.time(), "%Y%m%d_%H%M%S"), "_10X_QC_sce.rda"
     )))
-    
-    return (scruffsce)
+
+    return(scruffsce)
 }
 
 
 .tenxBamqcUnit <- function(bamGA, vcb, ...) {
-    
+
     bamdt <- data.table::data.table(readname = base::names(bamGA),
         chr = as.vector(GenomicAlignments::seqnames(bamGA)),
         strand = S4Vectors::decode(BiocGenerics::strand(bamGA)),
@@ -208,26 +208,26 @@ tenxBamqc <- function(bam,
         GX = S4Vectors::mcols(bamGA)$GX,
         CB = S4Vectors::mcols(bamGA)$CB,
         MM = S4Vectors::mcols(bamGA)$MM)
-    
+
     bamdt[, CB := data.table::tstrsplit(CB, "-")[[1]]]
-    
+
     genomeReadsDt <- bamdt[, .(readname, CB)]
-    
+
     # number of aligned reads, including multimappers
     genomeReads <- base::table(genomeReadsDt[, CB])
-    
+
     # gene reads (uniquely mapped reads)
     # use reads (MM = 1 | MAPQ = 255)
     geneReadsDt <- bamdt[(NH == 1 & !is.na(GX) | MM == 1) & !is.na(CB),
         .(readname, CB, GX)]
-    
+
     # if ";" is in GX then this read is not uniquely mapped
     geneReadsDt <- geneReadsDt[!base::grepl(";", GX), ]
-    
+
     geneReads <- base::table(geneReadsDt[, CB])
-    
+
     qcdt <- data.table::copy(vcb)
-    
+
     # sanity check
     if (nrow(qcdt[cell_barcode %in% genomeReadsDt[, CB], ]) !=
             length(unique(genomeReadsDt[!is.na(CB), CB]))) {
@@ -235,14 +235,14 @@ tenxBamqc <- function(bam,
             " in barcode whitelist. Maybe you are using an older version of ",
             "cell barcode whitelist with 14-base-long barcodes?")
     }
-    
+
     qcdt[cell_barcode %in% genomeReadsDt[, CB],
         reads_mapped_to_genome := as.numeric(genomeReads[cell_barcode])]
-    
+
     qcdt[cell_barcode %in% geneReadsDt[, CB],
         reads_mapped_to_genes := as.numeric(geneReads[cell_barcode])]
-    
+
     resmatrix <- base::as.matrix(qcdt, rownames = 1)
     rownames(resmatrix) <- qcdt[, cell_barcode]
-    return (resmatrix)
+    return(resmatrix)
 }

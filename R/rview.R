@@ -22,25 +22,25 @@ rview <- function(bamGA,
     start = 1,
     end = max(BiocGenerics::end(bamGA)),
     legend = FALSE) {
-    
+
     reads <- bamGA[BiocGenerics::start(bamGA) >= start &
             BiocGenerics::end(bamGA) <= end &
             GenomeInfoDb::seqnames(bamGA) == chr]
     umi <- data.table::last(data.table::tstrsplit(names(reads), ":"))
     reads <- reads[order(BiocGenerics::start(reads), umi)]
-    
+
     readsGr <- GenomicRanges::GRanges(reads)
     S4Vectors::mcols(readsGr)$umi <- data.table::last(
         data.table::tstrsplit(names(readsGr), ":"))
-    
+
     g <- ggplot2::ggplot(readsGr) +
         ggbio::geom_arrow(ggplot2::aes(color = umi)) +
         .themePublication() +
         ggplot2::theme(axis.title.y = ggplot2::element_blank())
-    
+
     if (legend == FALSE) {
         g <- g + ggplot2::theme(legend.position = "none")
     }
-    return (g)
+    return(g)
 }
 

@@ -40,10 +40,10 @@ gview <- function(gtfFile,
     arrow_length = 0.08,
     arrow_type = "open",
     text_size = 4) {
-    
+
     .getLevel <- function(txdt) {
         txdt <- txdt[order(start, end), ]
-        
+
         step <- 1
         while (any(txdt[, set != 1])) {
             x1 <- -1
@@ -56,10 +56,10 @@ gview <- function(gtfFile,
             }
             step <- step + 1
         }
-        return (txdt)
+        return(txdt)
     }
-    
-    
+
+
     .getTxdt <- function(dt) {
         transcripts <- dt[, unique(transcript_id)]
         txdt <- data.table::data.table()
@@ -74,14 +74,14 @@ gview <- function(gtfFile,
                     gene_id = exdt[, unique(gene_id)],
                     gene_name = exdt[, unique(gene_name)],
                     strand = exdt[, unique(strand)]))
-            
+
         }
         txdt[, set := 0]
-        
+
         txdt <- .getLevel(txdt)
     }
-    
-    
+
+
     .transRect <- function(dt, txdt) {
         rdt <- data.table::data.table()
         transcripts <- dt[, unique(transcript_id)]
@@ -89,39 +89,39 @@ gview <- function(gtfFile,
             dt[transcript_id == tx,
                 level := txdt[transcript_id == tx, level]]
         }
-        
+
         exons <- dt[type == "exon", ]
-        
+
         for (i in seq_len(nrow(exons))) {
             x1 <- exons[i, start]
             x2 <- exons[i, end]
             y1 <- exons[i, level] - rect_width
             y2 <- exons[i, level] + rect_width
-            
+
             rdt <- rbind(rdt,
                 data.table::data.table(x1 = x1,
                     x2 = x2,
                     y1 = y1,
                     y2 = y2,
-                    exon_number = 
+                    exon_number =
                         exons[i, exon_number],
-                    transcript_id = 
+                    transcript_id =
                         exons[i, transcript_id],
                     gene_id = exons[i, gene_id],
-                    gene_name = 
+                    gene_name =
                         exons[i, gene_name]),
                 fill = TRUE)
         }
-        return (rdt)
+        return(rdt)
     }
-    
-    
+
+
     .transArrow <- function(dt) {
         adt <- data.table::data.table()
         for (i in seq_len(nrow(dt))) {
             mi <- dt[i, start]
             ma <- dt[i, end]
-            
+
             if (dt[i, strand] == "+") {
                 x1 <- mi + (((ma - mi)/arrow_segments) *
                         seq(0, arrow_segments - 1))
@@ -133,10 +133,10 @@ gview <- function(gtfFile,
                 x2 <- mi - (((mi - ma)/arrow_segments) *
                         seq(arrow_segments - 1, 0))
             }
-            
+
             y1 <- rep(dt[i, level], arrow_segments)
             y2 <- y1
-            
+
             adt <- rbind(adt,
                 data.table::data.table(
                     x1 = x1,
@@ -152,32 +152,32 @@ gview <- function(gtfFile,
                     gene_name = rep(dt[i, gene_name],
                         arrow_segments)))
         }
-        
-        return (adt)
+
+        return(adt)
     }
-    
-    
+
+
     .transText <- function(dt) {
         tdt <- data.table::data.table()
-        
+
         for (i in seq_len(nrow(dt))) {
             mi <- dt[i, start]
             ma <- dt[i, end]
-            
+
             x <- (ma + mi)/2
             y <- dt[i, level] + 0.4
-            
+
             tdt <- rbind(tdt,
                 data.table::data.table(
                     x = x,
                     y = y,
                     transcript_name = dt[i, transcript_name]))
-            
+
         }
-        return (tdt)
+        return(tdt)
     }
-    
-    
+
+
     # convert to data.table
     gtfDt <- data.table::as.data.table(
         rtracklayer::import(gtfFile))[type != "gene", c("seqnames",
@@ -191,22 +191,22 @@ gview <- function(gtfFile,
             "gene_id",
             "transcript_name",
             "transcript_id")]
-    
+
     # use new variables to avoid ambiguity
     begin <- start
     ed <- end
-    
+
     # subset features
     gtfDt <- gtfDt[end >= begin & start <= ed & seqnames == chr, ]
-    
+
     # aggregate transcripts
     txdt <- .getTxdt(gtfDt)
-    
+
     # get tables for plotting
     rectdt <- .transRect(gtfDt, txdt)
     arrowdt <- .transArrow(txdt)
     textdt <- .transText(txdt)
-    
+
     # plot
     g <- ggplot2::ggplot() +
         ggplot2::geom_rect(data = rectdt,
@@ -236,7 +236,7 @@ gview <- function(gtfFile,
             axis.ticks.y = ggplot2::element_blank(),
             axis.line.y = ggplot2::element_blank()) +
         ggplot2::xlab(paste0("Chr", chr))
-    
-    return (g)
+
+    return(g)
 }
 

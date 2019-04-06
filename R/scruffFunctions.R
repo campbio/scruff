@@ -14,7 +14,7 @@
         cat(paste(..., "\n", sep = sep),
             file = logfile,
             append = append)
-        
+
     } else {
         message(paste(..., sep = sep))
     }
@@ -26,7 +26,7 @@
 
 # remove file extension and get basename
 .removeLastExtension <- function(x) {
-    return (sub(pattern = "\\.[^\\.]*$",
+    return(sub(pattern = "\\.[^\\.]*$",
         replacement = "\\1",
         basename(x)))
 }
@@ -43,7 +43,7 @@
             ".",
             format
         ))
-    return (file.paths)
+    return(file.paths)
 }
 
 
@@ -59,7 +59,7 @@
     if ((!(file.exists(gtf))) & (!(file.exists(gtf.db.file)))) {
         stop(paste("File", gtf, "does not exist"))
     }
-    
+
     if (!(file.exists(gtf.db.file))) {
         message(paste(Sys.time(), "... TxDb file",
             gtf.db.file,
@@ -67,9 +67,9 @@
         message(paste(Sys.time(), "... Creating TxDb object", gtf.db.file))
         gtf.db <- GenomicFeatures::makeTxDbFromGFF(file = gtf)
         AnnotationDbi::saveDb(gtf.db, file = gtf.db.file)
-        return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
+        return(GenomicFeatures::exonsBy(gtf.db, by = "gene"))
     }
-    
+
     gtf.db <- tryCatch(
         suppressPackageStartupMessages(AnnotationDbi::loadDb(gtf.db.file)),
         error = function(e) {
@@ -78,22 +78,22 @@
                     "and try again.")
         }
     )
-    return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
+    return(GenomicFeatures::exonsBy(gtf.db, by = "gene"))
 }
 
 
 # correct barcode mismatch using memoization
 .bcCorrectMem <- local({
     res <- list()
-    
+
     f <- function(bc, refBarcodes, maxEditDist) {
         if (bc %in% names(res))
-            return (res[[bc]])
+            return(res[[bc]])
         if (bc %in% refBarcodes) {
             res[[bc]] <<- bc
-            return (res[[bc]])
+            return(res[[bc]])
         }
-        
+
         sdm <- stringdist::stringdistmatrix(bc,
             refBarcodes,
             method = "hamming",
@@ -103,11 +103,11 @@
             ind <- which(sdm == min.dist)
             if (length(ind) == 1) {
                 res[[bc]] <<- refBarcodes[ind]
-                return (res[[bc]])
+                return(res[[bc]])
             }
         }
         res[[bc]] <<- bc
-        return (res[[bc]])
+        return(res[[bc]])
     }
 })
 
@@ -128,7 +128,7 @@
         Rsamtools::asBam(sam, overwrite = overwrite, indexDestination = index),
         error = function(e) {}
     )
-    return (sub(
+    return(sub(
         pattern = "\\.sam$",
         ignore.case = TRUE,
         perl = TRUE,
@@ -150,14 +150,14 @@
 
 # A function that returns an iterator that reads BAM files
 .bamIterator <- function(bamfl, param) {
-    return (function() {
+    return(function() {
         if (Rsamtools::isIncomplete(bamfl)) {
             yld <- GenomicAlignments::readGAlignments(bamfl,
                 use.names = TRUE,
                 param = param)
             return(yld)
         } else {
-            return (NULL)
+            return(NULL)
         }
     })
 }
@@ -166,11 +166,11 @@
 # A function that returns an iterator that reads FASTQ read1 and read2 files
 .fastqIterator <- function(fq1, fq2) {
     done <- FALSE
-    return (function() {
+    return(function() {
         if (done) {
             return(NULL)
         }
-        
+
         yld1 <- ShortRead::yield(fq1)
         yld2 <- ShortRead::yield(fq2)
         if (length(yld1) != length(yld2)) {
@@ -180,9 +180,9 @@
                 fq2)
         } else if (length(yld1) == 0L & length(yld2) == 0L) {
             done <<- TRUE
-            return (NULL)
+            return(NULL)
         } else {
-            return (list(yld1, yld2))
+            return(list(yld1, yld2))
         }
     })
 }
@@ -196,16 +196,16 @@
             " should be equal or greater than bcStart ",
             bcStart)
     }
-    
+
     if (verbose) {
         message("Cell barcode input vector:\n")
         print(bc)
     }
-    
+
     if (length(bc) < 10) {
         warning("Length of cell barcode vector is less than 10!")
     }
-    
+
     if (length(unique(nchar(bc))) > 1) {
         warning("The cell barcode input vector has variable lengths!")
     } else {
@@ -230,7 +230,7 @@
 #             "gene_biotype",
 #             "seqid")]))
 #     geneAnnotation <- geneAnnotation[order(gene_id), ]
-#     
+#
 #     if (length(grep("ERCC", names(features))) > 0) {
 #         ercc <- features[grep("ERCC", names(features))]
 #         erccDt <- data.table::data.table(
@@ -241,7 +241,7 @@
 #         )
 #         geneAnnotation <- rbind(geneAnnotation, erccDt)
 #     }
-#     return (geneAnnotation)
+#     return(geneAnnotation)
 # }
 
 
@@ -250,9 +250,9 @@
         " ... Reading GTF file ",
         reference, " as data.table object")
     gtf <- rtracklayer::import(reference)
-    
+
     geneAnnotation <- data.table::as.data.table(gtf)
-    
+
     geneAnnotation <- unique(geneAnnotation[type == "gene" |
             source == "ERCC", c("gene_id",
         "gene_name",
@@ -266,8 +266,8 @@
     geneAnnotation <- geneAnnotation[order(gene_id), ]
     geneAnnotation[source == "ERCC", gene_name := gene_id]
     geneAnnotation[source == "ERCC", gene_biotype := source]
-    
-    return (geneAnnotation)
+
+    return(geneAnnotation)
 }
 
 
@@ -285,7 +285,7 @@
 ########################################
 
 # ggplot publication theme
-# Make ggplots look better. 
+# Make ggplots look better.
 # Adapted from Koundinya Desiraju. https://rpubs.com/Koundy/71792
 .themePublication <- function(base_size = 12,
     base_family = "sans") {
