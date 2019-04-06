@@ -21,7 +21,7 @@
 }
 
 
-.stripLeadingUnderscore <- function (x)  sub("^\\_+", "", x)
+.stripLeadingUnderscore <- function(x)  sub("^\\_+", "", x)
 
 
 # remove file extension and get basename
@@ -126,7 +126,9 @@
     )
     tryCatch(
         Rsamtools::asBam(sam, overwrite = overwrite, indexDestination = index),
-        error = function(e) {}
+        error <- function(e) {
+            "Error converting samfiles to bamfiles"
+            }
     )
     return(sub(
         pattern = "\\.sam$",
@@ -306,14 +308,14 @@
                     vjust = 2),
                 axis.title.x = ggplot2::element_text(vjust = -0.2),
                 axis.text = ggplot2::element_text(),
-                axis.line = ggplot2::element_line(color="black"),
+                axis.line = ggplot2::element_line(color = "black"),
                 axis.ticks = ggplot2::element_line(),
                 panel.grid.major = ggplot2::element_line(color = "#f0f0f0"),
                 panel.grid.minor = ggplot2::element_blank(),
                 legend.key = ggplot2::element_rect(color = NA),
                 legend.position = "right",
                 legend.direction = "vertical",
-                legend.key.size= ggplot2::unit(0.2, "cm"),
+                legend.key.size = ggplot2::unit(0.2, "cm"),
                 legend.margin = ggplot2::margin(0),
                 legend.title = ggplot2::element_text(face = "bold"),
                 plot.margin = ggplot2::unit(c(10, 5, 5, 5), "mm"),
@@ -322,4 +324,3 @@
                 strip.text = ggplot2::element_text(face = "bold")
             ))
 }
-

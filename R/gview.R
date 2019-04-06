@@ -239,4 +239,3 @@ gview <- function(gtfFile,
 
     return(g)
 }
-

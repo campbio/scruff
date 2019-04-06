@@ -606,4 +606,3 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
 
     return(summaryDt)
 }
-

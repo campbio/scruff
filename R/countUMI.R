@@ -558,4 +558,3 @@ countUMI <- function(sce,
     }
     return(countUmiDt)
 }
-

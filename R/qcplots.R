@@ -134,7 +134,7 @@ qcplots <- function(sce) {
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
-            y = reads_mapped_to_genome/reads,
+            y = reads_mapped_to_genome / reads,
             group = factor(experiment, levels = unique(qcDt[, experiment])))) +
         ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
         ggplot2::geom_point(
@@ -162,7 +162,7 @@ qcplots <- function(sce) {
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
-            y = reads_mapped_to_genes/reads_mapped_to_genome,
+            y = reads_mapped_to_genes / reads_mapped_to_genome,
             group = factor(experiment, levels = unique(qcDt[, experiment])))) +
         ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
         ggplot2::geom_point(
@@ -190,7 +190,7 @@ qcplots <- function(sce) {
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
-            y = reads_mapped_to_genes/reads,
+            y = reads_mapped_to_genes / reads,
             group = factor(experiment, levels = unique(qcDt[, experiment])))) +
         ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
         ggplot2::geom_point(
@@ -276,7 +276,7 @@ qcplots <- function(sce) {
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
-            y = mt_counts/total_counts,
+            y = mt_counts / total_counts,
             group = factor(experiment, levels = unique(qcDt[, experiment])))) +
         ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
         ggplot2::geom_point(
@@ -333,7 +333,7 @@ qcplots <- function(sce) {
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
-            y = protein_coding_genes/genes,
+            y = protein_coding_genes / genes,
             group = factor(experiment, levels = unique(qcDt[, experiment])))) +
         ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
         ggplot2::geom_point(
@@ -361,7 +361,7 @@ qcplots <- function(sce) {
     g <- ggplot2::ggplot(qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
-            y = protein_coding_counts/total_counts,
+            y = protein_coding_counts / total_counts,
             group = factor(experiment, levels = unique(qcDt[, experiment])))) +
         ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
         ggplot2::geom_point(
@@ -388,7 +388,7 @@ qcplots <- function(sce) {
     g <- ggplot2::ggplot(data = qcDt,
         ggplot2::aes(
             x = factor(experiment, levels = unique(qcDt[, experiment])),
-            y = log10(genes * 1000000/reads),
+            y = log10(genes * 1000000 / reads),
             group = factor(experiment, levels = unique(qcDt[, experiment])))) +
         ggplot2::geom_boxplot(outlier.color = NA, fill = NA) +
         ggplot2::geom_point(
@@ -539,4 +539,3 @@ qcplots <- function(sce) {
             hjust = 1))
     return(g)
 }
-

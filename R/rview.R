@@ -43,4 +43,3 @@ rview <- function(bamGA,
     }
     return(g)
 }
-
