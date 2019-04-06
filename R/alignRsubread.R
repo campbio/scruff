@@ -280,4 +280,3 @@ alignRsubread <- function(sce,
         return(resdf)
     }
 }
-

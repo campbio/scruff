@@ -123,14 +123,14 @@ gview <- function(gtfFile,
             ma <- dt[i, end]
 
             if (dt[i, strand] == "+") {
-                x1 <- mi + (((ma - mi)/arrow_segments) *
+                x1 <- mi + (((ma - mi) / arrow_segments) *
                         seq(0, arrow_segments - 1))
-                x2 <- ma - (((ma - mi)/arrow_segments) *
+                x2 <- ma - (((ma - mi) / arrow_segments) *
                         seq(arrow_segments - 1, 0))
             } else if (dt[i, strand] == "-") {
-                x1 <- ma + (((mi - ma)/arrow_segments) *
+                x1 <- ma + (((mi - ma) / arrow_segments) *
                         seq(0, arrow_segments - 1))
-                x2 <- mi - (((mi - ma)/arrow_segments) *
+                x2 <- mi - (((mi - ma) / arrow_segments) *
                         seq(arrow_segments - 1, 0))
             }
 
@@ -164,7 +164,7 @@ gview <- function(gtfFile,
             mi <- dt[i, start]
             ma <- dt[i, end]
 
-            x <- (ma + mi)/2
+            x <- (ma + mi) / 2
             y <- dt[i, level] + 0.4
 
             tdt <- rbind(tdt,
