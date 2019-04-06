@@ -13,6 +13,12 @@
 #' @param reference Path to the reference GTF file. The TxDb object of the GTF
 #'  file will be generated and saved in the current working directory with
 #'  ".sqlite" suffix.
+#' @param umiEdit Maximally allowed Hamming distance for UMI correction. For
+#'  read alignments in each gene, by comparing to a more abundant UMI with more
+#'  reads, UMIs having fewer reads and with mismatches equal or fewer than
+#'  \code{umiEdit} will be assigned a corrected UMI (the UMI with more reads).
+#'  Default is 0, meaning no UMI correction is performed. Doing UMI correction
+#'  will decrease the number of transcripts per gene.
 #' @param format Format of input sequence alignment files. \strong{"BAM"} or
 #'  \strong{"SAM"}. Default is \strong{"BAM"}.
 #' @param outDir Output directory for UMI counting results. UMI corrected count
@@ -72,11 +78,12 @@
 #' # or use the built-in SingleCellExperiment object generated using
 #' # example dataset (see ?sceExample)
 #' data(sceExample, package = "scruff")
-#' @import data.table refGenome GenomicFeatures
+#' @import data.table rtracklayer GenomicFeatures
 #' @rawNamespace import(GenomicAlignments, except = c(second, last, first))
 #' @export
 countUMI <- function(sce,
     reference,
+    umiEdit = 0,
     format = "BAM",
     outDir = "./Count",
     cellPerWell = 1,
@@ -86,6 +93,19 @@ countUMI <- function(sce,
     logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
 
     .checkCores(cores)
+    geneAnnotation <- .getGeneAnnotation(reference)
+    
+    gtfcolnames <- c("gene_id",
+        "gene_name",
+        "gene_biotype",
+        "seqnames",
+        "start",
+        "end",
+        "width",
+        "strand",
+        "source")
+    
+    .checkGTF(geneAnnotation, gtfcolnames)
 
     isWindows <- .Platform$OS.type == "windows"
 
@@ -135,7 +155,14 @@ countUMI <- function(sce,
     message(Sys.time(),
         " ... Loading TxDb file")
     features <- suppressPackageStartupMessages(.gtfReadDb(reference))
-    GenomeInfoDb::seqlevelsStyle(features) <- "NCBI"
+    
+    tryCatch(
+        GenomeInfoDb::seqlevelsStyle(features) <- "NCBI",
+        error = function(e) {
+            warning("found no sequence renaming map compatible with seqname",
+                " style 'NCBI' for the input reference ", basename(reference))
+        }
+    )
     
     # parallelization BiocParallel
     if (format == "SAM") {
@@ -166,7 +193,7 @@ countUMI <- function(sce,
                 BPPARAM = BiocParallel::SnowParam(
                     workers = cores),
                 features,
-                format,
+                umiEdit,
                 logfile,
                 verbose)
         )
@@ -178,7 +205,7 @@ countUMI <- function(sce,
                 BPPARAM = BiocParallel::MulticoreParam(
                     workers = cores),
                 features,
-                format,
+                umiEdit,
                 logfile,
                 verbose)
         )
@@ -194,13 +221,13 @@ countUMI <- function(sce,
         file.path(outDir, paste0(
             format(Sys.time(),
                 "%Y%m%d_%H%M%S"), "_",
-            outputPrefix, ".tab"
+            outputPrefix, ".tsv"
         ))
     )
 
     data.table::fwrite(expr, file.path(outDir, paste0(
         format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-        outputPrefix, ".tab"
+        outputPrefix, ".tsv"
     )), sep = "\t")
 
     message(Sys.time(),
@@ -209,44 +236,59 @@ countUMI <- function(sce,
     scruffsce <- SingleCellExperiment::SingleCellExperiment(
         assays = list(counts = as.matrix(
             expr[!geneid %in% c("reads_mapped_to_genome",
-                "reads_mapped_to_genes"), -"geneid"],
+                "reads_mapped_to_genes",
+                "median_reads_per_umi",
+                "avg_reads_per_umi",
+                "median_reads_per_corrected_umi",
+                "avg_reads_per_corrected_umi"), -"geneid"],
             rownames = expr[!geneid %in% c("reads_mapped_to_genome",
-                "reads_mapped_to_genes"),
+                "reads_mapped_to_genes",
+                "median_reads_per_umi",
+                "avg_reads_per_umi",
+                "median_reads_per_corrected_umi",
+                "avg_reads_per_corrected_umi"),
                 geneid])))
 
     readmapping <- t(expr[geneid %in% c("reads_mapped_to_genome",
-        "reads_mapped_to_genes"), -"geneid"])
+        "reads_mapped_to_genes",
+        "median_reads_per_umi",
+        "avg_reads_per_umi",
+        "median_reads_per_corrected_umi",
+        "avg_reads_per_corrected_umi"), -"geneid"])
     colnames(readmapping) <- c("reads_mapped_to_genome",
-        "reads_mapped_to_genes")
-
-    SingleCellExperiment::isSpike(scruffsce,
-        "ERCC") <- grepl("^ERCC-",
-            rownames(scruffsce))
-
-    # get gene annotations
-    gtfEG = refGenome::ensemblGenome(dirname(reference))
-    refGenome::read.gtf(gtfEG, filename = basename(reference))
-    geneAnnotation <- data.table::data.table(
-        unique(refGenome::getGeneTable(gtfEG)[, c("gene_id",
-            "gene_name",
-            "gene_biotype",
-            "seqid")]))
-    
-    if (length(grep("ERCC", names(features))) > 0) {
-        ercc <- features[grep("ERCC", names(features))]
-        erccDt <- data.table::data.table(
-            gene_id = base::names(ercc),
-            gene_name = base::names(ercc),
-            gene_biotype = "ERCC",
-            seqid = "ERCC"
-        )
-        geneAnnotation <- rbind(geneAnnotation, erccDt)
-    }
+        "reads_mapped_to_genes",
+        "median_reads_per_umi",
+        "avg_reads_per_umi",
+        "median_reads_per_corrected_umi",
+        "avg_reads_per_corrected_umi")
     
     SummarizedExperiment::rowData(scruffsce) <-
         S4Vectors::DataFrame(geneAnnotation[order(gene_id), ],
-            row.names = geneAnnotation[order(gene_id),
-                gene_id])
+            row.names = geneAnnotation[order(gene_id), gene_id])
+    
+    #  SingleCellExperiment::isSpike(scruffsce,
+    #      "ERCC") <- grepl("ERCC-",
+    #          rownames(scruffsce))
+    
+    SingleCellExperiment::isSpike(scruffsce,
+        "ERCC") <- which(SummarizedExperiment::rowData(scruffsce)[,
+            "source"] == "ERCC")
+    
+    message(Sys.time(),
+        " ... Save gene annotation data to ",
+        file.path(outDir, paste0(
+            format(Sys.time(),
+                "%Y%m%d_%H%M%S"), "_",
+            outputPrefix, "_gene_annot.tsv"
+        ))
+    )
+    
+    data.table::fwrite(geneAnnotation,
+        sep = "\t",
+        file = file.path(outDir, paste0(
+            format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+            outputPrefix, "_gene_annot.tsv"
+        )))
 
     # UMI filtered transcripts QC metrics
     # total counts exclude ERCC
@@ -258,7 +300,7 @@ countUMI <- function(sce,
     mtCounts <- base::colSums(as.data.frame(
         SummarizedExperiment::assay(scruffsce)
         [grep("MT", SummarizedExperiment::rowData(scruffsce)
-            [, "seqid"], ignore.case = TRUE), ]))
+            [, "seqnames"], ignore.case = TRUE), ]))
     
     # gene number exclude ERCC
     cm <- SummarizedExperiment::assay(scruffsce)[
@@ -268,15 +310,15 @@ countUMI <- function(sce,
         sum(cm[, cells] != 0)
     }, integer(1))
 
-    # protein coding genes
-    proteinCodingGene <- geneAnnotation[gene_biotype == "protein_coding",
-        gene_id]
-    proGene <- vapply(colnames(cm), function(cells) {
-        sum(cm[proteinCodingGene, cells] != 0)
-    }, integer(1))
-
-    # protein coding counts
-    proCounts <- base::colSums(as.data.frame(cm[proteinCodingGene, ]))
+    # protein coding genes and counts
+    if ("gene_biotype" %in% colnames(geneAnnotation)) {
+        proteinCodingGene <- geneAnnotation[gene_biotype == "protein_coding",
+            gene_id]
+        proGene <- vapply(colnames(cm), function(cells) {
+            sum(cm[proteinCodingGene, cells] != 0)
+        }, integer(1))
+        proCounts <- base::colSums(as.data.frame(cm[proteinCodingGene, ]))
+    }
     
     qcdf <- cbind(SummarizedExperiment::colData(sce),
         readmapping,
@@ -292,7 +334,7 @@ countUMI <- function(sce,
         file.path(outDir, paste0(
             format(Sys.time(),
                 "%Y%m%d_%H%M%S"), "_",
-            outputPrefix, "_QC.tab"
+            outputPrefix, "_QC.tsv"
         ))
     )
     
@@ -300,7 +342,7 @@ countUMI <- function(sce,
         sep = "\t",
         file = file.path(outDir, paste0(
             format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-            outputPrefix, "_QC.tab"
+            outputPrefix, "_QC.tsv"
         )))
     
     SummarizedExperiment::colData(scruffsce) <- qcdf
@@ -324,7 +366,7 @@ countUMI <- function(sce,
 }
 
 
-.countUmiUnit <- function(i, features, format, logfile, verbose) {
+.countUmiUnit <- function(i, features, umiEdit, logfile, verbose) {
     if (verbose) {
         .logMessages(Sys.time(),
             "... UMI counting sample",
@@ -338,7 +380,11 @@ countUMI <- function(sce,
         countUmiDt <- data.table::data.table(
             gene_id = c(sort(names(features)),
                 "reads_mapped_to_genome",
-                "reads_mapped_to_genes"))
+                "reads_mapped_to_genes",
+                "median_reads_per_umi",
+                "avg_reads_per_umi",
+                "median_reads_per_corrected_umi",
+                "avg_reads_per_corrected_umi"))
         cell <- .removeLastExtension(i)
         countUmiDt[[cell]] <- 0
 
@@ -350,7 +396,14 @@ countUMI <- function(sce,
 
     bfl <- Rsamtools::BamFile(i)
     bamGA <- GenomicAlignments::readGAlignments(bfl, use.names = TRUE)
-    GenomeInfoDb::seqlevelsStyle(bamGA) <- "NCBI"
+    
+    tryCatch(
+        GenomeInfoDb::seqlevelsStyle(bamGA) <- "NCBI",
+        error = function(e) {
+            warning("found no sequence renaming map compatible with seqname",
+                " style 'NCBI' for the BAM file ", basename(i))
+        }
+    )
     
     genomeReads <- data.table::data.table(
         name = names(bamGA),
@@ -371,27 +424,34 @@ countUMI <- function(sce,
     # UMI filtering
     ol <- GenomicAlignments::findOverlaps(features, bamGA)
 
-    ol.dt <- data.table::data.table(
+    oldt <- data.table::data.table(
         gene_id = base::names(features)[S4Vectors::queryHits(ol)],
         name = base::names(bamGA)[S4Vectors::subjectHits(ol)],
         pos = BiocGenerics::start(bamGA)[S4Vectors::subjectHits(ol)]
     )
 
-    # if 0 read in the cell
-    if (nrow(ol.dt) == 0) {
-        readsMappedToGenes <- 0
-
+    # remove ambiguous gene alignments (union mode filtering)
+    if (nrow(oldt) != 0) {
+        oldt <- oldt[!(
+            base::duplicated(oldt, by = "name") |
+                base::duplicated(oldt, by = "name", fromLast = TRUE)), ]
+    }
+    
+    # if 0 count in the cell
+    if (nrow(oldt) == 0) {
         # clean up
         countUmiDt <- data.table::data.table(
             gene_id = c(names(features),
                 "reads_mapped_to_genome",
-                "reads_mapped_to_genes"))
+                "reads_mapped_to_genes",
+                "median_reads_per_umi",
+                "avg_reads_per_umi",
+                "median_reads_per_corrected_umi",
+                "avg_reads_per_corrected_umi"))
         cell <- .removeLastExtension(i)
         countUmiDt[[cell]] <- 0
         countUmiDt[gene_id == "reads_mapped_to_genome",
             cell] <- readsMappedToGenome
-        countUmiDt[gene_id == "reads_mapped_to_genes",
-            cell] <- readsMappedToGenes
 
         # coerce to data frame to keep rownames for cbind combination
         countUmiDt <- data.frame(countUmiDt,
@@ -400,43 +460,93 @@ countUMI <- function(sce,
             fix.empty.names = FALSE)
 
     } else {
-
-        ol.dt[, umi := data.table::last(data.table::tstrsplit(name, ":"))]
-
-        # remove ambiguous gene alignments (union mode filtering)
-        ol.dt <- ol.dt[!(
-            base::duplicated(ol.dt, by = "name") |
-                base::duplicated(ol.dt, by = "name", fromLast = TRUE)
-        ), ]
-
+        # move UMI to a separate column
+        oldt[, umi := data.table::last(data.table::tstrsplit(name, ":"))]
+        oldt[, inferred_umi := umi]
+        
         # reads mapped to genes
-        readsMappedToGenes <- nrow(ol.dt[!grepl("ERCC", ol.dt[, gene_id ]), ])
+        readsMappedToGenes <- nrow(oldt[!grepl("ERCC", oldt[, gene_id ]), ])
+        
+        # median number of reads per umi
+        rpu <- table(oldt[, umi])
+        medReadsUmi <- median(rpu)
+        avgReadsUmi <- mean(rpu)
+        
+        medReadsUmic <- 0
+        avgReadsUmic <- 0
+        
+        # UMI filtering and correction
 
-        # UMI filtering
-
-        # strict way of doing UMI correction:
+        # strict way of doing UMI filtering:
         # reads with different pos are considered unique trancsript molecules
         # countUmi <- base::table(
-        #     unique(ol.dt[, .(gene_id, umi, pos)])
+        #     unique(oldt[, .(gene_id, umi, pos)])
         #     [, gene_id])
 
         # The way CEL-Seq pipeline does UMI filtering:
         # Reads with different UMI tags are
         # considered unique trancsript molecules
         # Read positions do not matter
-        countUmi <- base::table(unique(ol.dt[, .(gene_id, umi)])[, gene_id])
+        
+        # UMI correction
+        
+        if (umiEdit != 0) {
+            for (g in unique(oldt[, gene_id])) {
+                
+                umis <- sort(table(oldt[gene_id == g, inferred_umi]),
+                    decreasing = TRUE)
+                j <- 1
+                
+                while (j < length(umis)) {
+                    u <- names(umis)[j]
+                    sdm <- stringdist::stringdistmatrix(u, names(umis),
+                        method = "hamming", nthread = 1)
+                    sdm[which(sdm == 0)] <- NA
+                    mindist <- min(sdm, na.rm = TRUE)
+                    
+                    if (mindist <= umiEdit & mindist != 0) {
+                        inds <- which(sdm == mindist)
+                        oldt[umi %in% names(umis)[inds],
+                            inferred_umi := names(umis)[j]]
+                    }
+                    
+                    umis <- sort(table(oldt[gene_id == g, inferred_umi]),
+                        decreasing = TRUE)
+                    j <- j + 1
+                }
+            }
+            # after correction median numbre of reads per umi
+            rpuc <- table(oldt[, inferred_umi])
+            medReadsUmic <- median(rpuc)
+            avgReadsUmic <- mean(rpuc)
+        }
+        
+        countUmi <- base::table(unique(oldt[,
+            .(gene_id, inferred_umi)])[, gene_id])
 
         # clean up
         countUmiDt <- data.table::data.table(
             gene_id = c(names(features),
                 "reads_mapped_to_genome",
-                "reads_mapped_to_genes"))
+                "reads_mapped_to_genes",
+                "median_reads_per_umi",
+                "avg_reads_per_umi",
+                "median_reads_per_corrected_umi",
+                "avg_reads_per_corrected_umi"))
         cell <- .removeLastExtension(i)
         countUmiDt[[cell]] <- 0
         countUmiDt[gene_id == "reads_mapped_to_genome",
             cell] <- readsMappedToGenome
         countUmiDt[gene_id == "reads_mapped_to_genes",
             cell] <- readsMappedToGenes
+        countUmiDt[gene_id == "median_reads_per_umi",
+            cell] <- medReadsUmi
+        countUmiDt[gene_id == "avg_reads_per_umi",
+            cell] <- avgReadsUmi
+        countUmiDt[gene_id == "median_reads_per_corrected_umi",
+            cell] <- medReadsUmic
+        countUmiDt[gene_id == "avg_reads_per_corrected_umi",
+            cell] <- avgReadsUmic
         countUmiDt[gene_id %in% names(countUmi),
             eval(cell) := as.numeric(countUmi[gene_id])]
 

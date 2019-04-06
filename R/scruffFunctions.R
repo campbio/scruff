@@ -53,6 +53,8 @@
 
 # read gtf database and return feature GRangesList by gene ID
 .gtfReadDb <- function(gtf) {
+    message(Sys.time(),
+        " ... Reading GTF file ", gtf, " as GRangesList object")
     gtf.db.file <- paste0(basename(gtf), ".sqlite")
     if ((!(file.exists(gtf))) & (!(file.exists(gtf.db.file)))) {
         stop(paste("File", gtf, "does not exist"))
@@ -70,14 +72,11 @@
     
     gtf.db <- tryCatch(
         suppressPackageStartupMessages(AnnotationDbi::loadDb(gtf.db.file)),
-        error = function(e)
-            stop(
-                paste(
-                    "Error loading database file. Delete the file",
+        error = function(e) {
+            stop("Error loading database file. Delete the file",
                     gtf.db.file,
-                    "and try again."
-                )
-            )
+                    "and try again.")
+        }
     )
     return (GenomicFeatures::exonsBy(gtf.db, by = "gene"))
 }
@@ -161,6 +160,123 @@
             return (NULL)
         }
     })
+}
+
+
+# A function that returns an iterator that reads FASTQ read1 and read2 files
+.fastqIterator <- function(fq1, fq2) {
+    done <- FALSE
+    return (function() {
+        if (done) {
+            return(NULL)
+        }
+        
+        yld1 <- ShortRead::yield(fq1)
+        yld2 <- ShortRead::yield(fq2)
+        if (length(yld1) != length(yld2)) {
+            stop("Unequal number of reads",
+                " between read1 and read2 fastq files: ",
+                fq1,
+                fq2)
+        } else if (length(yld1) == 0L & length(yld2) == 0L) {
+            done <<- TRUE
+            return (NULL)
+        } else {
+            return (list(yld1, yld2))
+        }
+    })
+}
+
+
+# Check cell barcodes
+.checkCellBarcodes <- function(bc, bcStart, bcStop, verbose) {
+    if (bcStop < bcStart) {
+        stop("bcStop ",
+            bcStop,
+            " should be equal or greater than bcStart ",
+            bcStart)
+    }
+    
+    if (verbose) {
+        message("Cell barcode input vector:\n")
+        print(bc)
+    }
+    
+    if (length(bc) < 10) {
+        warning("Length of cell barcode vector is less than 10!")
+    }
+    
+    if (length(unique(nchar(bc))) > 1) {
+        warning("The cell barcode input vector has variable lengths!")
+    } else {
+        bcL <- bcStop - bcStart + 1
+        if (unique(nchar(bc)) != bcL) {
+            stop("The number of barcode bases in cell barcode input file is ",
+                unique(nchar(bc)),
+                " but the number is ",
+                bcL,
+                " between 'bcStart' and 'bcStop'!")
+        }
+    }
+}
+
+
+# .getGeneAnnotationRefGenome <- function(reference, features) {
+#     gtfEG = refGenome::ensemblGenome(dirname(reference))
+#     refGenome::read.gtf(gtfEG, filename = basename(reference))
+#     geneAnnotation <- data.table::data.table(
+#         unique(refGenome::getGeneTable(gtfEG)[, c("gene_id",
+#             "gene_name",
+#             "gene_biotype",
+#             "seqid")]))
+#     geneAnnotation <- geneAnnotation[order(gene_id), ]
+#     
+#     if (length(grep("ERCC", names(features))) > 0) {
+#         ercc <- features[grep("ERCC", names(features))]
+#         erccDt <- data.table::data.table(
+#             gene_id = base::names(ercc),
+#             gene_name = base::names(ercc),
+#             gene_biotype = "ERCC",
+#             seqid = "ERCC"
+#         )
+#         geneAnnotation <- rbind(geneAnnotation, erccDt)
+#     }
+#     return (geneAnnotation)
+# }
+
+
+.getGeneAnnotation <- function(reference) {
+    message(Sys.time(),
+        " ... Reading GTF file ",
+        reference, " as data.table object")
+    gtf <- rtracklayer::import(reference)
+    
+    geneAnnotation <- data.table::as.data.table(gtf)
+    
+    geneAnnotation <- unique(geneAnnotation[type == "gene" |
+            source == "ERCC", c("gene_id",
+        "gene_name",
+        "gene_biotype",
+        "seqnames",
+        "start",
+        "end",
+        "width",
+        "strand",
+        "source")])
+    geneAnnotation <- geneAnnotation[order(gene_id), ]
+    geneAnnotation[source == "ERCC", gene_name := gene_id]
+    geneAnnotation[source == "ERCC", gene_biotype := source]
+    
+    return (geneAnnotation)
+}
+
+
+.checkGTF <- function(gtfDt, cnames) {
+    for (i in cnames) {
+        if (!(i %in% colnames(gtfDt))) {
+            warning("GTF file does not contain ", i, " column")
+        }
+    }
 }
 
 
