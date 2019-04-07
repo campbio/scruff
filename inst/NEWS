@@ -1,3 +1,7 @@
+# 1.1.6
+
+* Fix countUMI gene_biotype bug
+
 # 1.1.5
 
 * Add messages reading GTF file
