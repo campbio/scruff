@@ -248,9 +248,6 @@
 
 
 .getGeneAnnotation <- function(reference) {
-    message(Sys.time(),
-        " ... Reading GTF file ",
-        reference, " as data.table object")
     gtf <- rtracklayer::import(reference)
 
     geneAnnotation <- data.table::as.data.table(gtf)
