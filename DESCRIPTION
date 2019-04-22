@@ -1,24 +1,37 @@
 Package: scruff
 Title: Single Cell RNA-Seq UMI Filtering Facilitator (scruff)
-Version: 0.99.9
-Authors@R: person("Zhe", "Wang", email = "zhe@bu.com", role = c("aut", "cre"))
-Description: A pipeline which processes single cell RNA-seq (scRNA-seq) reads from CEL-seq and CEL-seq2 protocols. Demultiplex scRNA-seq FASTQ files, align reads to reference genome using Rsubread, and generate UMI filtered count matrix. Also provide visualizations of read alignments and pre- and post-alignment QC metrics.
-Depends: R (>= 3.4.4)
-License: Apache License 2.0
+Version: 1.1.7
+Date: 2019-04-06
+Authors@R: c(person("Zhe", "Wang",
+                    email = "zhe@bu.edu",
+                    role = c("aut", "cre")),
+             person("Junming", "Hu",
+                    email = "hjunming@bu.edu",
+                    role = c("aut")),
+             person("Joshua", "Campbell",
+                    email = "camp@bu.edu",
+                    role = c("aut")))
+Description: A pipeline which processes single cell RNA-seq (scRNA-seq) reads
+    from CEL-seq and CEL-seq2 protocols. Demultiplex scRNA-seq FASTQ files,
+    align reads to reference genome using Rsubread, and generate UMI filtered
+    count matrix. Also provide visualizations of read alignments and pre- and
+    post-alignment QC metrics.
+Depends: R (>= 3.5.0)
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: false
-RoxygenNote: 6.0.1.9000
+RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 Imports: data.table,
     GenomicAlignments,
     GenomicFeatures,
     GenomicRanges,
-    parallel,
     Rsamtools,
     ShortRead,
-    doParallel,
-    foreach,
+    parallel,
+    plyr,
     BiocGenerics,
+    BiocParallel,
     S4Vectors,
     AnnotationDbi,
     Biostrings,
@@ -26,19 +39,18 @@ Imports: data.table,
     ggplot2,
     ggthemes,
     scales,
-    grid,
-    gridExtra,
     GenomeInfoDb,
     stringdist,
     ggbio,
-    refGenome,
+    rtracklayer,
     SingleCellExperiment,
     SummarizedExperiment
 Suggests:
     BiocStyle,
     knitr,
     rmarkdown,
-    Rsubread
+    Rsubread,
+    testthat
 biocViews:
     Software,
     Technology,
@@ -49,4 +61,6 @@ biocViews:
     WorkflowStep,
     Preprocessing,
     QualityControl,
-    Visualization
+    Visualization,
+    ImmunoOncology
+BugReports: https://github.com/campbio/scruff/issues

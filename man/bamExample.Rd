@@ -4,11 +4,13 @@
 \name{bamExample}
 \alias{bamExample}
 \title{Example GAlignments Object}
-\format{A GAlignments object.}
+\format{A \code{GAlignments} object.}
 \usage{
 bamExample
 }
 \description{
-An example GAlignments object containing read alignment information for cell "vandenBrink_b1_cell_0095" of example FASTQ files. Used as an example for \code{rview} function.
+An example GAlignments object containing read alignment information for cell
+ "vandenBrink_b1_cell_0095" of example FASTQ files. Used as an example for
+ \code{rview} function.
 }
 \keyword{datasets}

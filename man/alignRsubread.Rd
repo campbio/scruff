@@ -6,65 +6,103 @@
 \usage{
 alignRsubread(sce, index, unique = FALSE, nBestLocations = 1,
   format = "BAM", outDir = "./Alignment", cores = max(1,
-  parallel::detectCores()/2), threads = 1, summaryPrefix = "alignment",
-  overwrite = FALSE, verbose = FALSE, logfilePrefix = format(Sys.time(),
-  "\%Y\%m\%d_\%H\%M\%S"), ...)
+  parallel::detectCores() - 2), threads = 1,
+  summaryPrefix = "alignment", overwrite = FALSE, verbose = FALSE,
+  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"), ...)
 }
 \arguments{
-\item{sce}{A \code{SingleCellExperiment} object of which the \code{colData} slot contains the \strong{fastq_path} column with paths to input cell-specific FASTQ files.}
+\item{sce}{A \code{SingleCellExperiment} object of which the \code{colData}
+slot contains the \strong{fastq_path} column with paths to input
+cell-specific FASTQ files.}
 
-\item{index}{Path to the \code{Rsubread} index of the reference genome. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
+\item{index}{Path to the \code{Rsubread} index of the reference genome. For
+generation of Rsubread indices, please refer to \code{buildindex} function
+in \code{Rsubread} package.}
 
-\item{unique}{Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{FALSE}.}
+\item{unique}{Argument passed to \code{align} function in \code{Rsubread}
+package. Boolean indicating if only uniquely mapped reads should be
+reported. A uniquely mapped read has one single mapping location that has
+less mis-matched bases than any other candidate locations. If set to
+\strong{FALSE}, multi-mapping reads will be reported in addition to
+uniquely mapped reads. Number of alignments reported for each multi-mapping
+read is determined by the nBestLocations parameter.
+Default is \strong{FALSE}.}
 
-\item{nBestLocations}{Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, "NH" tag is used to indicate how many alignments are reported for the read and "HI" tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.}
+\item{nBestLocations}{Argument passed to \code{align} function in
+\code{Rsubread} package. Numeric value specifying the maximal number of
+equally-best mapping locations that will be reported for a multi-mapping
+read. 1 by default. The allowed value is between 1 to 16 (inclusive).
+In the mapping output, "NH" tag is used to indicate how many alignments are
+reported for the read and "HI" tag is used for numbering the alignments
+reported for the same read. This argument is only applicable when unique
+option is set to \strong{FALSE}. \code{Scruff} package does not support
+counting alignment files with \code{nBestLocations > 1}.}
 
-\item{format}{File format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
+\item{format}{File format of sequence alignment results. \strong{"BAM"} or
+\strong{"SAM"}. Default is \strong{"BAM"}.}
 
-\item{outDir}{Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.}
+\item{outDir}{Output directory for alignment results. Sequence alignment
+files will be stored in folders in this directory, respectively.
+\strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.}
 
-\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.}
+\item{cores}{Number of cores used for parallelization. Default is
+\code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
+cores minus 2.}
 
-\item{threads}{\strong{Do not change}. Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}. It should not be changed in most cases.}
+\item{threads}{\strong{Do not change}. Number of threads/CPUs used for
+mapping for each core. Refer to \code{align} function in \code{Rsubread}
+for details. Default is \strong{1}. It should not be changed in most cases.}
 
-\item{summaryPrefix}{Prefix for alignment summary filename. Default is \code{"alignment"}.}
+\item{summaryPrefix}{Prefix for alignment summary filename. Default is
+\code{"alignment"}.}
 
-\item{overwrite}{Boolean indicating whether to overwrite the output directory. Default is \strong{FALSE}.}
+\item{overwrite}{Boolean indicating whether to overwrite the output
+directory. Default is \strong{FALSE}.}
 
-\item{verbose}{Boolean indicating whether to print log messages. Useful for debugging. Default to \strong{FALSE}.}
+\item{verbose}{Boolean indicating whether to print log messages. Useful for
+debugging. Default to \strong{FALSE}.}
 
-\item{logfilePrefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
+\item{logfilePrefix}{Prefix for log file. Default is current date and time
+in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 
-\item{...}{Additional arguments passed to the \code{align} function in \code{Rsubread} package.}
+\item{...}{Additional arguments passed to the \code{align} function in
+\code{Rsubread} package.}
 }
 \value{
-A \strong{SingleCellExperiment} object containing the alignment summary information in the \code{colData} slot. Contains a character vector of the paths to output alignment files.
+A \strong{SingleCellExperiment} object containing the alignment
+ summary information in the \code{colData} slot. The \code{alignment_path}
+ column of the annotation table contains the paths to alignment files.
+ of the paths to output alignment files.
 }
 \description{
-This function is \strong{not} available in Windows environment. Align cell specific reads to reference genome and write sequence alignment results to output directory. A wrapper to the \code{align} function in \code{Rsubread} package. For details please refer to \code{Rsubread} manual.
+This function is \strong{not} available in Windows environment. Align cell
+ specific reads to reference genome and write sequence alignment results to
+ output directory. A wrapper to the \code{align} function in \code{Rsubread}
+ package. For details please refer to \code{Rsubread} manual.
 }
 \examples{
 # The SingleCellExperiment object returned by demultiplex function is
 # required for running alignRsubread function
+# Does not support Windows environment
+
 \dontrun{
 data(barcodeExample, package = "scruff")
 fastqs <- list.files(system.file("extdata", package = "scruff"),
-pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
+    pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
 
 de <- demultiplex(
-project = "example",
-sample = c("1h1", "b1"),
-lane = c("L001", "L001"),
-read1Path = c(fastqs[1], fastqs[3]),
-read2Path = c(fastqs[2], fastqs[4]),
-barcodeExample,
-bcStart = 1,
-bcStop = 8,
-umiStart = 9,
-umiStop = 12,
-keep = 75,
-overwrite = TRUE,
-cores = 1)
+    project = "example",
+    experiment = c("1h1", "b1"),
+    lane = c("L001", "L001"),
+    read1Path = c(fastqs[1], fastqs[3]),
+    read2Path = c(fastqs[2], fastqs[4]),
+    barcodeExample,
+    bcStart = 1,
+    bcStop = 8,
+    umiStart = 9,
+    umiStop = 12,
+    keep = 75,
+    overwrite = TRUE)
 
 # Alignment
 library(Rsubread)
@@ -74,6 +112,6 @@ fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 indexBase <- "GRCm38_MT"
 buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 
-al <- alignRsubread(de, indexBase, overwrite = TRUE, cores = 1)
+al <- alignRsubread(de, indexBase, overwrite = TRUE)
 }
 }

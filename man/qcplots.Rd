@@ -7,13 +7,16 @@
 qcplots(sce)
 }
 \arguments{
-\item{sce}{An \code{SingleCellExperiment} object returned from \code{scruff} or \code{countUMI} function.}
+\item{sce}{An \code{SingleCellExperiment} object returned from [scruff],
+[countUMI], or [tenxBamqc] function.}
 }
 \value{
 A list of \code{grobs} objects ready for plotting
 }
 \description{
-Visualize data quality from the \code{colData} of the \code{SingleCellExperiment} object and return a list of figures in \code{arrangelist} object.
+Visualize data quality from the \code{colData} of the
+ \code{SingleCellExperiment} object and return a list of figures in
+ \code{arrangelist} object.
 }
 \examples{
 data(sceExample, package = "scruff")

@@ -20,7 +20,7 @@ suppressPackageStartupMessages(library(BiocStyle))
 
 # Quick Start
 
-```{r}
+```{r load_files1}
 # Run scruff on example dataset
 # NOTE: Requires Rsubread index and TxDb objects for the reference genome.
 # For generation of these files, please refer to the Stepwise Tutorial.
@@ -29,189 +29,268 @@ library(scruff)
 
 # Get the paths to example FASTQ, FASTA, and GTF files.
 v1h1R1 <- system.file("extdata",
-                      "vandenBrink_1h1_L001_R1_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_1h1_L001_R1_001.fastq.gz",
+    package = "scruff")
 v1h1R2 <- system.file("extdata",
-                      "vandenBrink_1h1_L001_R2_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_1h1_L001_R2_001.fastq.gz",
+    package = "scruff")
 vb1R1 <- system.file("extdata",
-                      "vandenBrink_b1_L001_R1_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_b1_L001_R1_001.fastq.gz",
+    package = "scruff")
 vb1R2 <- system.file("extdata",
-                      "vandenBrink_b1_L001_R2_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_b1_L001_R2_001.fastq.gz",
+    package = "scruff")
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 ```
 
-Build Rsubread alignment index. This is for the alignment step. For test porpurse, here we are aligning the example FASTQ files to the genes on mitochondrial chromosome only.
+Build Rsubread alignment index. This is for the alignment step. For test purpose, here we are aligning the example FASTQ files to the genes on mitochondrial chromosome only.
 
-```{r, results = 'hide'}
+```{r buildindex1, results = 'hide'}
 # NOTE: Rsubread package does not support Windows environment.
-library(Rsubread)
-# Create index files for GRCm38_MT. For details, please refer to Rsubread user manual.
-# Specify the basename for Rsubread index
-indexBase <- "GRCm38_MT"
-buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
+if (!requireNamespace("Rsubread", quietly = TRUE)) {
+    message("Package \"Rsubread\" needed for \"alignRsubread\"",
+        " function to work. ",
+        "Please install it if you are using Linux or macOS systems. ",
+        "The function is not available in Windows environment.")
+} else {
+    # Create index files for GRCm38_MT.
+    # For details, please refer to Rsubread user manual.
+    # Specify the basename for Rsubread index
+    indexBase <- "GRCm38_MT"
+    Rsubread::buildindex(basename = indexBase,
+        reference = fasta,
+        indexSplit = FALSE)
+}
 ```
 
-Now that everything is ready, we can run `r Rpackage("scruff")`. In sample 1h1, cell barcodes 95 and 96 are empty well controls. In sample b1, cell barcode 95 is bulk sample containing 300 cells. These information can be set by the `cellPerWell` argument. `r Rpackage("scruff")` makes use of the `r Biocpkg("SingleCellExperiment")` package. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
+Now that everything is ready, we can run `r Rpackage("scruff")`. In experiment 1h1, cell barcodes 95 and 96 are empty well controls. In experiment b1, cell barcode 95 is bulk sample containing 300 cells. These information can be set by the `cellPerWell` argument. We apply cell barcode and UMI correction by setting `bcEdit` to 1 and `umiEdit` to 1. `r Rpackage("scruff")` makes use of the `r Biocpkg("SingleCellExperiment")` package. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
 
-```{r, results = 'hide', warning = FALSE, message = FALSE}
+```{r scruff, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
-sce <- scruff(project = "example",
-              sample = c("1h1", "b1"),
-              lane = c("L001", "L001"),
-              read1Path = c(v1h1R1, vb1R1),
-              read2Path = c(v1h1R2, vb1R2),
-              bc = barcodeExample,
-              index = indexBase,
-              unique = FALSE,
-              nBestLocations = 1,
-              reference = gtf,
-              bcStart = 1,
-              bcStop = 8,
-              umiStart = 9,
-              umiStop = 12,
-              keep = 75,
-              cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-              cores = 2,
-              verbose = TRUE)
+
+if (!requireNamespace("Rsubread", quietly = TRUE)) {
+    message("Package \"Rsubread\" needed. ",
+        "Please install it if you are using Linux or macOS systems. ",
+        "The function is not available in Windows environment.")
+} else {
+    sce <- scruff(project = "example",
+        experiment = c("1h1", "b1"),
+        lane = c("L001", "L001"),
+        read1Path = c(v1h1R1, vb1R1),
+        read2Path = c(v1h1R2, vb1R2),
+        bc = barcodeExample,
+        index = indexBase,
+        unique = FALSE,
+        nBestLocations = 1,
+        reference = gtf,
+        bcStart = 1,
+        bcStop = 8,
+        bcEdit = 1,
+        umiStart = 9,
+        umiStop = 12,
+        umiEdit = 1,
+        keep = 75,
+        cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+        cores = 2,
+        verbose = TRUE)
+}
 ```
 
 Visualize data quality.
 
-```{r, warning = FALSE}
-qc <- qcplots(sce)
+```{r qc1, warning = FALSE, message = FALSE, results = 'hide'}
+data(sceExample, package = "scruff")
+qc <- qcplots(sceExample)
 ```
 
-# Stepwise Tutorial
+# Stepwise Tutorial For CEL-Seq Samples
 ## Load Example Dataset
 
 The `r Rpackage("scruff")` package contains 4 single cell RNA-seq FASTQ example files. Each file has 10,000 sequenced reads.
 
-```{r}
+```{r loadfiles2}
 library(scruff)
 v1h1R1 <- system.file("extdata",
-                      "vandenBrink_1h1_L001_R1_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_1h1_L001_R1_001.fastq.gz",
+    package = "scruff")
 v1h1R2 <- system.file("extdata",
-                      "vandenBrink_1h1_L001_R2_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_1h1_L001_R2_001.fastq.gz",
+    package = "scruff")
 vb1R1 <- system.file("extdata",
-                      "vandenBrink_b1_L001_R1_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_b1_L001_R1_001.fastq.gz",
+    package = "scruff")
 vb1R2 <- system.file("extdata",
-                      "vandenBrink_b1_L001_R2_001.fastq.gz",
-                      package = "scruff")
+    "vandenBrink_b1_L001_R2_001.fastq.gz",
+    package = "scruff")
 ```
 
 ## Demultiplex and Assign Cell Specific Reads
 
-Now the FASTQ files are ready to be demultiplexed. `r Rpackage("scruff")` package provides built-in predefined cell barcodes `barcodeExample` for demultiplexing the example dataset. In the example FASTQ files, read 1 contains cell barcode and UMI sequence information. Read 2 contains transcript sequences. The barcode sequence of each read starts at base 1 and ends at base 8. The UMI sequence starts at base 9 and ends at base 12. They can be set via `bcStart`, `bcStop`, and `umiStart`, `umiStop` arguments. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example FASTQ reads and trims reads longer than 75 nucleotides. The command returns a `SingleCellExperiment` object whose `colData` contains the cell index, barcode, reads, percentage of reads assigned, sample, and FASTQ file path information for each cell. By default, the cell specific demultiplexed fastq.gz files are stored in `./Demultiplex` folder.
+Now the FASTQ files are ready to be demultiplexed. `r Rpackage("scruff")` package provides built-in predefined cell barcodes `barcodeExample` for demultiplexing the example dataset. In the example FASTQ files, read 1 contains cell barcode and UMI sequence information. Read 2 contains transcript sequences. The barcode sequence of each read starts at base 1 and ends at base 8. The UMI sequence starts at base 9 and ends at base 12. They can be set via `bcStart`, `bcStop`, and `umiStart`, `umiStop` arguments. Cell barcode correction can be set by `bcEdit` parameter. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example FASTQ reads and trims reads longer than 75 nucleotides. The command returns a `SingleCellExperiment` object whose `colData` contains the cell index, barcode, reads, percentage of reads assigned, sample, and FASTQ file path information for each cell. By default, the cell specific demultiplexed fastq.gz files are stored in `./Demultiplex` folder.
 
-```{r, results = 'hide', warning = FALSE, message = FALSE}
+```{r de, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
 de <- demultiplex(project = "example",
-                  sample = c("1h1", "b1"),
-                  lane = c("L001", "L001"),
-                  read1Path = c(v1h1R1, vb1R1),
-                  read2Path = c(v1h1R2, vb1R2),
-                  barcodeExample,
-                  bcStart = 1,
-                  bcStop = 8,
-                  bcEdit = 0,
-                  umiStart = 9,
-                  umiStop = 12,
-                  keep = 75,
-                  minQual = 10,
-                  yieldReads = 1e+06,
-                  cores = 2,
-                  verbose = TRUE,
-                  overwrite = TRUE)
+    experiment = c("1h1", "b1"),
+    lane = c("L001", "L001"),
+    read1Path = c(v1h1R1, vb1R1),
+    read2Path = c(v1h1R2, vb1R2),
+    barcodeExample,
+    bcStart = 1,
+    bcStop = 8,
+    bcEdit = 1,
+    umiStart = 9,
+    umiStop = 12,
+    keep = 75,
+    minQual = 10,
+    yieldReads = 1e+06,
+    verbose = TRUE,
+    overwrite = TRUE,
+    cores = 2)
 ```
 
 ## Alignment
 
 `r Rpackage("scruff")` provides an alignment function `alignRsubread` which is a wrapper function to `align` in `Rsubread` package. It aligns the reads to reference sequence index and outputs sequence alignment map files in "BAM" or "SAM" format. For demonstration purpose, the built-in mitochondrial DNA sequence from GRCm38 reference assembly `GRCm38MitochondrialFasta` will be used to map the reads. First, a `r Biocpkg("Rsubread")` index for the reference sequence needs to be generated.
 
-```{r, results = 'hide'}
-# NOTE: Rsubread package does not support Windows environment.
-library(Rsubread)
-# Create index files for GRCm38_MT. For details, please refer to Rsubread user manual.
+```{r al_files, results = 'hide'}
+# Create index files for GRCm38_MT. For details, please refer to Rsubread
+# user manual.
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
-# Specify the basename for Rsubread index
-indexBase <- "GRCm38_MT"
-buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
+# NOTE: Rsubread package does not support Windows environment.
+if (!requireNamespace("Rsubread", quietly = TRUE)) {
+    message("Package \"Rsubread\" needed.",
+        " Please install it if you are using Linux or macOS systems.",
+        " The function is not available in Windows environment.\n")
+} else {
+    # Create index files for GRCm38_MT.
+    # For details, please refer to Rsubread user manual.
+    # Specify the basename for Rsubread index
+    indexBase <- "GRCm38_MT"
+    Rsubread::buildindex(basename = indexBase,
+        reference = fasta,
+        indexSplit = FALSE)
+}
 ```
 
 The following command maps the FASTQ files to GRCm38 mitochondrial reference sequence `GRCm38_MT.fa` and returns a `SingleCellExperiment` object. By default, the files are stored in BAM format in `./Alignment` folder.
 
-```{r, results = 'hide', warning = FALSE, message = FALSE}
+```{r al, results = 'hide', warning = FALSE, message = FALSE}
 # Align the reads using Rsubread
-al <- alignRsubread(de,
-                    indexBase,
-                    unique = FALSE,
-                    nBestLocations = 1,
-                    format = "BAM",
-                    cores = 2,
-                    overwrite = TRUE,
-                    verbose = TRUE)
+if (requireNamespace("Rsubread", quietly = TRUE)) {
+    al <- alignRsubread(de,
+        indexBase,
+        unique = FALSE,
+        nBestLocations = 1,
+        format = "BAM",
+        overwrite = TRUE,
+        verbose = TRUE,
+        cores = 2)
+}
 ```
 
 ## UMI correction and Generation of Count Matrix
 
-Example GTF file `GRCm38_MT.gtf` will be used for feature counting. Currently, `r Rpackage("scruff")` applies the union counting mode of the HTSeq Python package. The following command generates the UMI filtered count matrix for the example dataset.
+Example GTF file `GRCm38_MT.gtf` will be used for feature counting. Currently, `r Rpackage("scruff")` applies the union counting mode of the HTSeq Python package. The following command generates the UMI corrected count matrix for the example dataset by allowing correction of UMIs with Hamming distances smaller than 1 for each gene in each cell.
 
-```{r, results = 'hide', warning = FALSE, message = FALSE}
+```{r co, results = 'hide', warning = FALSE, message = FALSE}
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 # get the molecular counts of trancsripts for each cell
-# In sample 1h1, cell barcodes 95 and 96 are empty well controls. In sample b1, cell barcode 95 is bulk sample containing 300 cells.
-sce = countUMI(al,
-               gtf,
-               format = "BAM",
-               cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-               cores = 2,
-               verbose = TRUE)
+# In experiment 1h1, cell barcodes 95 and 96 are empty well controls.
+# In experiment b1, cell barcode 95 is bulk sample containing 300 cells.
+if (requireNamespace("Rsubread", quietly = TRUE)) {
+    sce = countUMI(al,
+        gtf,
+        umiEdit = 1,
+        format = "BAM",
+        cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+        verbose = TRUE,
+        cores = 2)
+}
 ```
 
 ## Visualization of QC metrics
 
 The data quality diagnostic information are contained in the `colData` of the returned `SingleCellExperiment` object `sce`. They can be visualized using the `qcplots` function.
 
-```{r, warning = FALSE}
-qc <- qcplots(sce)
+```{r qc2, warning = FALSE, message = FALSE, echo = TRUE, results = "hide"}
+data(sceExample, package = "scruff")
+qc <- qcplots(sceExample)
 qc
 ```
 
-## Visualization of Read alignments
+Each of these boxplots shows the distribution of a quality metric within and across experiments. Y axis shows the number or fraction of these metrics. Each point represents a unique cell barcode associated with the cells or bulk samples in the wells of the plate. These points are colored by the `cellPerWell` parameter which is the number of sorted cells in each well. For example, in experiment 1h1, cell barcodes 95 and 96 are empty well controls. In experiment b1, cell barcode 95 is a bulk sample containing 300 cells.
 
-`r Rpackage("scruff")` package provides functions to visualize read alignments on the reference genome. Reads are colored by their UMI. The following command visualize the reads mapped to gene mt-Rnr2 for the bulk sample `vandenBrink_b1_cell_0095`.
+These quality metrics include total reads, aligned reads, reads mapped to genes, fraciont of aligned reads, fraction of gene reads out of aligned reads, fraction of gene reads out of total reads, total transcripts, mitochondrial transcripts, fraction of mitochondrial transcripts, transcribed genes, fraction of protein coding genes and transcripts, median and average number of reads per corrected or uncorrectd UMI, and gene detection rate. 
 
-```{r, results = 'hide', warning = FALSE, message = FALSE}
-# Visualize the reads mapped to gene "mt-Rnr2" in cell "vandenBrink_b1_cell_0095".
-bam <- GenomicAlignments::readGAlignments(
-  Rsamtools::BamFile(SummarizedExperiment::colData(sce)[
-    which(SummarizedExperiment::colData(sce)$number_of_cells == 300),
-    "alignment_path"]),
-    use.names = TRUE)
+## Visualization of Read mapping locations
 
-gtfEG = refGenome::ensemblGenome(dirname(gtf))
-refGenome::read.gtf(gtfEG, filename = basename(gtf))
+`r Rpackage("scruff")` package provides function to visualize read alignment locations at specified genomic coordinates on the reference genome. The following command visualize the reads mapped to gene mt-Rnr2 for the bulk sample `vandenBrink_b1_cell_0095`. Reads are colored by their uncorrected UMI tags. 
+
+```{r gtfEG, results = 'hide', warning = FALSE, message = FALSE}
+# Visualize the reads mapped to gene "mt-Rnr2" in
+# cell "vandenBrink_b1_cell_0095".
+data(bamExample, package = "scruff")
 ```
-```{r}
+
+```{r visualize_reads}
 # gene mt-Rnr2 starts at 1094 and ends at 2675
 start <- 1094
 end <- 2675
 
-g1 <- rview(bam, chr = "MT", start = start, end = end)
-g2 <- gview(gtfEG, chr = "MT", start = start, end = end)
+g1 <- rview(bamExample, chr = "MT", start = start, end = end)
+g2 <- gview(gtf, chr = "MT", start = start, end = end)
 g <- ggbio::tracks(g1, g2, heights = c(4,1), xlab = "chr MT")
+g
+```
+
+This plot shows the read alignment information for gene mt-RNA2. The top panel shows the alignment and orientation of each read aligned to this gene. Y axis indicates the number of aligned reads at specific locations. Each arrow represents a read. The length of the arrow indicates the length of the read. The reads are colored by their UMI tags. In the bottom panel, each arrow represents an isoform of the gene. The isoforms are named by their transcript names. The grey boxes indicate the exonic regions of the transcript. X axis is the genomic coordinates on the corresponding chromosome (e.g. chr MT). It is consistent between the top and bottom panels if `legend` is set to FALSE for `rview` function.
+
+# 10X BAM File Quality Assessment
+
+The function `tenxBamqc` collects QC metrics from BAM files generated by 10X Cell Ranger pipeline. The collected QC metrics can be visualized by the function `qcplots`. The collected measurements include number of aligned reads and number of reads aligned to an gene for each valid cell barcode. Users can see the alignment quality for the filtered cells after plugging in the filtered barcode file from the Cell Ranger results. Here we show the visualization of an example BAM file from Cell Ranger output.
+
+```{r 10x_bam_qc, warning = FALSE, message = FALSE}
+# The following example BAM file is the first 5000 BAM file records extracted
+# from sample 01 of the 1.3 Million Brain Cells dataset from E18 Mice.
+# (https://support.10xgenomics.com/single-cell-gene-expression/datasets/1.3.0/
+# 1M_neurons)
+# The BAM file for sample 01 is downloaded from here:
+# http://sra-download.ncbi.nlm.nih.gov/srapub_files/
+# SRR5167880_E18_20160930_Neurons_Sample_01.bam
+# see details here:
+# https://trace.ncbi.nlm.nih.gov/Traces/sra/?study=SRP096558
+# and here:
+# https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE93421
+bamfile10x <- system.file("extdata",
+    "SRR5167880_E18_20160930_Neurons_Sample_01_5000.bam",
+    package = "scruff")
+
+# The filtered cell barcodes are generated using the following script:
+# library(TENxBrainData)
+# library(data.table)
+# tenx <- TENxBrainData()
+# # get filtered barcodes for sample 01
+# filteredBcIndex <- tstrsplit(colData(tenx)[, "Barcode"], "-")[[2]] == 1
+# filteredBc <- colData(tenx)[filteredBcIndex, ][["Barcode"]]
+filteredBc <- system.file("extdata",
+    "SRR5167880_E18_20160930_Neurons_Sample_01_filtered_barcode.tsv",
+    package = "scruff")
+# QC results are saved to current working directory
+qcDt <- tenxBamqc(bam = bamfile10x,
+    experiment = "Neurons_Sample_01",
+    filter = filteredBc)
+qcDt
+```
+
+```{r bamqc1, warning = FALSE, message = FALSE, echo = TRUE, results = "hide"}
+g <- qcplots(qcDt)
 g
 ```
 
 # Session Information
 
-```{r, echo = FALSE}
+```{r session, echo = FALSE}
 sessionInfo()
 ```

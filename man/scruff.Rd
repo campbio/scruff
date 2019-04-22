@@ -4,93 +4,176 @@
 \alias{scruff}
 \title{Run scruff pipeline}
 \usage{
-scruff(project = paste0("project_", Sys.Date()), sample, lane, read1Path,
-  read2Path, bc, index, reference, bcStart, bcStop, bcEdit = 0, umiStart,
-  umiStop, keep, cellPerWell = 1, unique = FALSE, nBestLocations = 1,
-  minQual = 10, yieldReads = 1e+06, alignmentFileFormat = "BAM",
+scruff(project = paste0("project_", Sys.Date()), experiment, lane,
+  read1Path, read2Path, bc, index, reference, bcStart, bcStop,
+  bcEdit = 0, umiStart, umiStop, umiEdit = 0, keep, cellPerWell = 1,
+  unique = FALSE, nBestLocations = 1, minQual = 10,
+  yieldReads = 1e+06, alignmentFileFormat = "BAM",
   demultiplexOutDir = "./Demultiplex", alignmentOutDir = "./Alignment",
   countUmiOutDir = "./Count", demultiplexSummaryPrefix = "demultiplex",
   alignmentSummaryPrefix = "alignment", countPrefix = "countUMI",
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"),
   overwrite = FALSE, verbose = FALSE, cores = max(1,
-  parallel::detectCores()/2), threads = 1, ...)
+  parallel::detectCores() - 2), threads = 1, ...)
 }
 \arguments{
-\item{project}{The project name. Default is \code{paste0("project_", Sys.Date())}.}
+\item{project}{The project name. Default is
+\code{paste0("project_", Sys.Date())}.}
 
-\item{sample}{A character vector of sample names. Represents the group label for each FASTQ file, e.g. "patient1, patient2, ...".}
+\item{experiment}{A character vector of experiment names. Represents the
+group label for each FASTQ file, e.g. "patient1, patient2, ...". The number
+of cells in a experiment equals the length of cell barcodes \code{bc}. The
+length of \code{experiment} equals the number of FASTQ files to be
+processed.}
 
-\item{lane}{A character or character vector of flow cell lane numbers. If FASTQ files from multiple lanes are concatenated, any placeholder would be sufficient, e.g. "L001".}
+\item{lane}{A character or character vector of flow cell lane numbers. If
+FASTQ files from multiple lanes are concatenated, any placeholder would be
+sufficient, e.g. "L001".}
 
-\item{read1Path}{A character vector of file paths to the read1 FASTQ files. These are the read files with UMI and cell barcode information.}
+\item{read1Path}{A character vector of file paths to the read1 FASTQ files.
+These are the read files with UMI and cell barcode information.}
 
-\item{read2Path}{A character vector of file paths to the read2 FASTQ files. These read files contain genomic sequences.}
+\item{read2Path}{A character vector of file paths to the read2 FASTQ files.
+These read files contain genomic sequences.}
 
-\item{bc}{A vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.}
+\item{bc}{A vector of pre-determined cell barcodes. For example, see
+\code{?barcodeExample}.}
 
-\item{index}{Path to the \code{Rsubread} index of the reference genome. For generation of Rsubread indices, please refer to \code{buildindex} function in \code{Rsubread} package.}
+\item{index}{Path to the \code{Rsubread} index of the reference genome. For
+generation of Rsubread indices, please refer to \code{buildindex} function
+in \code{Rsubread} package.}
 
-\item{reference}{Path to the reference GTF file. The TxDb object of the GTF file will be generated and saved in the current working directory with ".sqlite" suffix.}
+\item{reference}{Path to the reference GTF file. The TxDb object of the GTF
+file will be generated and saved in the current working directory with
+".sqlite" suffix.}
 
-\item{bcStart}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
+\item{bcStart}{Integer or vector of integers containing the cell barcode
+start positions (inclusive, one-based numbering).}
 
-\item{bcStop}{Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).}
+\item{bcStop}{Integer or vector of integers containing the cell barcode
+stop positions (inclusive, one-based numbering).}
 
-\item{bcEdit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list. Default is 0, meaning no cell barcode correction is performed.}
+\item{bcEdit}{Maximally allowed Hamming distance for barcode correction.
+Barcodes with mismatches equal or fewer than this will be assigned a
+ corrected barcode if the inferred barcode matches uniquely in the provided
+ predetermined barcode list. Default is 0, meaning no cell barcode
+ correction is performed.}
 
-\item{umiStart}{Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.}
+\item{umiStart}{Integer or vector of integers containing the start positions
+(inclusive, one-based numbering) of UMI sequences.}
 
-\item{umiStop}{Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.}
+\item{umiStop}{Integer or vector of integers containing the stop positions
+(inclusive, one-based numbering) of UMI sequences.}
 
-\item{keep}{Read trimming. Read length or number of nucleotides to keep for read 2 (the read that contains transcript sequence information). Longer reads will be clipped at 3' end. Shorter reads will not be affected. This number should be determined based on the sequencing kit that was used in library preparation step.}
+\item{umiEdit}{Maximally allowed Hamming distance for UMI correction. For
+read alignments in each gene, by comparing to a more abundant UMI with more
+reads, UMIs having fewer reads and with mismatches equal or fewer than
+\code{umiEdit} will be assigned a corrected UMI (the UMI with more reads).
+Default is 0, meaning no UMI correction is performed. Doing UMI correction
+will decrease the number of transcripts per gene.}
 
-\item{cellPerWell}{Number of cells per well. Can be an integer (e.g. 1) indicating the number of cells in each well or an vector with length equal to the total number of cells in the input alignment files specifying the number of cells in each file. Default is 1.}
+\item{keep}{Read trimming. Read length or number of nucleotides to keep for
+read 2 (the read that contains transcript sequence information). Longer
+reads will be clipped at 3' end. Shorter reads will not be affected. This
+number should be determined based on the sequencing kit that was used in
+library preparation step.}
 
-\item{unique}{Argument passed to \code{align} function in \code{Rsubread} package. Boolean indicating if only uniquely mapped reads should be reported. A uniquely mapped read has one single mapping location that has less mis-matched bases than any other candidate locations. If set to \strong{FALSE}, multi-mapping reads will be reported in addition to uniquely mapped reads. Number of alignments reported for each multi-mapping read is determined by the nBestLocations parameter. Default is \strong{FALSE}.}
+\item{cellPerWell}{Number of cells per well. Can be an integer (e.g. 1)
+indicating the number of cells in each well or an vector with length equal
+to the total number of cells in the input alignment files specifying the
+number of cells in each file. Default is 1.}
 
-\item{nBestLocations}{Argument passed to \code{align} function in \code{Rsubread} package. Numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read. 1 by default. The allowed value is between 1 to 16 (inclusive). In the mapping output, "NH" tag is used to indicate how many alignments are reported for the read and "HI" tag is used for numbering the alignments reported for the same read. This argument is only applicable when unique option is set to \strong{FALSE}.}
+\item{unique}{Argument passed to \code{align} function in \code{Rsubread}
+package. Boolean indicating if only uniquely mapped reads should be
+reported. A uniquely mapped read has one single mapping location that has
+less mis-matched bases than any other candidate locations. If set to
+\strong{FALSE}, multi-mapping reads will be reported in addition to
+uniquely mapped reads. Number of alignments reported for each multi-mapping
+read is determined by the nBestLocations parameter. Default is
+\strong{FALSE}.}
 
-\item{minQual}{Minimally acceptable Phred quality score for cell barcode and UMI sequences. Phread quality scores are calculated for each nucleotide in these tags. Tags with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
+\item{nBestLocations}{Argument passed to \code{align} function in
+\code{Rsubread} package. Numeric value specifying the maximal number of
+equally-best mapping locations that will be reported for a multi-mapping
+read. 1 by default. The allowed value is between 1 to 16 (inclusive). In
+the mapping output, "NH" tag is used to indicate how many alignments are
+reported for the read and "HI" tag is used for numbering the alignments
+reported for the same read. This argument is only applicable when unique
+option is set to \strong{FALSE}.}
 
-\item{yieldReads}{The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. This parameter is passed to the \code{n} argument of the \code{FastqStreamer} function in \emph{ShortRead} package. Default is \strong{1e06}.}
+\item{minQual}{Minimally acceptable Phred quality score for cell barcode and
+UMI sequences. Phread quality scores are calculated for each nucleotide in
+these tags. Tags with at least one nucleotide with score lower than this
+will be filtered out. Default is \strong{10}.}
 
-\item{alignmentFileFormat}{File format of sequence alignment results. \strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
+\item{yieldReads}{The number of reads to yield when drawing successive
+subsets from a fastq file, providing the number of successive records to be
+returned on each yield. This parameter is passed to the \code{n} argument
+of the \code{FastqStreamer} function in \emph{ShortRead} package. Default
+is \strong{1e06}.}
 
-\item{demultiplexOutDir}{Output folder path for demultiplex results. Demultiplexed cell specifc FASTQ files will be stored in folders in this path, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Demultiplex"}.}
+\item{alignmentFileFormat}{File format of sequence alignment results.
+\strong{"BAM"} or \strong{"SAM"}. Default is \strong{"BAM"}.}
 
-\item{alignmentOutDir}{Output directory for alignment results. Sequence alignment maps will be stored in folders in this directory, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.}
+\item{demultiplexOutDir}{Output folder path for demultiplex results.
+Demultiplexed cell specifc FASTQ files will be stored in folders in this
+path, respectively. \strong{Make sure the folder is empty.} Default is
+\code{"./Demultiplex"}.}
 
-\item{countUmiOutDir}{Output directory for UMI counting results. UMI filtered count matrix will be stored in this directory. Default is \code{"./Count"}.}
+\item{alignmentOutDir}{Output directory for alignment results. Sequence
+alignment maps will be stored in folders in this directory, respectively.
+\strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.}
 
-\item{demultiplexSummaryPrefix}{Prefix for demultiplex summary filename. Default is \code{"demultiplex"}.}
+\item{countUmiOutDir}{Output directory for UMI counting results. UMI
+filtered count matrix will be stored in this directory. Default is
+\code{"./Count"}.}
 
-\item{alignmentSummaryPrefix}{Prefix for alignment summary filename. Default is \code{"alignment"}.}
+\item{demultiplexSummaryPrefix}{Prefix for demultiplex summary filename.
+Default is \code{"demultiplex"}.}
 
-\item{countPrefix}{Prefix for UMI filtered count matrix filename. Default is \code{"countUMI"}.}
+\item{alignmentSummaryPrefix}{Prefix for alignment summary filename. Default
+is \code{"alignment"}.}
 
-\item{logfilePrefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
+\item{countPrefix}{Prefix for UMI filtered count matrix filename. Default is
+\code{"countUMI"}.}
 
-\item{overwrite}{Boolean indicating whether to overwrite the output directory. Default is \strong{FALSE}.}
+\item{logfilePrefix}{Prefix for log file. Default is current date and time
+in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 
-\item{verbose}{Boolean indicating whether to print log messages. Useful for debugging. Default to \strong{FALSE}.}
+\item{overwrite}{Boolean indicating whether to overwrite the output
+directory. Default is \strong{FALSE}.}
 
-\item{cores}{Number of cores to use for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.}
+\item{verbose}{Boolean indicating whether to print log messages. Useful for
+debugging. Default to \strong{FALSE}.}
 
-\item{threads}{\strong{Do not change}. Number of threads/CPUs used for mapping for each core. Refer to \code{align} function in \code{Rsubread} for details. Default is \strong{1}. It should not be changed in most cases.}
+\item{cores}{Number of cores to use for parallelization. Default is
+\code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
+cores minus 2.}
 
-\item{...}{Additional arguments passed to the \code{align} function in \code{Rsubread} package.}
+\item{threads}{\strong{Do not change}. Number of threads/CPUs used for
+mapping for each core. Refer to \code{align} function in \code{Rsubread}
+for details. Default is \strong{1}. It should not be changed in most cases.}
+
+\item{...}{Additional arguments passed to the \code{align} function in
+\code{Rsubread} package.}
 }
 \value{
 A \code{SingleCellExperiment} object.
 }
 \description{
-Run the \code{scruff} pipeline. This function performs all \code{demultiplex}, \code{alignRsubread}, and \code{countUMI} functions. Write demultiplex statistics, alignment statistics, and UMI filtered count matrix in output directories. Return a SingleCellExperiment object containing the count matrix, cell and gene annotations, and all QC metrics.
+Run the \code{scruff} pipeline. This function performs all
+ \code{demultiplex}, \code{alignRsubread}, and \code{countUMI} functions.
+ Write demultiplex statistics, alignment statistics, and UMI filtered count
+ matrix in output directories. Return a SingleCellExperiment object
+ containing the count matrix, cell and gene annotations, and all QC metrics.
 }
 \examples{
 \dontrun{
+# prepare required files
+
 data(barcodeExample, package = "scruff")
 fastqs <- list.files(system.file("extdata", package = "scruff"),
-pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
+    pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 
@@ -101,23 +184,26 @@ indexBase <- "GRCm38_MT"
 # Create index files for GRCm38_MT.
 buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 
-# rub scruff
+# run scruff pipeline
 sce <- scruff(project = "example",
-sample = c("1h1", "b1"),
-lane = c("L001", "L001"),
-read1Path = c(fastqs[1], fastqs[3]),
-read2Path = c(fastqs[2], fastqs[4]),
-bc = barcodeExample,
-index = indexBase,
-reference = gtf,
-bcStart = 1,
-bcStop = 8,
-umiStart = 9,
-umiStop = 12,
-keep = 75,
-cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-cores = 2,
-overwrite = TRUE,
-verbose = TRUE)
+    experiment = c("1h1", "b1"),
+    lane = c("L001", "L001"),
+    read1Path = c(fastqs[1], fastqs[3]),
+    read2Path = c(fastqs[2], fastqs[4]),
+    bc = barcodeExample,
+    index = indexBase,
+    reference = gtf,
+    bcStart = 1,
+    bcStop = 8,
+    umiStart = 9,
+    umiStop = 12,
+    keep = 75,
+    cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+    overwrite = TRUE,
+    verbose = TRUE)
 }
+
+# or use the built-in SingleCellExperiment object generated using
+# example dataset (see ?sceExample)
+data(sceExample, package = "scruff")
 }

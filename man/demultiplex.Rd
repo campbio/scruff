@@ -4,78 +4,118 @@
 \alias{demultiplex}
 \title{Demultiplex cell barcodes and assign cell specific reads}
 \usage{
-demultiplex(project = paste0("project_", Sys.Date()), sample, lane, read1Path,
-  read2Path, bc, bcStart, bcStop, bcEdit = 0, umiStart, umiStop, keep,
-  minQual = 10, yieldReads = 1e+06, outDir = "./Demultiplex",
-  summaryPrefix = "demultiplex", overwrite = FALSE, cores = max(1,
-  parallel::detectCores()/2), verbose = FALSE,
-  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"))
+demultiplex(project = paste0("project_", Sys.Date()), experiment, lane,
+  read1Path, read2Path, bc, bcStart, bcStop, bcEdit = 0, umiStart,
+  umiStop, keep, minQual = 10, yieldReads = 1e+06,
+  outDir = "./Demultiplex", summaryPrefix = "demultiplex",
+  overwrite = FALSE, cores = max(1, parallel::detectCores() - 2),
+  verbose = FALSE, logfilePrefix = format(Sys.time(),
+  "\%Y\%m\%d_\%H\%M\%S"))
 }
 \arguments{
-\item{project}{The project name. Default is \code{paste0("project_", Sys.Date())}.}
+\item{project}{The project name. Default is
+\code{paste0("project_", Sys.Date())}.}
 
-\item{sample}{A character vector of sample names. Represents the group label for each FASTQ file, e.g. "patient1, patient2, ...".}
+\item{experiment}{A character vector of experiment names. Represents the
+group label for each FASTQ file, e.g. "patient1, patient2, ...". The number
+of cells in a experiment equals the length of cell barcodes \code{bc}. The
+length of \code{experiment} equals the number of FASTQ files to be
+processed.}
 
-\item{lane}{A character or character vector of flow cell lane numbers. If FASTQ files from multiple lanes are concatenated, any placeholder would be sufficient, e.g. "L001".}
+\item{lane}{A character or character vector of flow cell lane numbers. FASTQ
+files from lanes having the same \code{experiment} will be concatenated. If
+FASTQ files from multiple lanes are already concatenated, any placeholder
+would be sufficient, e.g. "L001".}
 
-\item{read1Path}{A character vector of file paths to the read1 FASTQ files. These are the read files with UMI and cell barcode information.}
+\item{read1Path}{A character vector of file paths to the read 1 FASTQ files.
+These are the read files containing UMI and cell barcode sequences.}
 
-\item{read2Path}{A character vector of file paths to the read2 FASTQ files. These read files contain genomic sequences.}
+\item{read2Path}{A character vector of file paths to the read 2 FASTQ files.
+These read files contain genomic transcript sequences.}
 
-\item{bc}{A character vector of pre-determined cell barcodes. For example, see \code{?barcodeExample}.}
+\item{bc}{A character vector of pre-determined cell barcodes. For example,
+see \code{?barcodeExample}.}
 
-\item{bcStart}{Integer or vector of integers containing the cell barcode start positions (inclusive, one-based numbering).}
+\item{bcStart}{Integer or vector of integers containing the cell barcode
+start positions (inclusive, one-based numbering).}
 
-\item{bcStop}{Integer or vector of integers containing the cell barcode stop positions (inclusive, one-based numbering).}
+\item{bcStop}{Integer or vector of integers containing the cell barcode
+stop positions (inclusive, one-based numbering).}
 
-\item{bcEdit}{Maximally allowed edit distance for barcode correction. Barcodes with mismatches equal or fewer than this will be assigned a corrected barcode if the inferred barcode matches uniquely in the provided predetermined barcode list. Default is 0, meaning no cell barcode correction is performed.}
+\item{bcEdit}{Maximally allowed Hamming distance for barcode correction.
+Barcodes with mismatches equal or fewer than this will be assigned a
+corrected barcode if the inferred barcode matches uniquely in the provided
+predetermined barcode list. Default is 0, meaning no cell barcode
+correction is performed.}
 
-\item{umiStart}{Integer or vector of integers containing the start positions (inclusive, one-based numbering) of UMI sequences.}
+\item{umiStart}{Integer or vector of integers containing the start positions
+(inclusive, one-based numbering) of UMI sequences.}
 
-\item{umiStop}{Integer or vector of integers containing the stop positions (inclusive, one-based numbering) of UMI sequences.}
+\item{umiStop}{Integer or vector of integers containing the stop positions
+(inclusive, one-based numbering) of UMI sequences.}
 
-\item{keep}{Read trimming. Read length or number of nucleotides to keep for read 2 (the read that contains transcript sequence information). Longer reads will be clipped at 3' end. Shorter reads will not be affected.}
+\item{keep}{Read trimming. Read length or number of nucleotides to keep for
+read 2 (the read that contains transcript sequence information). Longer
+reads will be clipped at 3' end. Shorter reads will not be affected.}
 
-\item{minQual}{Minimally acceptable Phred quality score for barcode and UMI sequences. Phread quality scores are calculated for each nucleotide in the sequence. Sequences with at least one nucleotide with score lower than this will be filtered out. Default is \strong{10}.}
+\item{minQual}{Minimally acceptable Phred quality score for barcode and UMI
+sequences. Phread quality scores are calculated for each nucleotide in the
+sequence. Sequences with at least one nucleotide with score lower than this
+will be filtered out. Default is \strong{10}.}
 
-\item{yieldReads}{The number of reads to yield when drawing successive subsets from a fastq file, providing the number of successive records to be returned on each yield. This parameter is passed to the \code{n} argument of the \code{FastqStreamer} function in \emph{ShortRead} package. Default is \strong{1e06}.}
+\item{yieldReads}{The number of reads to yield when drawing successive
+subsets from a fastq file, providing the number of successive records to be
+returned on each yield. This parameter is passed to the \code{n} argument
+of the \code{FastqStreamer} function in \emph{ShortRead} package. Default
+is \strong{1e06}.}
 
-\item{outDir}{Output folder path for demultiplex results. Demultiplexed cell specifc FASTQ files will be stored in folders in this path, respectively. \strong{Make sure the folder is empty.} Default is \code{"./Demultiplex"}.}
+\item{outDir}{Output folder path for demultiplex results. Demultiplexed
+cell specifc FASTQ files will be stored in folders in this path,
+respectively. \strong{Make sure the folder is empty.} Default is
+\code{"./Demultiplex"}.}
 
-\item{summaryPrefix}{Prefix for demultiplex summary filename. Default is \code{"demultiplex"}.}
+\item{summaryPrefix}{Prefix for demultiplex summary filename. Default is
+\code{"demultiplex"}.}
 
-\item{overwrite}{Boolean indicating whether to overwrite the output directory. Default is \strong{FALSE}.}
+\item{overwrite}{Boolean indicating whether to overwrite the output
+directory. Default is \strong{FALSE}.}
 
-\item{cores}{Number of cores used for parallelization. Default is \code{max(1, parallel::detectCores() / 2)}, i.e. the number of available cores divided by 2.}
+\item{cores}{Number of cores used for parallelization. Default is
+\code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
+cores minus 2.}
 
-\item{verbose}{Poolean indicating whether to print log messages. Useful for debugging. Default to \strong{FALSE}.}
+\item{verbose}{Poolean indicating whether to print log messages. Useful for
+debugging. Default to \strong{FALSE}.}
 
-\item{logfilePrefix}{Prefix for log file. Default is current date and time in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
+\item{logfilePrefix}{Prefix for log file. Default is current date and time
+in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 }
 \value{
-A \strong{SingleCellExperiment} object containing the demultiplex summary information as \code{colData}.
+A \link[SingleCellExperiment]{SingleCellExperiment} object
+ containing the demultiplex summary information as
+  \link[SummarizedExperiment]{colData}.
 }
 \description{
-Demultiplex fastq files and write cell specific reads in compressed fastq format to output directory
+Demultiplex fastq files and write cell specific reads in compressed fastq
+ format to output directory
 }
 \examples{
 # Demultiplex example FASTQ files
 data(barcodeExample, package = "scruff")
 fastqs <- list.files(system.file("extdata", package = "scruff"),
-pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
+    pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
 
 de <- demultiplex(
-project = "example",
-sample = c("1h1", "b1"),
-lane = c("L001", "L001"),
-read1Path = c(fastqs[1], fastqs[3]),
-read2Path = c(fastqs[2], fastqs[4]),
-barcodeExample,
-bcStart = 1,
-bcStop = 8,
-umiStart = 9,
-umiStop = 12,
-keep = 75,
-overwrite = TRUE,
-cores = 1)
+    project = "example",
+    experiment = c("1h1", "b1"),
+    lane = c("L001", "L001"),
+    read1Path = c(fastqs[1], fastqs[3]),
+    read2Path = c(fastqs[2], fastqs[4]),
+    barcodeExample,
+    bcStart = 1,
+    bcStop = 8,
+    umiStart = 9,
+    umiStop = 12,
+    keep = 75,
+    overwrite = TRUE)
 }
