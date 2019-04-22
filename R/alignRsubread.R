@@ -276,7 +276,9 @@ alignRsubread <- function(sce,
             PropMapped = NA))
     else {
         resdf <- Rsubread::propmapped(i)
-        resdf$Samples <- file.path(outDir, basename(resdf$Samples))
+        # Rsubread recently moved Samples column to rowname
+        # resdf$Samples <- file.path(outDir, basename(resdf$Samples))
+        resdf$Samples <- file.path(outDir, basename(rownames(resdf)))
         return(resdf)
     }
 }
