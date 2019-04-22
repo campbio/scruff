@@ -277,10 +277,13 @@ alignRsubread <- function(sce,
     else {
         resdf <- Rsubread::propmapped(i)
         # Rsubread recently moved Samples column to rowname
-        # resdf$Samples <- file.path(outDir, basename(resdf$Samples))
-        resdf$Samples <- file.path(outDir, basename(rownames(resdf)))
-        data.table::setcolorder(resdf,
-            c("Samples", "NumTotal", "NumMapped", "PropMapped"))
+        if ("Samples" %in% colnames(resdf)) {
+            resdf$Samples <- file.path(outDir, basename(resdf$Samples))
+        } else {
+            resdf$Samples <- file.path(outDir, basename(rownames(resdf)))
+            data.table::setcolorder(resdf,
+                c("Samples", "NumTotal", "NumMapped", "PropMapped"))
+        }
         return(resdf)
     }
 }
