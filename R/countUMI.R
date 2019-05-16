@@ -93,6 +93,19 @@ countUMI <- function(sce,
     logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
 
     .checkCores(cores)
+    geneAnnotation <- .getGeneAnnotation(reference)
+
+    gtfcolnames <- c("gene_id",
+        "gene_name",
+        "gene_biotype",
+        "seqnames",
+        "start",
+        "end",
+        "width",
+        "strand",
+        "source")
+
+    .checkGTF(geneAnnotation, gtfcolnames)
 
     isWindows <- .Platform$OS.type == "windows"
 
@@ -142,7 +155,7 @@ countUMI <- function(sce,
     message(Sys.time(),
         " ... Loading TxDb file")
     features <- suppressPackageStartupMessages(.gtfReadDb(reference))
-    
+
     tryCatch(
         GenomeInfoDb::seqlevelsStyle(features) <- "NCBI",
         error = function(e) {
@@ -150,7 +163,7 @@ countUMI <- function(sce,
                 " style 'NCBI' for the input reference ", basename(reference))
         }
     )
-    
+
     # parallelization BiocParallel
     if (format == "SAM") {
         if (isWindows) {
@@ -254,15 +267,15 @@ countUMI <- function(sce,
     SummarizedExperiment::rowData(scruffsce) <-
         S4Vectors::DataFrame(geneAnnotation[order(gene_id), ],
             row.names = geneAnnotation[order(gene_id), gene_id])
-    
+
     #  SingleCellExperiment::isSpike(scruffsce,
     #      "ERCC") <- grepl("ERCC-",
     #          rownames(scruffsce))
-    
+
     SingleCellExperiment::isSpike(scruffsce,
         "ERCC") <- which(SummarizedExperiment::rowData(scruffsce)[,
             "source"] == "ERCC")
-    
+
     message(Sys.time(),
         " ... Save gene annotation data to ",
         file.path(outDir, paste0(
@@ -271,7 +284,7 @@ countUMI <- function(sce,
             outputPrefix, "_gene_annot.tsv"
         ))
     )
-    
+
     data.table::fwrite(geneAnnotation,
         sep = "\t",
         file = file.path(outDir, paste0(
@@ -290,7 +303,7 @@ countUMI <- function(sce,
         SummarizedExperiment::assay(scruffsce)
         [grep("MT", SummarizedExperiment::rowData(scruffsce)
             [, "seqnames"], ignore.case = TRUE), ]))
-    
+
     # gene number exclude ERCC
     cm <- SummarizedExperiment::assay(scruffsce)[
         !SingleCellExperiment::isSpike(scruffsce, "ERCC"), ]
@@ -299,16 +312,16 @@ countUMI <- function(sce,
         sum(cm[, cells] != 0)
     }, integer(1))
 
-    # protein coding genes
-    proteinCodingGene <- geneAnnotation[gene_biotype == "protein_coding",
-        gene_id]
-    proGene <- vapply(colnames(cm), function(cells) {
-        sum(cm[proteinCodingGene, cells] != 0)
-    }, integer(1))
+    # protein coding genes and counts
+    if ("gene_biotype" %in% colnames(geneAnnotation)) {
+        proteinCodingGene <- geneAnnotation[gene_biotype == "protein_coding",
+            gene_id]
+        proGene <- vapply(colnames(cm), function(cells) {
+            sum(cm[proteinCodingGene, cells] != 0)
+        }, integer(1))
+        proCounts <- base::colSums(as.data.frame(cm[proteinCodingGene, ]))
+    }
 
-    # protein coding counts
-    proCounts <- base::colSums(as.data.frame(cm[proteinCodingGene, ]))
-    
     qcdf <- cbind(SummarizedExperiment::colData(sce),
         readmapping,
         list(total_counts = totalCounts,
@@ -317,7 +330,7 @@ countUMI <- function(sce,
             protein_coding_genes = proGene,
             protein_coding_counts = proCounts,
             number_of_cells = cellPerWell))
-    
+
     message(Sys.time(),
         " ... Save cell-specific quality metrics to ",
         file.path(outDir, paste0(
@@ -326,14 +339,14 @@ countUMI <- function(sce,
             outputPrefix, "_QC.tsv"
         ))
     )
-    
+
     data.table::fwrite(as.data.frame(qcdf),
         sep = "\t",
         file = file.path(outDir, paste0(
             format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
             outputPrefix, "_QC.tsv"
         )))
-    
+
     SummarizedExperiment::colData(scruffsce) <- qcdf
 
     message(Sys.time(),
@@ -377,7 +390,7 @@ countUMI <- function(sce,
         cell <- .removeLastExtension(i)
         countUmiDt[[cell]] <- 0
 
-        return (data.frame(countUmiDt,
+        return(data.frame(countUmiDt,
             row.names = 1,
             check.names = FALSE,
             fix.empty.names = FALSE))
@@ -385,7 +398,7 @@ countUMI <- function(sce,
 
     bfl <- Rsamtools::BamFile(i)
     bamGA <- GenomicAlignments::readGAlignments(bfl, use.names = TRUE)
-    
+
     tryCatch(
         GenomeInfoDb::seqlevelsStyle(bamGA) <- "NCBI",
         error = function(e) {
@@ -393,7 +406,7 @@ countUMI <- function(sce,
                 " style 'NCBI' for the BAM file ", basename(i))
         }
     )
-    
+
     genomeReads <- data.table::data.table(
         name = names(bamGA),
         seqnames = as.vector(GenomicAlignments::seqnames(bamGA)))
@@ -425,7 +438,7 @@ countUMI <- function(sce,
             base::duplicated(oldt, by = "name") |
                 base::duplicated(oldt, by = "name", fromLast = TRUE)), ]
     }
-    
+
     # if 0 count in the cell
     if (nrow(oldt) == 0) {
         # clean up
@@ -452,18 +465,18 @@ countUMI <- function(sce,
         # move UMI to a separate column
         oldt[, umi := data.table::last(data.table::tstrsplit(name, ":"))]
         oldt[, inferred_umi := umi]
-        
+
         # reads mapped to genes
-        readsMappedToGenes <- nrow(oldt[!grepl("ERCC", oldt[, gene_id ]), ])
-        
+        readsMappedToGenes <- nrow(oldt[!grepl("ERCC", oldt[, gene_id]), ])
+
         # median number of reads per umi
         rpu <- table(oldt[, umi])
         medReadsUmi <- median(rpu)
         avgReadsUmi <- mean(rpu)
-        
+
         medReadsUmic <- 0
         avgReadsUmic <- 0
-        
+
         # UMI filtering and correction
 
         # strict way of doing UMI filtering:
@@ -476,29 +489,29 @@ countUMI <- function(sce,
         # Reads with different UMI tags are
         # considered unique trancsript molecules
         # Read positions do not matter
-        
+
         # UMI correction
-        
+
         if (umiEdit != 0) {
             for (g in unique(oldt[, gene_id])) {
-                
+
                 umis <- sort(table(oldt[gene_id == g, inferred_umi]),
                     decreasing = TRUE)
                 j <- 1
-                
+
                 while (j < length(umis)) {
                     u <- names(umis)[j]
                     sdm <- stringdist::stringdistmatrix(u, names(umis),
                         method = "hamming", nthread = 1)
                     sdm[which(sdm == 0)] <- NA
                     mindist <- min(sdm, na.rm = TRUE)
-                    
+
                     if (mindist <= umiEdit & mindist != 0) {
                         inds <- which(sdm == mindist)
                         oldt[umi %in% names(umis)[inds],
                             inferred_umi := names(umis)[j]]
                     }
-                    
+
                     umis <- sort(table(oldt[gene_id == g, inferred_umi]),
                         decreasing = TRUE)
                     j <- j + 1
@@ -509,7 +522,7 @@ countUMI <- function(sce,
             medReadsUmic <- median(rpuc)
             avgReadsUmic <- mean(rpuc)
         }
-        
+
         countUmi <- base::table(unique(oldt[,
             .(gene_id, inferred_umi)])[, gene_id])
 
@@ -545,6 +558,5 @@ countUMI <- function(sce,
             check.names = FALSE,
             fix.empty.names = FALSE)
     }
-    return (countUmiDt)
+    return(countUmiDt)
 }
-
