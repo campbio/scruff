@@ -245,7 +245,7 @@ alignRsubread <- function(sce,
 
     if (file.size(i) == 0) {
         file.create(file.path, showWarnings = FALSE)
-        return (file.path)
+        return(file.path)
     } else {
         .logMessages(Sys.time(),
             "... mapping sample",
@@ -263,21 +263,27 @@ alignRsubread <- function(sce,
             output_file = file.path,
             ...
         )
-        return (file.path)
+        return(file.path)
     }
 }
 
 
 .propmappedWrapper <- function(i, outDir) {
     if (file.size(i) == 0)
-        return (data.frame(Samples = i,
+        return(data.frame(Samples = i,
             NumTotal = 0,
             NumMapped = 0,
             PropMapped = NA))
     else {
         resdf <- Rsubread::propmapped(i)
-        resdf$Samples <- file.path(outDir, basename(resdf$Samples))
-        return (resdf)
+        # Rsubread recently moved Samples column to rowname
+        if ("Samples" %in% colnames(resdf)) {
+            resdf$Samples <- file.path(outDir, basename(resdf$Samples))
+        } else {
+            resdf$Samples <- file.path(outDir, basename(rownames(resdf)))
+            data.table::setcolorder(resdf,
+                c("Samples", "NumTotal", "NumMapped", "PropMapped"))
+        }
+        return(resdf)
     }
 }
-
