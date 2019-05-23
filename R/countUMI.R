@@ -262,8 +262,6 @@ countUMI <- function(sce,
         "median_reads_per_corrected_umi",
         "avg_reads_per_corrected_umi")
 
-    geneAnnotation <- .getGeneAnnotation(reference)
-
     SummarizedExperiment::rowData(scruffsce) <-
         S4Vectors::DataFrame(geneAnnotation[order(gene_id), ],
             row.names = geneAnnotation[order(gene_id), gene_id])
