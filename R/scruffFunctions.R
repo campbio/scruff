@@ -36,7 +36,7 @@
     
     baseName <- sub(pattern = "(.*?)\\..*$",
         replacement = "\\1",
-        basename(filePaths))
+        basename(fastq.paths))
     baseName <- gsub("[[:punct:]]+", ".", baseName)
     baseName <- gsub(" ", ".", baseName)
     filePaths <- file.path(out.dir, paste0(baseName, ".", format))
