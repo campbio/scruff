@@ -33,7 +33,7 @@
 
 
 .getAlignmentFilePaths <- function(fastq.paths, format, out.dir) {
-    
+
     baseName <- sub(pattern = "(.*?)\\..*$",
         replacement = "\\1",
         basename(fastq.paths))
