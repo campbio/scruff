@@ -158,6 +158,7 @@ alignRsubread <- function(sce,
     message(Sys.time(), " ... Creating output directory ", outDir)
     dir.create(file.path(outDir), showWarnings = FALSE, recursive = TRUE)
 
+    message(Sys.time(), " ... Mapping")
     # parallelization BiocParallel
 
     if (verbose) {
@@ -261,20 +262,20 @@ alignRsubread <- function(sce,
             nthreads = threads,
             output_format = format,
             output_file = file.path,
-            ...
-        )
+            ...)
+        
         return(file.path)
     }
 }
 
 
 .propmappedWrapper <- function(i, outDir) {
-    if (file.size(i) == 0)
+    if (file.size(i) == 0) {
         return(data.frame(Samples = i,
             NumTotal = 0,
             NumMapped = 0,
             PropMapped = NA))
-    else {
+    } else {
         resdf <- Rsubread::propmapped(i)
         # Rsubread recently moved Samples column to rowname
         if ("Samples" %in% colnames(resdf)) {
