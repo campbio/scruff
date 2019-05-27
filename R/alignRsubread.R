@@ -261,20 +261,20 @@ alignRsubread <- function(sce,
             nthreads = threads,
             output_format = format,
             output_file = file.path,
-            ...
-        )
+            ...)
+
         return(file.path)
     }
 }
 
 
 .propmappedWrapper <- function(i, outDir) {
-    if (file.size(i) == 0)
+    if (file.size(i) == 0) {
         return(data.frame(Samples = i,
             NumTotal = 0,
             NumMapped = 0,
             PropMapped = NA))
-    else {
+    } else {
         resdf <- Rsubread::propmapped(i)
         # Rsubread recently moved Samples column to rowname
         resdf$Samples <- file.path(outDir, basename(rownames(resdf)))
