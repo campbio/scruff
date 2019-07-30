@@ -33,17 +33,16 @@
 
 
 .getAlignmentFilePaths <- function(fastq.paths, format, out.dir) {
-    file.paths <- file.path(out.dir,
-        paste0(
-            sub(
-                pattern = "(.*?)\\..*$",
-                replacement = "\\1",
-                basename(fastq.paths)
-            ),
-            ".",
-            format
-        ))
-    return(file.paths)
+    fileName <- paste0(sub(pattern = "(.*?)\\..*$",
+        replacement = "\\1",
+        basename(fastq.paths)), ".", format)
+
+    # replace all punctuations with "." per Rsubread update
+    fileName <- gsub("[[:punct:]]+", ".", fileName)
+    fileName <- gsub(" ", ".", fileName)
+
+    filePaths <- file.path(out.dir, fileName)
+    return(filePaths)
 }
 
 
