@@ -261,8 +261,7 @@ alignRsubread <- function(sce,
             nthreads = threads,
             output_format = format,
             output_file = file.path,
-            ...
-        )
+            ...)
         return(file.path)
     }
 }
