@@ -1,3 +1,11 @@
+# 1.2.4
+
+* Added a check in tenxBamqc to check the validity of input chemistry (validCb)
+
+# 1.2.1
+
+* Update vignette to show how bamExample is generated
+
 # 1.1.6
 
 * Fix countUMI gene_biotype bug
@@ -15,6 +23,7 @@
 
 * Replaced refGenome package dependency with rtracklayer
 * Hide Rsubread alignment messages when verbose == FALSE
+* Removed features arg in .getGeneAnnotation
 
 # 1.0.2
 

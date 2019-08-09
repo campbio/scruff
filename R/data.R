@@ -35,3 +35,16 @@
 #'
 #' @format A \code{data.table} object.
 "validCb"
+
+#' Top 10,000 rows for v1, v2, and v3 cell barcode whitelist files
+#'
+#' The first 10,000 cell barcodes in v1 (737K-april-2014_rc.txt), v2
+#'  (737K-august-2016.txt), and v3 (3M-february-2018.txt) cell barcode
+#'  whitelist files. This object is used for testing the validity of input
+#'  assay chemistry \code{validCb} for \link{tenxBamqc} function. The cell
+#'  barcodes for the first 10,000 alignments in the input BAM file will be
+#'  mapped to each chemistry's whitelist to determine the assay chemistry of
+#'  the BAM file.
+#'
+#' @format A \code{data.table} object.
+"cbtop10000"
