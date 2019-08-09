@@ -158,8 +158,8 @@ alignRsubread <- function(sce,
     message(Sys.time(), " ... Creating output directory ", outDir)
     dir.create(file.path(outDir), showWarnings = FALSE, recursive = TRUE)
 
+    message(Sys.time(), " ... Mapping")
     # parallelization BiocParallel
-
     if (verbose) {
         alignmentFilePaths <- BiocParallel::bplapply(
             X = fastqPaths,
@@ -268,21 +268,17 @@ alignRsubread <- function(sce,
 
 
 .propmappedWrapper <- function(i, outDir) {
-    if (file.size(i) == 0)
+    if (file.size(i) == 0) {
         return(data.frame(Samples = i,
             NumTotal = 0,
             NumMapped = 0,
             PropMapped = NA))
-    else {
+    } else {
         resdf <- Rsubread::propmapped(i)
         # Rsubread recently moved Samples column to rowname
-        if ("Samples" %in% colnames(resdf)) {
-            resdf$Samples <- file.path(outDir, basename(resdf$Samples))
-        } else {
-            resdf$Samples <- file.path(outDir, basename(rownames(resdf)))
-            data.table::setcolorder(resdf,
-                c("Samples", "NumTotal", "NumMapped", "PropMapped"))
-        }
+        resdf$Samples <- file.path(outDir, basename(rownames(resdf)))
+        data.table::setcolorder(resdf,
+            c("Samples", "NumTotal", "NumMapped", "PropMapped"))
         return(resdf)
     }
 }
