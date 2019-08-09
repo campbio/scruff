@@ -281,6 +281,62 @@
 }
 
 
+.checkCellBarcodes <- function(bam, validCb, yieldSize = 10000, tags = "CB") {
+
+    message(Sys.time(), " Checking cell barcodes")
+    utils::data(cbtop10000, package = "scruff", envir = environment())
+
+    bamfl <- Rsamtools::BamFile(bam, yieldSize = yieldSize)
+    param <- Rsamtools::ScanBamParam(tag = tags)
+
+    open(bamfl)
+
+    yld <- GenomicAlignments::readGAlignments(bamfl,
+        use.names = TRUE,
+        param = param)
+
+    close(bamfl)
+
+    cb <- S4Vectors::mcols(yld)$CB
+    cb <- data.table::tstrsplit(cb, "-")[[1]]
+
+    if (is.na(validCb)) {
+        l <- nchar(cbtop10000[, v2chemistry][1])
+    } else {
+        vcb <- data.table::fread(validCb, header = FALSE)
+        l <- table(length(vcb[[1]]))
+    }
+
+    # check barcode length
+    if (any(!nchar(cb)[complete.cases(nchar(cb))] %in% l)) {
+        cbtb <- table(nchar(cb))
+        cbtb2 <- cbtb
+        if (length(cbtb2) > 1) {
+            cbtb2[as.character(l)] <- NULL
+        } else {
+            cbtb2 <- 0
+        }
+        warning("In the first ", length(cb), " alignments in BAM file ", bam,
+            ", the lengths of ", sum(cbtb2),
+            "/", sum(cbtb, na.rm = TRUE),
+            " cell barcodes (", paste(names(cbtb2), collapse = " "),
+            ") are not equal to the legnths of cell barcodes",
+            " in the provided whitelist (", paste(l, collapse = " "),
+            "). Make sure your 'validCb' input is correct!")
+    }
+
+    v1s <- sum(cb %in% cbtop10000[, v1chemistry])
+    v2s <- sum(cb %in% cbtop10000[, v2chemistry])
+    v3s <- sum(cb %in% cbtop10000[, v3chemistry])
+
+    message("In the first ", length(cb), " alignments in BAM file ", bam,
+        ", ", v1s, ", ", v2s, ", and ", v3s,
+        " cell barcodes are found within the first 10000",
+        " cell barcodes in the v1, v2, and v3 chemistry whitelists. Make sure",
+        " your 'validCb' input is correct!")
+}
+
+
 ########################################
 ###### Plotting helper functions #######
 ########################################

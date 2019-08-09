@@ -86,15 +86,17 @@ tenxBamqc <- function(bam,
         stop("'bam' and 'filter' have unequal lengths!")
     }
 
-    message(Sys.time(), " Start collecting QC metrics for BAM files ",
-        paste(bam, collapse = " "))
-
     if (is.na(validCb)) {
         utils::data(validCb, package = "scruff", envir = environment())
     } else {
         validCb <- data.table::fread(validCb, header = FALSE)
     }
 
+    # cbtop10000 for checking cell barcodes
+    utils::data(cbtop10000, package = "scruff", envir = environment())
+
+    message(Sys.time(), " Start collecting QC metrics for BAM files ",
+        paste(bam, collapse = " "))
 
     resDt <- data.table::data.table(cell_barcode = character(),
         reads_mapped_to_genome = integer(),
@@ -104,6 +106,8 @@ tenxBamqc <- function(bam,
     for (i in seq_len(length(bam))) {
 
         message(Sys.time(), " Processing file ", bam[i])
+
+        .checkCellBarcodes(bam[i], validCb)
 
         bamfl <- Rsamtools::BamFile(bam[i], yieldSize = yieldSize)
 
