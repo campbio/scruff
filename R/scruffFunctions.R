@@ -281,7 +281,7 @@
 }
 
 
-.checkCellBarcodes <- function(bam, validCb, yieldSize = 10000, tags = "CB") {
+.tenxCheckCellBarcodes <- function(bam, validCb, yieldSize = 10000, tags = "CB") {
 
     message(Sys.time(), " Checking cell barcodes")
     utils::data(cbtop10000, package = "scruff", envir = environment())

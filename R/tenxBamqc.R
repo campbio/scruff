@@ -108,7 +108,7 @@ tenxBamqc <- function(bam,
 
         message(Sys.time(), " Processing file ", bam[i])
 
-        .checkCellBarcodes(bam[i], vacb)
+        .tenxCheckCellBarcodes(bam[i], vacb)
 
         bamfl <- Rsamtools::BamFile(bam[i], yieldSize = yieldSize)
 
