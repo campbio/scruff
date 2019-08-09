@@ -87,6 +87,7 @@ tenxBamqc <- function(bam,
     }
 
     if (is.na(validCb)) {
+        vacb <- NA
         utils::data(validCb, package = "scruff", envir = environment())
     } else {
         validCb <- data.table::fread(validCb, header = FALSE)
@@ -107,7 +108,7 @@ tenxBamqc <- function(bam,
 
         message(Sys.time(), " Processing file ", bam[i])
 
-        .checkCellBarcodes(bam[i], validCb)
+        .checkCellBarcodes(bam[i], vacb)
 
         bamfl <- Rsamtools::BamFile(bam[i], yieldSize = yieldSize)
 
