@@ -28,6 +28,13 @@ suppressPackageStartupMessages(library(BiocStyle))
 library(scruff)
 
 # Get the paths to example FASTQ, FASTA, and GTF files.
+# Please note that because the following files are included in
+# scruff R package, we use system.file() function to extract the paths
+# to these files. If the user is running scruff on real data, the
+# paths to the input FASTQ, FASTA, and GTF files should be provided,
+# and there is no need to call system.file() function. For example,
+# v1h1R1 <- "/PATH/TO/vandenBrink_1h1_L001_R1_001.fastq.gz"
+# fasta <- "/Path/TO/GRCm38_MT.fa"
 v1h1R1 <- system.file("extdata",
     "vandenBrink_1h1_L001_R1_001.fastq.gz",
     package = "scruff")
@@ -111,6 +118,15 @@ The `r Rpackage("scruff")` package contains 4 single cell RNA-seq FASTQ example 
 
 ```{r loadfiles2}
 library(scruff)
+
+# Get the paths to example FASTQ files.
+# Please note that because the following files are included in
+# scruff R package, we use system.file() function to extract the paths
+# to these files. If the user is running scruff on real data, the
+# paths to the input FASTQ, FASTA, and GTF files should be provided,
+# and there is no need to call system.file() function. For example,
+# v1h1R1 <- "/PATH/TO/vandenBrink_1h1_L001_R1_001.fastq.gz"
+# fasta <- "/Path/TO/GRCm38_MT.fa"
 v1h1R1 <- system.file("extdata",
     "vandenBrink_1h1_L001_R1_001.fastq.gz",
     package = "scruff")
