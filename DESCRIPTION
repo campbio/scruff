@@ -44,7 +44,8 @@ Imports: data.table,
     ggbio,
     rtracklayer,
     SingleCellExperiment,
-    SummarizedExperiment
+    SummarizedExperiment,
+    R.utils
 Suggests:
     BiocStyle,
     knitr,
