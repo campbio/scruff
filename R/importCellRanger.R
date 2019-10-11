@@ -39,7 +39,7 @@
 }
 
 
-# path <- "outs/filtered_feature_bc_matrix/"
+# dir <- "outs/filtered_feature_bc_matrix/"
 .constructSCEFromCellRangerOutputs <- function(dir,
     sample,
     matrixFileName = "matrix.mtx.gz",
@@ -53,7 +53,7 @@
         gzipped = gzipped)
     expr <- as.matrix(ma)
 
-    coln <- paste(cb[[1]], sample, sep = "_")
+    coln <- paste(sample, cb[[1]], sep = "_")
     # colnames(expr) <- coln
     rownames(expr) <- fe[[1]]
 
@@ -86,23 +86,32 @@
 #'  samples.
 #' @param cellRangerOuts The intermidiate path to filtered feature count files
 #'  saved in sparce matrix format. Reference genome names might need to be
-#'  appended if reads were mapped to multiple genomes when running Cell Ranger
-#'  pipeline. Default \code{"outs/filtered_feature_bc_matrix/"}.
+#'  appended for CellRanger version below 3.0.0 if reads were mapped to
+#'  multiple genomes when running Cell Ranger pipeline. Default
+#'  \code{"outs/filtered_feature_bc_matrix/"}.
 #' @param matrixFileName Filename for the Market Exchange Format (MEX) sparse
 #'  matrix file. Default \emph{matrix.mtx.gz}.
 #' @param featuresFileName Filename for the feature annotation file. It can be
-#'  \emph{features.tsv.gz} or \emph{genes.tsv.gz}. Default
+#'  \emph{features.tsv.gz} or \emph{genes.tsv}. Default
 #'  \emph{features.tsv.gz}.
 #' @param barcodesFileName Filename for the cell barcode list file. Default
 #'  \emph{barcodes.tsv.gz}.
 #' @param gzipped Boolean. \code{TRUE} if the Cell Ranger output files
 #'  (barcodes.tsv, features.tsv, and matrix.mtx) were
-#'  gzip compressed. \code{FALSE} otherwise. This is true since Cell Ranger
-#'  3.0. Default \code{TRUE}.
+#'  gzip compressed. \code{FALSE} otherwise. This is true after Cell Ranger
+#'  3.0.0 update. Default \code{TRUE}.
 #' @return A \code{SingleCellExperiment} object containing the combined count
 #'  matrix, the feature annotations, and the cell annotation.
 #' @examples
-#'
+#' # Example #1
+#' # The following filtered feature, cell, and matrix files were downloaded from
+#' # https://support.10xgenomics.com/single-cell-gene-expression/datasets/
+#' # 3.0.0/hgmm_1k_v3
+#' # The top 10 hg19 & mm10 genes are included in this example.
+#' # Only the first 20 cells are included.
+#' sce <- importCellRanger(
+#'     cellRangerDir = system.file("extdata", package = "scruff"),
+#'     samples = "hgmm_1k_v3_20x20")
 #' @export
 importCellRanger <- function(
     cellRangerDir,
