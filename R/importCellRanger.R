@@ -1,4 +1,4 @@
-.readBarcodesCellRanger <- function(path,
+.readBarcodes <- function(path,
     header = FALSE,
     colname = "cell_barcode") {
 
@@ -13,7 +13,7 @@
 }
 
 
-.readFeaturesCellRanger <- function(path,
+.readFeatures <- function(path,
     header = FALSE,
     colnames = c("feature_ID", "feature_name", "feature_type")) {
 
@@ -30,7 +30,7 @@
 }
 
 
-.readMatrixCellRanger <- function(path, gzipped = TRUE) {
+.readMatrixMM <- function(path, gzipped = TRUE) {
     if (isTRUE(gzipped)) {
         path <- gzfile(path)
     }
@@ -47,9 +47,9 @@
     barcodesFileName = "barcodes.tsv.gz",
     gzipped = TRUE) {
 
-    cb <- .readBarcodesCellRanger(file.path(dir, barcodesFileName))
-    fe <- .readFeaturesCellRanger(file.path(dir, featuresFileName))
-    ma <- .readMatrixCellRanger(file.path(dir, matrixFileName),
+    cb <- .readBarcodes(file.path(dir, barcodesFileName))
+    fe <- .readFeatures(file.path(dir, featuresFileName))
+    ma <- .readMatrixMM(file.path(dir, matrixFileName),
         gzipped = gzipped)
     expr <- as.matrix(ma)
 
@@ -71,7 +71,7 @@
 
 .getCellRangerDir <- function(cellRangerDir, sample, cellRangerOuts) {
     path <- file.path(cellRangerDir, sample, cellRangerOuts)
-    return (path)
+    return(path)
 }
 
 
