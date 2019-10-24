@@ -4,22 +4,39 @@
 \alias{importCellRanger}
 \title{Construct SCE object from Cell Ranger output}
 \usage{
-importCellRanger(cellRangerDir, samples,
+importCellRanger(cellRangerDirs = NULL, samples = NULL,
   cellRangerOuts = "outs/filtered_feature_bc_matrix/",
   matrixFileName = "matrix.mtx.gz",
   featuresFileName = "features.tsv.gz",
-  barcodesFileName = "barcodes.tsv.gz", gzipped = TRUE)
+  barcodesFileName = "barcodes.tsv.gz", gzipped = TRUE,
+  class = "DelayedArray")
 }
 \arguments{
-\item{cellRangerDir}{The root directory where Cell Ranger was run. This
-folder should contain sample specific folders.}
+\item{cellRangerDirs}{The root directories where Cell Ranger was run. These
+folders should contain sample specific folders. Default \code{NULL},
+meaning the paths for each sample will be specified in \emph{samples}
+argument.}
 
-\item{samples}{A vector of sample names. Must be the same as the folder
-names of the samples. The cells in the final SCE object will be ordered by
+\item{samples}{Default \code{NULL}. Can be one of
+\itemize{
+  \item \code{NULL}. All samples within \emph{cellRangerDirs} will be
+   imported. The order of samples will be first determined by the order of
+   \emph{cellRangerDirs} and then by \link[base]{list.files}. This is only
+   for the case where \emph{cellRangerDirs} is specified.
+  \item A list of vectors containing sample names to import. Each vector in
+   the list corresponds to samples from one of \emph{cellRangerDirs}.
+   These names are the same as the folder names under \emph{cellRangerDirs}.
+   This is only for the case where \emph{cellRangerDirs} is specified.
+  \item A vector of folder paths for the samples to import. This is only for
+   the case where \emph{cellRangerDirs} is \code{NULL}.
+}
+The cells in the final SCE object will be ordered in the same order of
 samples.}
 
-\item{cellRangerOuts}{The intermidiate path to filtered feature count files
-saved in sparce matrix format. Reference genome names might need to be
+\item{cellRangerOuts}{Character or character vector for the the intermidiate
+paths to filtered feature count files saved in sparse matrix format for
+each of \emph{cellRangerDirs}.
+Reference genome names might need to be
 appended for CellRanger version below 3.0.0 if reads were mapped to
 multiple genomes when running Cell Ranger pipeline. Default
 \code{"outs/filtered_feature_bc_matrix/"}.}
@@ -38,6 +55,12 @@ matrix file. Default \emph{matrix.mtx.gz}.}
 (barcodes.tsv, features.tsv, and matrix.mtx) were
 gzip compressed. \code{FALSE} otherwise. This is true after Cell Ranger
 3.0.0 update. Default \code{TRUE}.}
+
+\item{class}{Character. The class of the expression matrix stored in the SCE
+object. Can be one of "DelayedArray" (as returned by
+\link[DelayedArray]{DelayedArray} function), "Matrix" (as returned by
+\link[Matrix]{readMM} function), or "matrix" (as returned by
+\link[base]{matrix} function). Default "DelayedArray".}
 }
 \value{
 A \code{SingleCellExperiment} object containing the combined count
@@ -45,8 +68,8 @@ A \code{SingleCellExperiment} object containing the combined count
 }
 \description{
 Read the filtered barcodes, features, and matrices for all
- samples from a single run of Cell Ranger output. Combine them into one big
- \link[SingleCellExperiment]{SingleCellExperiment} object.
+ samples from (preferably a single run of) Cell Ranger output. Combine them
+ into one big \link[SingleCellExperiment]{SingleCellExperiment} object.
 }
 \examples{
 # Example #1
@@ -56,6 +79,6 @@ Read the filtered barcodes, features, and matrices for all
 # The top 10 hg19 & mm10 genes are included in this example.
 # Only the first 20 cells are included.
 sce <- importCellRanger(
-    cellRangerDir = system.file("extdata", package = "scruff"),
+    cellRangerDirs = system.file("extdata", package = "scruff"),
     samples = "hgmm_1k_v3_20x20")
 }

@@ -30,12 +30,22 @@
 }
 
 
-.readMatrixMM <- function(path, gzipped = TRUE) {
+.readMatrixMM <- function(path, gzipped = TRUE, class = "DelayedArray") {
     if (isTRUE(gzipped)) {
         path <- gzfile(path)
     }
+
     res <- Matrix::readMM(path)
-    return(res)
+
+    if (class == "Matrix") {
+        return(res)
+    } else if (class == "DelayedArray") {
+        res <- DelayedArray::DelayedArray(res)
+        return(res)
+    } else if (class == "matrix") {
+        res <- as.matrix(res)
+        return(res)
+    }
 }
 
 
@@ -45,20 +55,20 @@
     matrixFileName = "matrix.mtx.gz",
     featuresFileName = "features.tsv.gz",
     barcodesFileName = "barcodes.tsv.gz",
-    gzipped = TRUE) {
+    gzipped = TRUE,
+    class = "DelayedArray") {
 
     cb <- .readBarcodes(file.path(dir, barcodesFileName))
     fe <- .readFeatures(file.path(dir, featuresFileName))
     ma <- .readMatrixMM(file.path(dir, matrixFileName),
-        gzipped = gzipped)
-    expr <- as.matrix(ma)
+        gzipped = gzipped,
+        class = class)
 
     coln <- paste(sample, cb[[1]], sep = "_")
-    # colnames(expr) <- coln
-    rownames(expr) <- fe[[1]]
+    rownames(ma) <- fe[[1]]
 
     sce <- SingleCellExperiment::SingleCellExperiment(
-        assays = list(counts = expr))
+        assays = list(counts = ma))
     SummarizedExperiment::rowData(sce) <- fe
     SummarizedExperiment::colData(sce) <- S4Vectors::DataFrame(cb,
         column_name = coln,
@@ -69,23 +79,106 @@
 }
 
 
-.getCellRangerDir <- function(cellRangerDir, sample, cellRangerOuts) {
-    path <- file.path(cellRangerDir, sample, cellRangerOuts)
+.getOutputFolderPath <- function(sample, cellRangerOuts) {
+    path <- file.path(sample, cellRangerOuts)
     return(path)
+}
+
+
+.checkArgsImportCellRanger <- function(cellRangerDirs, samples, class) {
+    if (is.null(cellRangerDirs)) {
+        if (is.null(samples)) {
+            stop("samples can not be NULL if cellRangerDirs is NULL!")
+        }
+        for (i in seq_along(samples)) {
+            if (!dir.exists(samples[i])) {
+                stop("Sample folder does not exist!\n", samples[i])
+            }
+        }
+    } else {
+        if (is.null(samples)) {
+            for (i in seq_along(cellRangerDirs)) {
+                if (length(list.dirs(cellRangerDirs[i],
+                    recursive = FALSE)) == 0) {
+                    warning("Empty folder. Skipping cellRangerDir ",
+                        cellRangerDirs[i])
+                }
+            }
+        } else {
+            if (!(length(samples) == length(cellRangerDirs))) {
+                stop("Length of samples is not equal to length of ",
+                    "cellRangerDirs!")
+            } else {
+                for (i in seq_along(cellRangerDirs)) {
+                    paths <- file.path(cellRangerDirs[i], samples[[i]])
+                    for (j in seq_along(paths)) {
+                        if (!dir.exists(paths[j])) {
+                            stop("Sample folder does not exist!\n",
+                                paths[j])
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (!(class %in% c("DelayedArray", "Matrix", "matrix"))) {
+        stop("Invalid 'class' argument!")
+    }
+}
+
+
+.getSamplesPaths <- function(cellRangerDirs, samples) {
+    if (is.null(cellRangerDirs)) {
+        res <- samples
+    } else {
+        if (is.null(samples)) {
+            res <- list.dirs(cellRangerDirs, recursive = FALSE)
+        } else {
+            res <- vector("list", length = length(cellRangerDirs))
+            for (i in seq_along(cellRangerDirs)) {
+                res[[i]] <- file.path(cellRangerDirs[i], samples[[i]])
+            }
+            res <- unlist(res)
+        }
+    }
+    return(res)
+}
+
+
+.getSampleNames <- function(samples) {
+    res <- basename(samples)
+    return(res)
 }
 
 
 #' @title Construct SCE object from Cell Ranger output
 #' @description Read the filtered barcodes, features, and matrices for all
-#'  samples from a single run of Cell Ranger output. Combine them into one big
-#'  \link[SingleCellExperiment]{SingleCellExperiment} object.
-#' @param cellRangerDir The root directory where Cell Ranger was run. This
-#'  folder should contain sample specific folders.
-#' @param samples A vector of sample names. Must be the same as the folder
-#'  names of the samples. The cells in the final SCE object will be ordered by
-#'  samples.
-#' @param cellRangerOuts The intermidiate path to filtered feature count files
-#'  saved in sparce matrix format. Reference genome names might need to be
+#'  samples from (preferably a single run of) Cell Ranger output. Combine them
+#'  into one big \link[SingleCellExperiment]{SingleCellExperiment} object.
+#' @param cellRangerDirs The root directories where Cell Ranger was run. These
+#'  folders should contain sample specific folders. Default \code{NULL},
+#'  meaning the paths for each sample will be specified in \emph{samples}
+#'  argument.
+#' @param samples Default \code{NULL}. Can be one of
+#' \itemize{
+#'   \item \code{NULL}. All samples within \emph{cellRangerDirs} will be
+#'    imported. The order of samples will be first determined by the order of
+#'    \emph{cellRangerDirs} and then by \link[base]{list.files}. This is only
+#'    for the case where \emph{cellRangerDirs} is specified.
+#'   \item A list of vectors containing sample names to import. Each vector in
+#'    the list corresponds to samples from one of \emph{cellRangerDirs}.
+#'    These names are the same as the folder names under \emph{cellRangerDirs}.
+#'    This is only for the case where \emph{cellRangerDirs} is specified.
+#'   \item A vector of folder paths for the samples to import. This is only for
+#'    the case where \emph{cellRangerDirs} is \code{NULL}.
+#' }
+#' The cells in the final SCE object will be ordered in the same order of
+#' samples.
+#' @param cellRangerOuts Character or character vector for the the intermidiate
+#'  paths to filtered feature count files saved in sparse matrix format for
+#'  each of \emph{cellRangerDirs}.
+#'  Reference genome names might need to be
 #'  appended for CellRanger version below 3.0.0 if reads were mapped to
 #'  multiple genomes when running Cell Ranger pipeline. Default
 #'  \code{"outs/filtered_feature_bc_matrix/"}.
@@ -100,6 +193,11 @@
 #'  (barcodes.tsv, features.tsv, and matrix.mtx) were
 #'  gzip compressed. \code{FALSE} otherwise. This is true after Cell Ranger
 #'  3.0.0 update. Default \code{TRUE}.
+#' @param class Character. The class of the expression matrix stored in the SCE
+#'  object. Can be one of "DelayedArray" (as returned by
+#'  \link[DelayedArray]{DelayedArray} function), "Matrix" (as returned by
+#'  \link[Matrix]{readMM} function), or "matrix" (as returned by
+#'  \link[base]{matrix} function). Default "DelayedArray".
 #' @return A \code{SingleCellExperiment} object containing the combined count
 #'  matrix, the feature annotations, and the cell annotation.
 #' @examples
@@ -110,29 +208,34 @@
 #' # The top 10 hg19 & mm10 genes are included in this example.
 #' # Only the first 20 cells are included.
 #' sce <- importCellRanger(
-#'     cellRangerDir = system.file("extdata", package = "scruff"),
+#'     cellRangerDirs = system.file("extdata", package = "scruff"),
 #'     samples = "hgmm_1k_v3_20x20")
 #' @export
 importCellRanger <- function(
-    cellRangerDir,
-    samples,
+    cellRangerDirs = NULL,
+    samples = NULL,
     cellRangerOuts = "outs/filtered_feature_bc_matrix/",
     matrixFileName = "matrix.mtx.gz",
     featuresFileName = "features.tsv.gz",
     barcodesFileName = "barcodes.tsv.gz",
-    gzipped = TRUE) {
+    gzipped = TRUE,
+    class = "DelayedArray") {
+
+    .checkArgsImportCellRanger(cellRangerDirs, samples, class)
+    samples <- .getSamplesPaths(cellRangerDirs, samples)
 
     res <- vector("list", length = length(samples))
     coldata <- vector("list", length = length(samples))
 
     for (i in seq_along(samples)) {
-        dir <- .getCellRangerDir(cellRangerDir, samples[i], cellRangerOuts)
+        dir <- .getOutputFolderPath(samples[i], cellRangerOuts)
         scei <- .constructSCEFromCellRangerOutputs(dir,
-            sample = samples[i],
+            sample = .getSampleNames(samples[i]),
             matrixFileName = matrixFileName,
             featuresFileName = featuresFileName,
             barcodesFileName = barcodesFileName,
-            gzipped = gzipped)
+            gzipped = gzipped,
+            class = class)
         res[[i]] <- scei
     }
 
