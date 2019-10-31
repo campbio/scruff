@@ -71,8 +71,7 @@ in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 \value{
 A \strong{SingleCellExperiment} object containing the alignment
  summary information in the \code{colData} slot. The \code{alignment_path}
- column of the annotation table contains the paths to alignment files.
- of the paths to output alignment files.
+ column of the annotation table contains the paths to output alignment files.
 }
 \description{
 This function is \strong{not} available in Windows environment. Align cell
