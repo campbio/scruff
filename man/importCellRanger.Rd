@@ -2,14 +2,40 @@
 % Please edit documentation in R/importCellRanger.R
 \name{importCellRanger}
 \alias{importCellRanger}
+\alias{importCellRangerV2}
+\alias{importCellRangerV3}
 \title{Construct SCE object from Cell Ranger output}
 \usage{
-importCellRanger(cellRangerDirs = NULL, samples = NULL,
+importCellRanger(
+  cellRangerDirs = NULL,
+  samples = NULL,
   cellRangerOuts = "outs/filtered_feature_bc_matrix/",
   matrixFileName = "matrix.mtx.gz",
   featuresFileName = "features.tsv.gz",
-  barcodesFileName = "barcodes.tsv.gz", gzipped = TRUE,
-  class = "DelayedArray")
+  barcodesFileName = "barcodes.tsv.gz",
+  gzipped = TRUE,
+  class = "DelayedArray"
+)
+
+importCellRangerV2(
+  cellRangerDirs = NULL,
+  samples = NULL,
+  matrixFileName = "matrix.mtx",
+  featuresFileName = "genes.tsv",
+  barcodesFileName = "barcodes.tsv",
+  gzipped = TRUE,
+  class = "DelayedArray"
+)
+
+importCellRangerV3(
+  cellRangerDirs = NULL,
+  samples = NULL,
+  matrixFileName = "matrix.mtx.gz",
+  featuresFileName = "features.tsv.gz",
+  barcodesFileName = "barcodes.tsv.gz",
+  gzipped = TRUE,
+  class = "DelayedArray"
+)
 }
 \arguments{
 \item{cellRangerDirs}{The root directories where Cell Ranger was run. These
@@ -38,18 +64,15 @@ paths to filtered feature count files saved in sparse matrix format for
 each of \emph{cellRangerDirs}.
 Reference genome names might need to be
 appended for CellRanger version below 3.0.0 if reads were mapped to
-multiple genomes when running Cell Ranger pipeline. Default
-\code{"outs/filtered_feature_bc_matrix/"}.}
+multiple genomes when running Cell Ranger pipeline.}
 
 \item{matrixFileName}{Filename for the Market Exchange Format (MEX) sparse
-matrix file. Default \emph{matrix.mtx.gz}.}
+matrix file.}
 
 \item{featuresFileName}{Filename for the feature annotation file. It can be
-\emph{features.tsv.gz} or \emph{genes.tsv}. Default
-\emph{features.tsv.gz}.}
+\emph{features.tsv.gz} or \emph{genes.tsv}.}
 
-\item{barcodesFileName}{Filename for the cell barcode list file. Default
-\emph{barcodes.tsv.gz}.}
+\item{barcodesFileName}{Filename for the cell barcode list file.}
 
 \item{gzipped}{Boolean. \code{TRUE} if the Cell Ranger output files
 (barcodes.tsv, features.tsv, and matrix.mtx) were
@@ -71,6 +94,15 @@ Read the filtered barcodes, features, and matrices for all
  samples from (preferably a single run of) Cell Ranger output. Combine them
  into one big \link[SingleCellExperiment]{SingleCellExperiment} object.
 }
+\details{
+\code{importCellRangerV2} imports output from Cell Ranger V2.
+ \code{importCellRangerV3} imports output from Cell Ranger V3. Some implicit
+ assumptions are made in these two functions including \code{cellRangerOuts},
+ \code{matrixFileName}, \code{featuresFileName}, and \code{barcodesFileName}.
+ Alternatively, user can call \code{importCellRanger} to explicitly
+ specify \code{cellRangerOuts}, \code{matrixFileName},
+ \code{featuresFileName}, and \code{barcodesFileName}.
+}
 \examples{
 # Example #1
 # The following filtered feature, cell, and matrix files were downloaded from
@@ -79,6 +111,9 @@ Read the filtered barcodes, features, and matrices for all
 # The top 10 hg19 & mm10 genes are included in this example.
 # Only the first 20 cells are included.
 sce <- importCellRanger(
+    cellRangerDirs = system.file("extdata", package = "scruff"),
+    samples = "hgmm_1k_v3_20x20")
+sce <- importCellRangerV3(
     cellRangerDirs = system.file("extdata", package = "scruff"),
     samples = "hgmm_1k_v3_20x20")
 }
