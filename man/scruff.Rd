@@ -4,17 +4,41 @@
 \alias{scruff}
 \title{Run scruff pipeline}
 \usage{
-scruff(project = paste0("project_", Sys.Date()), experiment, lane,
-  read1Path, read2Path, bc, index, reference, bcStart, bcStop,
-  bcEdit = 0, umiStart, umiStop, umiEdit = 0, keep, cellPerWell = 1,
-  unique = FALSE, nBestLocations = 1, minQual = 10,
-  yieldReads = 1e+06, alignmentFileFormat = "BAM",
-  demultiplexOutDir = "./Demultiplex", alignmentOutDir = "./Alignment",
-  countUmiOutDir = "./Count", demultiplexSummaryPrefix = "demultiplex",
-  alignmentSummaryPrefix = "alignment", countPrefix = "countUMI",
+scruff(
+  project = paste0("project_", Sys.Date()),
+  experiment,
+  lane,
+  read1Path,
+  read2Path,
+  bc,
+  index,
+  reference,
+  bcStart,
+  bcStop,
+  bcEdit = 0,
+  umiStart,
+  umiStop,
+  umiEdit = 0,
+  keep,
+  cellPerWell = 1,
+  unique = FALSE,
+  nBestLocations = 1,
+  minQual = 10,
+  yieldReads = 1e+06,
+  alignmentFileFormat = "BAM",
+  demultiplexOutDir = "./Demultiplex",
+  alignmentOutDir = "./Alignment",
+  countUmiOutDir = "./Count",
+  demultiplexSummaryPrefix = "demultiplex",
+  alignmentSummaryPrefix = "alignment",
+  countPrefix = "countUMI",
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"),
-  overwrite = FALSE, verbose = FALSE, cores = max(1,
-  parallel::detectCores() - 2), threads = 1, ...)
+  overwrite = FALSE,
+  verbose = FALSE,
+  cores = max(1, parallel::detectCores() - 2),
+  threads = 1,
+  ...
+)
 }
 \arguments{
 \item{project}{The project name. Default is
@@ -173,7 +197,7 @@ Run the \code{scruff} pipeline. This function performs all
 
 data(barcodeExample, package = "scruff")
 fastqs <- list.files(system.file("extdata", package = "scruff"),
-    pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
+    pattern = "\\.fastq\\.gz", full.names = TRUE)
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 
