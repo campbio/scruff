@@ -52,11 +52,11 @@
 # dir <- "outs/filtered_feature_bc_matrix/"
 .constructSCEFromCellRangerOutputs <- function(dir,
     sample,
-    matrixFileName = "matrix.mtx.gz",
-    featuresFileName = "features.tsv.gz",
-    barcodesFileName = "barcodes.tsv.gz",
-    gzipped = TRUE,
-    class = "DelayedArray") {
+    matrixFileName,
+    featuresFileName,
+    barcodesFileName,
+    gzipped,
+    class) {
 
     cb <- .readBarcodes(file.path(dir, barcodesFileName))
     fe <- .readFeatures(file.path(dir, featuresFileName))
@@ -154,14 +154,14 @@
 
 # main function
 .importCellRanger <- function(
-    cellRangerDirs = NULL,
-    samples = NULL,
-    cellRangerOuts = "outs/filtered_feature_bc_matrix/",
-    matrixFileName = "matrix.mtx.gz",
-    featuresFileName = "features.tsv.gz",
-    barcodesFileName = "barcodes.tsv.gz",
-    gzipped = TRUE,
-    class = "DelayedArray") {
+    cellRangerDirs,
+    samples,
+    cellRangerOuts,
+    matrixFileName,
+    featuresFileName,
+    barcodesFileName,
+    gzipped,
+    class) {
 
     .checkArgsImportCellRanger(cellRangerDirs, samples, class)
     samples <- .getSamplesPaths(cellRangerDirs, samples)
@@ -190,8 +190,9 @@
 #' @rdname importCellRanger
 #' @title Construct SCE object from Cell Ranger output
 #' @description Read the filtered barcodes, features, and matrices for all
-#'  samples from (preferably a single run of) Cell Ranger output. Combine them
-#'  into one big \link[SingleCellExperiment]{SingleCellExperiment} object.
+#'  samples from (preferably a single run of) Cell Ranger output. Import and
+#'  combine them
+#'  as one big \link[SingleCellExperiment]{SingleCellExperiment} object.
 #' @param cellRangerDirs The root directories where Cell Ranger was run. These
 #'  folders should contain sample specific folders. Default \code{NULL},
 #'  meaning the paths for each sample will be specified in \emph{samples}
@@ -211,9 +212,9 @@
 #' }
 #' The cells in the final SCE object will be ordered in the same order of
 #' samples.
-#' @param cellRangerOuts Character or character vector for the the intermidiate
-#'  paths to filtered feature count files saved in sparse matrix format for
-#'  each of \emph{cellRangerDirs}.
+#' @param cellRangerOuts Character. It is the intermediate
+#'  path to filtered or raw feature count file saved in sparse matrix format
+#'  for each of \emph{samples}.
 #'  Reference genome names might need to be
 #'  appended for CellRanger version below 3.0.0 if reads were mapped to
 #'  multiple genomes when running Cell Ranger pipeline.
