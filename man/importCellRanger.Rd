@@ -59,9 +59,9 @@ argument.}
 The cells in the final SCE object will be ordered in the same order of
 samples.}
 
-\item{cellRangerOuts}{Character or character vector for the the intermidiate
-paths to filtered feature count files saved in sparse matrix format for
-each of \emph{cellRangerDirs}.
+\item{cellRangerOuts}{Character. It is the intermediate
+path to filtered or raw feature count file saved in sparse matrix format
+for each of \emph{samples}.
 Reference genome names might need to be
 appended for CellRanger version below 3.0.0 if reads were mapped to
 multiple genomes when running Cell Ranger pipeline.}
@@ -91,8 +91,9 @@ A \code{SingleCellExperiment} object containing the combined count
 }
 \description{
 Read the filtered barcodes, features, and matrices for all
- samples from (preferably a single run of) Cell Ranger output. Combine them
- into one big \link[SingleCellExperiment]{SingleCellExperiment} object.
+ samples from (preferably a single run of) Cell Ranger output. Import and
+ combine them
+ as one big \link[SingleCellExperiment]{SingleCellExperiment} object.
 }
 \details{
 \code{importCellRangerV2} imports output from Cell Ranger V2.

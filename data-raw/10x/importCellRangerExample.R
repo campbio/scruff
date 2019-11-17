@@ -1,11 +1,11 @@
 
 library(data.table)
 
-fe <- fread("../scruff_upgrade/data/hgmm_1k_v3_filtered_feature_bc_matrix/filtered_feature_bc_matrix/features.tsv.gz",
+fe <- fread("./hgmm_1k_v3_20x20/outs/filtered_feature_bc_matrix/features.tsv.gz",
     header = FALSE)
-cb <- fread("../scruff_upgrade/data/hgmm_1k_v3_filtered_feature_bc_matrix/filtered_feature_bc_matrix/barcodes.tsv.gz",
+cb <- fread("./hgmm_1k_v3_20x20/outs/filtered_feature_bc_matrix/barcodes.tsv.gz",
     header = FALSE)
-ma <- Matrix::readMM(gzfile("../scruff_upgrade/data/hgmm_1k_v3_filtered_feature_bc_matrix/filtered_feature_bc_matrix/matrix.mtx.gz"))
+ma <- Matrix::readMM(gzfile("./hgmm_1k_v3_20x20/outs/filtered_feature_bc_matrix/matrix.mtx.gz"))
 
 
 mat <- as.matrix(ma)
