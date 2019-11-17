@@ -129,6 +129,3 @@ importSTARsolo <- function(
         gzipped = gzipped,
         class = class)
 }
-
-
-
