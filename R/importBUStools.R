@@ -58,7 +58,8 @@
 #' @title Construct SCE object from BUStools output
 #' @description Read the barcodes, features (genes), and matrix from BUStools
 #'  output. Import them
-#'  as one \link[SingleCellExperiment]{SingleCellExperiment} object.
+#'  as one \link[SingleCellExperiment]{SingleCellExperiment} object. Note the
+#'  cells in the output files for BUStools 0.39.4 are not filtered.
 #' @param BUStoolsDir The path to BUStools output files. For
 #'  example: \code{./genecount}.
 #' @param sample User-defined sample name for the sample to be imported.
