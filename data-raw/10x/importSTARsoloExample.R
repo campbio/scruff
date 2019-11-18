@@ -1,9 +1,9 @@
 
 library(data.table)
 
-fe <- fread("./scruff_upgrade/data/Solo.out_PBMC_1k_v3/Gene/filtered/features.tsv", header = FALSE)
-cb <- fread("./scruff_upgrade/data/Solo.out_PBMC_1k_v3/Gene/filtered/barcodes.tsv", header = FALSE)
-ma <- Matrix::readMM(gzfile("./scruff_upgrade/data/Solo.out_PBMC_1k_v3/Gene/filtered/matrix.mtx"))
+fe <- fread("../scruff_upgrade/data/Solo.out_PBMC_1k_v3/Gene/filtered/features.tsv", header = FALSE)
+cb <- fread("../scruff_upgrade/data/Solo.out_PBMC_1k_v3/Gene/filtered/barcodes.tsv", header = FALSE)
+ma <- Matrix::readMM(gzfile("../scruff_upgrade/data/Solo.out_PBMC_1k_v3/Gene/filtered/matrix.mtx"))
 
 
 mat <- as.matrix(ma)
@@ -26,9 +26,3 @@ fwrite(cbsub, file = "./data-raw/10x/PBMC_1k_v3_20x20/Gene/filtered/barcodes.tsv
     sep = "\t", col.names = FALSE)
 Matrix::writeMM(matsubma,
     file = "./data-raw/10x/PBMC_1k_v3_20x20/Gene/filtered/matrix.mtx")
-
-
-
-sce <- importSTARsolo(
-       STARsoloDir = system.file("extdata/PBMC_1k_v3_20x20", package = "scruff"),
-       sample = "PBMC_1k_v3_20x20")

@@ -67,7 +67,7 @@ appended for CellRanger version below 3.0.0 if reads were mapped to
 multiple genomes when running Cell Ranger pipeline.}
 
 \item{matrixFileName}{Filename for the Market Exchange Format (MEX) sparse
-matrix file.}
+matrix file (.mtx file).}
 
 \item{featuresFileName}{Filename for the feature annotation file. It can be
 \emph{features.tsv.gz} or \emph{genes.tsv}.}
