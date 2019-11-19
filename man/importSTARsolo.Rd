@@ -18,7 +18,7 @@ importSTARsolo(
 \arguments{
 \item{STARsoloDir}{The root directory of STARsolo output files. The path
 should be something like this: \bold{/PATH/TO/\emph{prefix}Solo.out}. For
-example: \code{./Solo.out}}
+example: \code{./Solo.out}.}
 
 \item{sample}{User-defined sample name for the sample to be imported.}
 
@@ -28,7 +28,7 @@ for each of \emph{samples}. Default "Gene/filtered"  which works for STAR
 2.7.3a.}
 
 \item{matrixFileName}{Filename for the Market Exchange Format (MEX) sparse
-matrix file.}
+matrix file (.mtx file).}
 
 \item{featuresFileName}{Filename for the feature annotation file.}
 
@@ -79,6 +79,7 @@ Read the barcodes, features (genes), and matrix from STARsolo
 
 # The top 20 genes and the first 20 cells are included in this example.
 sce <- importSTARsolo(
-  STARsoloDir = system.file("extdata/PBMC_1k_v3_20x20", package = "scruff"),
+  STARsoloDir = system.file("extdata/STARsolo_PBMC_1k_v3_20x20",
+    package = "scruff"),
   sample = "PBMC_1k_v3_20x20")
 }

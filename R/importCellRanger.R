@@ -18,12 +18,14 @@
     colnames = c("feature_ID", "feature_name", "feature_type")) {
 
     res <- data.table::fread(path, header = header)
-    if (ncol(res) == 2) {
+    if (ncol(res) == 1) {
+        colnames(res) <- colnames[1]
+    } else if (ncol(res) == 2) {
         colnames(res) <- colnames[1:2]
     } else if (ncol(res) == 3) {
         colnames(res) <- colnames
     } else {
-        warning("'features' file contains <2 or >3 columns!",
+        warning("'features' file contains >3 columns!",
             " The column names are kept as is.")
     }
     return(res)
@@ -219,7 +221,7 @@
 #'  appended for CellRanger version below 3.0.0 if reads were mapped to
 #'  multiple genomes when running Cell Ranger pipeline.
 #' @param matrixFileName Filename for the Market Exchange Format (MEX) sparse
-#'  matrix file.
+#'  matrix file (.mtx file).
 #' @param featuresFileName Filename for the feature annotation file. It can be
 #'  \emph{features.tsv.gz} or \emph{genes.tsv}.
 #' @param barcodesFileName Filename for the cell barcode list file.

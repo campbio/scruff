@@ -1,6 +1,6 @@
 
-# dir <- "outs/filtered_feature_bc_matrix/"
-.constructSCEFromSTARsoloOutputs <- function(dir,
+# dir <- "genecount"
+.constructSCEFromBUStoolsOutputs <- function(dir,
     sample,
     matrixFileName,
     featuresFileName,
@@ -13,6 +13,7 @@
     ma <- .readMatrixMM(file.path(dir, matrixFileName),
         gzipped = gzipped,
         class = class)
+    ma <- t(ma)
 
     coln <- paste(sample, cb[[1]], sep = "_")
     rownames(ma) <- fe[[1]]
@@ -30,17 +31,17 @@
 
 
 # main function
-.importSTARsolo <- function(STARsoloDir,
+.importBUStools <- function(
+    BUStoolsDir,
     sample,
-    STARsoloOuts,
     matrixFileName,
     featuresFileName,
     barcodesFileName,
     gzipped,
     class) {
 
-    dir <- file.path(STARsoloDir, STARsoloOuts)
-    sce <- .constructSCEFromSTARsoloOutputs(dir,
+    dir <- file.path(BUStoolsDir)
+    sce <- .constructSCEFromBUStoolsOutputs(dir,
         sample = sample,
         matrixFileName = matrixFileName,
         featuresFileName = featuresFileName,
@@ -52,28 +53,24 @@
 }
 
 
-#' @name importSTARsolo
-#' @rdname importSTARsolo
-#' @title Construct SCE object from STARsolo output
-#' @description Read the barcodes, features (genes), and matrix from STARsolo
+#' @name importBUStools
+#' @rdname importBUStools
+#' @title Construct SCE object from BUStools output
+#' @description Read the barcodes, features (genes), and matrix from BUStools
 #'  output. Import them
-#'  as one \link[SingleCellExperiment]{SingleCellExperiment} object.
-#' @param STARsoloDir The root directory of STARsolo output files. The path
-#'  should be something like this: \bold{/PATH/TO/\emph{prefix}Solo.out}. For
-#'  example: \code{./Solo.out}.
+#'  as one \link[SingleCellExperiment]{SingleCellExperiment} object. Note the
+#'  cells in the output files for BUStools 0.39.4 are not filtered.
+#' @param BUStoolsDir The path to BUStools output files. For
+#'  example: \code{./genecount}.
 #' @param sample User-defined sample name for the sample to be imported.
-#' @param STARsoloOuts Character. It is the intermediate
-#'  path to filtered or raw feature count file saved in sparse matrix format
-#'  for each of \emph{samples}. Default "Gene/filtered"  which works for STAR
-#'  2.7.3a.
 #' @param matrixFileName Filename for the Market Exchange Format (MEX) sparse
 #'  matrix file (.mtx file).
 #' @param featuresFileName Filename for the feature annotation file.
 #' @param barcodesFileName Filename for the cell barcode list file.
-#' @param gzipped Boolean. \code{TRUE} if the STARsolo output files
-#'  (barcodes.tsv, features.tsv, and matrix.mtx) were
-#'  gzip compressed. \code{FALSE} otherwise. This is \code{FALSE} in STAR
-#'  2.7.3a. Default \code{FALSE}.
+#' @param gzipped Boolean. \code{TRUE} if the BUStools output files
+#'  (barcodes.txt, genes.txt, and genes.mtx) were
+#'  gzip compressed. \code{FALSE} otherwise. This is \code{FALSE} in BUStools
+#'  0.39.4. Default \code{FALSE}.
 #' @param class Character. The class of the expression matrix stored in the SCE
 #'  object. Can be one of "DelayedArray" (as returned by
 #'  \link[DelayedArray]{DelayedArray} function), "Matrix" (as returned by
@@ -91,39 +88,35 @@
 #' # pbmc_1k_v3_R1.fastq.gz
 #' # cat pbmc_1k_v3_S1_L001_R2_001.fastq.gz pbmc_1k_v3_S1_L002_R2_001.fastq.gz >
 #' # pbmc_1k_v3_R2.fastq.gz
-#' # The following STARsolo command generates the filtered feature, cell, and
+#' # The following BUStools command generates the gene, cell, and
 #' # matrix files
-#' # STAR \
-#' #   --genomeDir ./index \
-#' #   --readFilesIn ./pbmc_1k_v3_R2.fastq.gz \
-#' #                 ./pbmc_1k_v3_R1.fastq.gz \
-#' #   --readFilesCommand zcat \
-#' #   --outSAMtype BAM Unsorted \
-#' #   --outBAMcompression -1 \
-#' #   --soloType CB_UMI_Simple \
-#' #   --soloCBwhitelist ./737K-august-2016.txt \
-#' #   --soloUMIlen 12
+#'
+#' # bustools correct -w ./3M-february-2018.txt -p output.bus | \
+#' #   bustools sort -T tmp/ -t 4 -p - | \
+#' #   bustools count -o genecount/genes \
+#' #     -g ./transcripts_to_genes.txt \
+#' #     -e matrix.ec \
+#' #     -t transcripts.txt \
+#' #     --genecounts -
 #'
 #' # The top 20 genes and the first 20 cells are included in this example.
-#' sce <- importSTARsolo(
-#'   STARsoloDir = system.file("extdata/STARsolo_PBMC_1k_v3_20x20",
+#' sce <- importBUStools(
+#'   BUStoolsDir = system.file("extdata/BUStools_PBMC_1k_v3_20x20/genecount/",
 #'     package = "scruff"),
 #'   sample = "PBMC_1k_v3_20x20")
 #' @export
-importSTARsolo <- function(
-    STARsoloDir,
+importBUStools <- function(
+    BUStoolsDir,
     sample,
-    STARsoloOuts = "Gene/filtered",
-    matrixFileName = "matrix.mtx",
-    featuresFileName = "features.tsv",
-    barcodesFileName = "barcodes.tsv",
+    matrixFileName = "genes.mtx",
+    featuresFileName = "genes.genes.txt",
+    barcodesFileName = "genes.barcodes.txt",
     gzipped = FALSE,
     class = "DelayedArray") {
 
-    .importSTARsolo(
-        STARsoloDir = STARsoloDir,
+    .importBUStools(
+        BUStoolsDir = BUStoolsDir,
         sample = sample,
-        STARsoloOuts = STARsoloOuts,
         matrixFileName = matrixFileName,
         featuresFileName = featuresFileName,
         barcodesFileName = barcodesFileName,
