@@ -44,7 +44,11 @@ Imports: data.table,
     ggbio,
     rtracklayer,
     SingleCellExperiment,
-    SummarizedExperiment
+    SummarizedExperiment,
+    Seurat,
+    scran,
+    DoubletFinder,
+    DropletUtils
 Suggests:
     BiocStyle,
     knitr,
