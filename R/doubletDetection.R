@@ -103,3 +103,35 @@ runDoubletFinder <- function(sce, assayType){
 }
 
 
+#' @title Generates an empty drops score for each cell via EmptyDrops
+#' @description Uses EmptyDrops to determine cells within the dataset
+#'  suspected to be doublets.
+#' @param sce SingleCellExperiment object. Must contain a counts matrix
+#' @param lower Number. Specifies the lower bound on the total UMI count.
+#' All cells containing UMIs less than this will be considered empty droplets.
+#' @param assayType Character. The name of the counts matrix within your
+#'  singleCellExperiment object that you wish to run EmptyDrops.
+#' @return SingleCellExperiment object containing the
+#'  'droplet_utils_empty_drops_score'.
+#' @examples
+#' sce <- runEmptyDrops(sce, lower = 100, assayType = "rsemcounts")
+#' @export
+#' @import SummarizedExperiment
+#' @import DropletUtils
+runEmptyDrops <- function(sce, lower, assayType){
+ if(!assayType %in% names(SummarizedExperiment::assays(sce))){
+   stop("'assayType' must be one of the assays in the SingleCellExperiment
+        object.")
+ }
+    emptyDropsScore <- rep(NA, ncol(sce))
+    allSampleNumbers <- sort(unique(sce@colData$sample))
+ for(num in allSampleNumbers){
+    sceSubIx <- which(sce@colData$sample == num)
+    sceCounts <- SummarizedExperiment::assays(sce)[[assayType]]
+    sceCountsSub <- sceCounts[,sceSubIx]
+    emptyDropsScore[sceSubIx] <- DropletUtils::emptyDrops(m = sceCountsSub, lower = lower)
+    }
+    colData(sce)$droplet_utils_empty_drops_score <- emptyDropsScore
+    return(sce)
+}
+
