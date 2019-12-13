@@ -47,7 +47,7 @@ runScrublet <- function(counts_matrix,genes,output,...)
 	
 	# Load virtual env and python script
 	reticulate::use_virtualenv("r-scrubletvenv")
-	reticulate::source_python("scrublet_test.py")
+	reticulate::source_python("runscrublet.py")
 	
 	# call python scrublet function and write detected doublet scores to file
 	
