@@ -44,9 +44,9 @@ runDropletUtilsEmptyDrops <- function(sce, lower = 10, ...) {
                 " converted to 'dgTMatrix'.\n", e)
         })
 
-    # run DropletsUtils::emptyDrops on the count matrix, store the output to
+    # run DropletUtils::emptyDrops on the count matrix, store the output to
     # colData(sce), and return the updated sce.
-    output <- emptyDrops(m = cts, lower = lower, ...)
+    output <- DropletUtils::emptyDrops(m = cts, lower = lower, ...)
     colnames(output) <- paste0("EmptyDrops_", colnames(output))
     SingleCellExperiment::colData(sce) <-
         cbind(SingleCellExperiment::colData(sce), output)
