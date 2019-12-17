@@ -281,7 +281,7 @@
 }
 
 
-.tenxCheckCellBarcodes <- function(bam, validCb, yieldSize = 10000,
+.tenxCheckCellBarcodes <- function(bam, cbfile, validCb, yieldSize = 10000,
     tags = "CB") {
 
     message(Sys.time(), " Checking cell barcodes")
@@ -301,11 +301,10 @@
     cb <- S4Vectors::mcols(yld)$CB
     cb <- data.table::tstrsplit(cb, "-")[[1]]
 
-    if (is.na(validCb)) {
+    if (is.na(cbfile)) {
         l <- nchar(cbtop10000[, v2chemistry][1])
     } else {
-        vcb <- data.table::fread(validCb, header = FALSE)
-        l <- table(length(vcb[[1]]))
+        l <- table(length(validCb[[1]]))
     }
 
     # check barcode length
