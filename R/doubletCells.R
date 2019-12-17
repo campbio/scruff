@@ -10,7 +10,9 @@
     for (sample in samples) {
         sceSampleInd <- which(SummarizedExperiment::colData(sce)
             [[sampleColname]] == sample)
-        scores <- scran::doubletCells(sce[, sceSampleInd])
+        scores <- scran::doubletCells(sce[, sceSampleInd],
+            ...,
+            assay.type = assayType)
         doubletScore[sceSampleInd] <- scores
     }
     SummarizedExperiment::colData(sce)$scran_doublet_score <- doubletScore
@@ -31,7 +33,7 @@
 #' @param assayType  A string specifying which assay values contain the count
 #'  matrix.
 #' @details This function is a wrapper function for \link[scran]{doubletCells}.
-#'  It assumes the provided \code{sce} input was generated using the import
+#'  It assumes the provided \code{sce} was generated using the import
 #'  functions in this package so there
 #'  will be a "sample" column in the \link[SummarizedExperiment]{colData}
 #'  specifying the sample origin of each cell. The column name can be specified

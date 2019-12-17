@@ -38,5 +38,6 @@ A wrapper function for the individual QC algorithms.
 }
 \examples{
 data(emptyDropsSceExample, package = "scruff")
-sce <- runQC(sce, algorithm = c("EmptyDrops", "doubletCells"))
+sce <- runQC(emptyDropsSceExample,
+    algorithms = c("EmptyDrops", "doubletCells"))
 }

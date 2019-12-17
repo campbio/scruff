@@ -15,7 +15,8 @@
 #'  specified algorithms.
 #' @examples
 #' data(emptyDropsSceExample, package = "scruff")
-#' sce <- runQC(sce, algorithm = c("EmptyDrops", "doubletCells"))
+#' sce <- runQC(emptyDropsSceExample,
+#'     algorithms = c("EmptyDrops", "doubletCells"))
 #' @export
 runQC <- function(sce,
     algorithms = c("EmptyDrops", "doubletCells"),
@@ -23,14 +24,14 @@ runQC <- function(sce,
     assayType = "counts",
     ...) {
 
-    if ("EmptyDrops" %in% algorithm){
+    if ("EmptyDrops" %in% algorithms){
         sce = runEmptyDrops(sce = sce,
             sampleColname = sampleColname,
             ...,
             assayType = assayType)
     }
 
-    if ("doubletCells" %in% algorithm){
+    if ("doubletCells" %in% algorithms){
         sce = runDoubletCells(sce = sce,
             sampleColname = sampleColname,
             ...,

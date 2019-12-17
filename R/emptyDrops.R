@@ -12,7 +12,8 @@
         sceSample <- sce[, sceSampleInd]
 
         cts <- tryCatch(expr = {
-            as(assay(sceSample, i = assayType), "dgTMatrix")},
+            as(SummarizedExperiment::assay(sceSample, i = assayType),
+                "dgTMatrix")},
             warning = function(w) {
                 warning("Warning: ", w)
             },

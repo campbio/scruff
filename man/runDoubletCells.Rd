@@ -31,7 +31,7 @@ A wrapper function for \link[scran]{doubletCells}. Identify
 }
 \details{
 This function is a wrapper function for \link[scran]{doubletCells}.
- It assumes the provided \code{sce} input was generated using the import
+ It assumes the provided \code{sce} was generated using the import
  functions in this package so there
  will be a "sample" column in the \link[SummarizedExperiment]{colData}
  specifying the sample origin of each cell. The column name can be specified
