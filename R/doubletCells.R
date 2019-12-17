@@ -7,7 +7,7 @@
     doubletScore <- rep(NA, ncol(sce))
     samples <- unique(SummarizedExperiment::colData(sce)[[sampleColname]])
 
-    for(sample in samples){
+    for (sample in samples) {
         sceSampleInd <- which(SummarizedExperiment::colData(sce)
             [[sampleColname]] == sample)
         scores <- scran::doubletCells(sce[, sceSampleInd])
@@ -27,8 +27,8 @@
 #' @param sampleColname Character. The column name which specifies the sample
 #'  origin in the \link[SummarizedExperiment]{colData} of the provided
 #'  \code{sce} object. Default "sample".
-#' @param ... Additional arguments to pass \link[scran]{doubletCells}.
-#' @param assay.type  A string specifying which assay values contain the count
+#' @param ... Additional arguments to pass to \link[scran]{doubletCells}.
+#' @param assayType  A string specifying which assay values contain the count
 #'  matrix.
 #' @details This function is a wrapper function for \link[scran]{doubletCells}.
 #'  It assumes the provided \code{sce} input was generated using the import

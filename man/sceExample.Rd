@@ -4,7 +4,7 @@
 \name{sceExample}
 \alias{sceExample}
 \title{Example SingleCellExperiment Object}
-\format{A \code{SingleCellExperiment} object.}
+\format{A \link[SingleCellExperiment]{SingleCellExperiment} object.}
 \usage{
 sceExample
 }
