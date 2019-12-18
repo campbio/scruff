@@ -24,15 +24,15 @@ runQC <- function(sce,
     assayType = "counts",
     ...) {
 
-    if ("EmptyDrops" %in% algorithms){
-        sce = runEmptyDrops(sce = sce,
+    if ("EmptyDrops" %in% algorithms) {
+        sce <- runEmptyDrops(sce = sce,
             sampleColname = sampleColname,
             ...,
             assayType = assayType)
     }
 
-    if ("doubletCells" %in% algorithms){
-        sce = runDoubletCells(sce = sce,
+    if ("doubletCells" %in% algorithms) {
+        sce <- runDoubletCells(sce = sce,
             sampleColname = sampleColname,
             ...,
             assayType = assayType)
