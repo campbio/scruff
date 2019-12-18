@@ -43,7 +43,7 @@ This function is a wrapper function for \link[scran]{doubletCells}.
 }
 \examples{
 data(emptyDropsSceExample, package = "scruff")
-sce <- runScranDoubletScore(emptyDropsSceExample)
+sce <- runDoubletCells(emptyDropsSceExample)
 }
 \references{
 Lun ATL (2018). Detecting doublet cells with scran.

@@ -50,7 +50,7 @@
 #' @seealso \link[scran]{doubletCells}
 #' @examples
 #' data(emptyDropsSceExample, package = "scruff")
-#' sce <- runScranDoubletScore(emptyDropsSceExample)
+#' sce <- runDoubletCells(emptyDropsSceExample)
 #' @export
 #' @import scran
 runDoubletCells <- function(sce,
