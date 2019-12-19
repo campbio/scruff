@@ -46,10 +46,11 @@ Imports: data.table,
     SingleCellExperiment,
     SummarizedExperiment,
     R.utils,
-    Matrix,
+    DelayedArray,
     scran,
     DropletUtils
 Suggests:
+    Matrix,
     BiocStyle,
     knitr,
     rmarkdown,
