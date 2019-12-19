@@ -46,6 +46,7 @@ Imports: data.table,
     SingleCellExperiment,
     SummarizedExperiment,
     R.utils,
+    Matrix,
     scran,
     DropletUtils
 Suggests:
