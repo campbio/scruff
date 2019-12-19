@@ -97,7 +97,7 @@ This function is \strong{not} available in Windows environment. Align cell
 \dontrun{
 data(barcodeExample, package = "scruff")
 fastqs <- list.files(system.file("extdata", package = "scruff"),
-    pattern = "\\.fastq\\.gz", full.names = TRUE)
+    pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
 
 de <- demultiplex(
     project = "example",

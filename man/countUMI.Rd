@@ -75,7 +75,7 @@ data(barcodeExample, package = "scruff")
 # alignment BAM files are required for running countUMI function
 # First demultiplex example FASTQ files
 fastqs <- list.files(system.file("extdata", package = "scruff"),
-    pattern = "\\.fastq\\.gz", full.names = TRUE)
+    pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
 
 de <- demultiplex(
     project = "example",
