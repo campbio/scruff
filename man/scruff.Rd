@@ -197,7 +197,7 @@ Run the \code{scruff} pipeline. This function performs all
 
 data(barcodeExample, package = "scruff")
 fastqs <- list.files(system.file("extdata", package = "scruff"),
-    pattern = "\\.fastq\\.gz", full.names = TRUE)
+    pattern = "\\\\.fastq\\\\.gz", full.names = TRUE)
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 
