@@ -9,8 +9,8 @@
 
     if ("DelayedMatrix" %in% class(SummarizedExperiment::assay(sce,
         i = assayType))) {
-        SummarizedExperiment::assay(sceSample, i = assayType) <-
-            as(SummarizedExperiment::assay(sceSample, i = assayType),
+        SummarizedExperiment::assay(sce, i = assayType) <-
+            as(SummarizedExperiment::assay(sce, i = assayType),
             "dgTMatrix")
     }
 
