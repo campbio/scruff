@@ -51,8 +51,7 @@
 #'  \code{Rsubread} package.
 #' @return A \strong{SingleCellExperiment} object containing the alignment
 #'  summary information in the \code{colData} slot. The \code{alignment_path}
-#'  column of the annotation table contains the paths to alignment files.
-#'  of the paths to output alignment files.
+#'  column of the annotation table contains the paths to output alignment files.
 #' @examples
 #' # The SingleCellExperiment object returned by demultiplex function is
 #' # required for running alignRsubread function
