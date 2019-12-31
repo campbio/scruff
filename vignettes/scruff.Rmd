@@ -3,9 +3,9 @@ title: "Process scRNA-Seq reads in scruff"
 author: "Zhe Wang"
 package: scruff
 date: '`r Sys.Date()`'
-output: BiocStyle::pdf_document
+output: BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{Process Single Cell RNA-Seq reads using _scruff_}
+  %\VignetteIndexEntry{Process Single Cell RNA-Seq reads using scruff}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
