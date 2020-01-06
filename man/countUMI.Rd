@@ -4,11 +4,18 @@
 \alias{countUMI}
 \title{Count the number of UMIs for each gene and output count matrix}
 \usage{
-countUMI(sce, reference, umiEdit = 0, format = "BAM",
-  outDir = "./Count", cellPerWell = 1, cores = max(1,
-  parallel::detectCores() - 2), outputPrefix = "countUMI",
-  verbose = FALSE, logfilePrefix = format(Sys.time(),
-  "\%Y\%m\%d_\%H\%M\%S"))
+countUMI(
+  sce,
+  reference,
+  umiEdit = 0,
+  format = "BAM",
+  outDir = "./Count",
+  cellPerWell = 1,
+  cores = max(1, parallel::detectCores() - 2),
+  outputPrefix = "countUMI",
+  verbose = FALSE,
+  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")
+)
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object of which the \code{colData}
