@@ -44,12 +44,12 @@ Imports: data.table,
     ggbio,
     rtracklayer,
     SingleCellExperiment,
-    SummarizedExperiment
+    SummarizedExperiment,
+    Rsubread
 Suggests:
     BiocStyle,
     knitr,
     rmarkdown,
-    Rsubread,
     testthat
 biocViews:
     Software,

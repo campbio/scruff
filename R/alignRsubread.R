@@ -104,13 +104,6 @@ alignRsubread <- function(sce,
         "%Y%m%d_%H%M%S"),
     ...) {
 
-    if (!requireNamespace("Rsubread", quietly = TRUE)) {
-        stop("Package \"Rsubread\" needed for \"alignRsubread\"",
-            " function to work.",
-            " Please install it if you are using Linux or macOS.",
-            " The function is not available in Windows environment.")
-    }
-
     .checkCores(cores)
 
     fastqPaths <- SummarizedExperiment::colData(sce)$fastq_path
@@ -123,6 +116,8 @@ alignRsubread <- function(sce,
 
     message(Sys.time(), " Start alignment ...")
     print(match.call(expand.dots = TRUE))
+
+    isWindows <- .Platform$OS.type == "windows"
 
     logfile <- paste0(logfilePrefix, "_alignment_log.txt")
 
@@ -159,33 +154,67 @@ alignRsubread <- function(sce,
 
     message(Sys.time(), " ... Mapping")
     # parallelization BiocParallel
-    if (verbose) {
-        alignmentFilePaths <- BiocParallel::bplapply(
-            X = fastqPaths,
-            FUN = .alignRsubreadUnit,
-            BPPARAM = BiocParallel::MulticoreParam(workers = cores),
-            index,
-            unique,
-            nBestLocations,
-            format,
-            outDir,
-            threads,
-            logfile,
-            ...)
+    if (isWindows) {
+        # Windows
+        if (verbose) {
+            alignmentFilePaths <- BiocParallel::bplapply(
+                X = fastqPaths,
+                FUN = .alignRsubreadUnit,
+                BPPARAM = BiocParallel::SnowParam(
+                    workers = cores),
+                index,
+                unique,
+                nBestLocations,
+                format,
+                outDir,
+                threads,
+                logfile,
+                ...)
+        } else {
+            invisible(capture.output(alignmentFilePaths <-
+                    BiocParallel::bplapply(X = fastqPaths,
+                        FUN = .alignRsubreadUnit,
+                        BPPARAM = BiocParallel::SnowParam(
+                            workers = cores),
+                        index,
+                        unique,
+                        nBestLocations,
+                        format,
+                        outDir,
+                        threads,
+                        logfile = NULL,
+                        ...), type = "message"))
+        }
     } else {
-        invisible(capture.output(alignmentFilePaths <-
-                BiocParallel::bplapply(X = fastqPaths,
-                    FUN = .alignRsubreadUnit,
-                    BPPARAM = BiocParallel::MulticoreParam(
-                        workers = cores),
-                    index,
-                    unique,
-                    nBestLocations,
-                    format,
-                    outDir,
-                    threads,
-                    logfile = NULL,
-                    ...), type = "message"))
+        # Linux or macOS
+        if (verbose) {
+            alignmentFilePaths <- BiocParallel::bplapply(
+                X = fastqPaths,
+                FUN = .alignRsubreadUnit,
+                BPPARAM = BiocParallel::MulticoreParam(workers = cores),
+                index,
+                unique,
+                nBestLocations,
+                format,
+                outDir,
+                threads,
+                logfile,
+                ...)
+        } else {
+            invisible(capture.output(alignmentFilePaths <-
+                    BiocParallel::bplapply(X = fastqPaths,
+                        FUN = .alignRsubreadUnit,
+                        BPPARAM = BiocParallel::MulticoreParam(
+                            workers = cores),
+                        index,
+                        unique,
+                        nBestLocations,
+                        format,
+                        outDir,
+                        threads,
+                        logfile = NULL,
+                        ...), type = "message"))
+        }
     }
 
     alignmentFilePaths <- unlist(alignmentFilePaths)
