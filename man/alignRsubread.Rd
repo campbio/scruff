@@ -92,7 +92,6 @@ This function is \strong{not} available in Windows environment. Align cell
 \examples{
 # The SingleCellExperiment object returned by demultiplex function is
 # required for running alignRsubread function
-# Does not support Windows environment
 
 \dontrun{
 data(barcodeExample, package = "scruff")
