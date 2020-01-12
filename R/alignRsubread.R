@@ -157,7 +157,7 @@ alignRsubread <- function(sce,
     if (isWindows) {
         # Windows
         if (verbose) {
-            alignmentFilePaths <- BiocParallel::bplapply(
+            resL <- BiocParallel::bplapply(
                 X = fastqPaths,
                 FUN = .alignRsubreadUnit,
                 BPPARAM = BiocParallel::SnowParam(
@@ -171,7 +171,7 @@ alignRsubread <- function(sce,
                 logfile,
                 ...)
         } else {
-            invisible(capture.output(alignmentFilePaths <-
+            invisible(capture.output(resL <-
                     BiocParallel::bplapply(X = fastqPaths,
                         FUN = .alignRsubreadUnit,
                         BPPARAM = BiocParallel::SnowParam(
@@ -188,7 +188,7 @@ alignRsubread <- function(sce,
     } else {
         # Linux or macOS
         if (verbose) {
-            alignmentFilePaths <- BiocParallel::bplapply(
+            resL <- BiocParallel::bplapply(
                 X = fastqPaths,
                 FUN = .alignRsubreadUnit,
                 BPPARAM = BiocParallel::MulticoreParam(workers = cores),
@@ -201,7 +201,7 @@ alignRsubread <- function(sce,
                 logfile,
                 ...)
         } else {
-            invisible(capture.output(alignmentFilePaths <-
+            invisible(capture.output(resL <-
                     BiocParallel::bplapply(X = fastqPaths,
                         FUN = .alignRsubreadUnit,
                         BPPARAM = BiocParallel::MulticoreParam(
@@ -216,15 +216,6 @@ alignRsubread <- function(sce,
                         ...), type = "message"))
         }
     }
-
-    alignmentFilePaths <- unlist(alignmentFilePaths)
-
-    resL <- suppressPackageStartupMessages(
-        BiocParallel::bplapply(X = alignmentFilePaths,
-            FUN = .propmappedWrapper,
-            BPPARAM = BiocParallel::MulticoreParam(
-                workers = cores),
-            outDir))
 
     resDt <- data.table::as.data.table(plyr::rbind.fill(resL))
 
@@ -247,7 +238,11 @@ alignRsubread <- function(sce,
 
     colnames(resDt) <- c("alignment_path",
         "reads",
-        "aligned_reads_incl_ercc",
+        "mapped_reads_incl_ercc",
+        "uniquely_mapped_reads_incl_ercc",
+        "multi_mapping_reads_incl_ercc",
+        "Unmapped_reads",
+        "indels",
         "fraction_aligned")
 
     message(Sys.time(), " ... Add alignment information to SCE colData.")
@@ -269,11 +264,20 @@ alignRsubread <- function(sce,
     logfile,
     ...) {
 
-    file.path <- .getAlignmentFilePaths(i, format, outDir)
+    filePath <- .getAlignmentFilePaths(i, format, outDir)
 
     if (file.size(i) == 0) {
-        file.create(file.path, showWarnings = FALSE)
-        return(file.path)
+        file.create(filePath, showWarnings = FALSE)
+        rest <- data.frame(alignmentFilePaths = filePath,
+            Total_reads = 0,
+            Mapped_reads = 0,
+            Uniquely_mapped_reads = 0,
+            Multi_mapping_reads = 0,
+            Unmapped_reads = 0,
+            Indels = 0,
+            PropMapped = 0,
+            row.names = basename(filePath))
+        return(rest)
     } else {
         .logMessages(Sys.time(),
             "... mapping sample",
@@ -281,32 +285,21 @@ alignRsubread <- function(sce,
             logfile = logfile,
             append = TRUE)
 
-        Rsubread::align(
+        res <- Rsubread::align(
             index = index,
             readfile1 = i,
             unique = unique,
             nBestLocations = nBestLocations,
             nthreads = threads,
             output_format = format,
-            output_file = file.path,
+            output_file = filePath,
             ...)
-        return(file.path)
-    }
-}
 
-
-.propmappedWrapper <- function(i, outDir) {
-    if (file.size(i) == 0) {
-        return(data.frame(Samples = i,
-            NumTotal = 0,
-            NumMapped = 0,
-            PropMapped = NA))
-    } else {
-        resdf <- Rsubread::propmapped(i)
-        # Rsubread recently moved Samples column to rowname
-        resdf$Samples <- file.path(outDir, basename(rownames(resdf)))
-        data.table::setcolorder(resdf,
-            c("Samples", "NumTotal", "NumMapped", "PropMapped"))
-        return(resdf)
+        rest <- as.data.frame(t(res))
+        rest$PropMapped <- rest$Mapped_reads/rest$Total_reads
+        rest$alignmentFilePaths <- filePath
+        rest <- rest[c(colnames(rest)[ncol(rest)],
+            colnames(rest)[-ncol(rest)])]
+        return(rest)
     }
 }

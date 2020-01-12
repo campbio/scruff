@@ -86,9 +86,8 @@ sce <- scruff(project = "example",
     umiEdit = 1,
     keep = 75,
     cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-    cores = 2,
+    cores = 4,
     verbose = TRUE)
-
 ```
 
 Visualize data quality.
@@ -150,7 +149,7 @@ de <- demultiplex(project = "example",
     yieldReads = 1e+06,
     verbose = TRUE,
     overwrite = TRUE,
-    cores = 2)
+    cores = 4)
 ```
 
 ## Alignment
@@ -169,7 +168,6 @@ indexBase <- "GRCm38_MT"
 Rsubread::buildindex(basename = indexBase,
     reference = fasta,
     indexSplit = FALSE)
-
 ```
 
 The following command maps the FASTQ files to GRCm38 mitochondrial reference sequence `GRCm38_MT.fa` and returns a `SingleCellExperiment` object. By default, the files are stored in BAM format in `./Alignment` folder.
@@ -183,7 +181,7 @@ al <- alignRsubread(de,
     format = "BAM",
     overwrite = TRUE,
     verbose = TRUE,
-    cores = 2)
+    cores = 4)
 ```
 
 ## UMI correction and Generation of Count Matrix
@@ -195,15 +193,13 @@ gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 # get the molecular counts of trancsripts for each cell
 # In experiment 1h1, cell barcodes 95 and 96 are empty well controls.
 # In experiment b1, cell barcode 95 is bulk sample containing 300 cells.
-if (requireNamespace("Rsubread", quietly = TRUE)) {
-    sce = countUMI(al,
-        gtf,
-        umiEdit = 1,
-        format = "BAM",
-        cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
-        verbose = TRUE,
-        cores = 2)
-}
+sce = countUMI(al,
+    gtf,
+    umiEdit = 1,
+    format = "BAM",
+    cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+    verbose = TRUE,
+    cores = 4)
 ```
 
 ## Visualization of QC metrics
