@@ -4,11 +4,21 @@
 \alias{alignRsubread}
 \title{A wrapper to \code{Rsubread} read alignment function \code{align}}
 \usage{
-alignRsubread(sce, index, unique = FALSE, nBestLocations = 1,
-  format = "BAM", outDir = "./Alignment", cores = max(1,
-  parallel::detectCores() - 2), threads = 1,
-  summaryPrefix = "alignment", overwrite = FALSE, verbose = FALSE,
-  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"), ...)
+alignRsubread(
+  sce,
+  index,
+  unique = FALSE,
+  nBestLocations = 1,
+  format = "BAM",
+  outDir = "./Alignment",
+  cores = max(1, parallel::detectCores() - 2),
+  threads = 1,
+  summaryPrefix = "alignment",
+  overwrite = FALSE,
+  verbose = FALSE,
+  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"),
+  ...
+)
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object of which the \code{colData}
@@ -82,7 +92,6 @@ This function is \strong{not} available in Windows environment. Align cell
 \examples{
 # The SingleCellExperiment object returned by demultiplex function is
 # required for running alignRsubread function
-# Does not support Windows environment
 
 \dontrun{
 data(barcodeExample, package = "scruff")
