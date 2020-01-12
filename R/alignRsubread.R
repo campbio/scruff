@@ -295,7 +295,7 @@ alignRsubread <- function(sce,
             ...)
 
         rest <- as.data.frame(t(res))
-        rest$PropMapped <- rest$Mapped_reads/rest$Total_reads
+        rest$PropMapped <- rest$Mapped_reads / rest$Total_reads
         rest$alignmentFilePaths <- filePath
         rest <- rest[c(colnames(rest)[ncol(rest)],
             colnames(rest)[-ncol(rest)])]
