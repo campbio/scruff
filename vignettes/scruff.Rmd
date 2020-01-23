@@ -65,7 +65,7 @@ Rsubread::buildindex(basename = indexBase,
 
 Now that everything is ready, we can run `r Rpackage("scruff")`. In experiment 1h1, cell barcodes 95 and 96 are empty well controls. In experiment b1, cell barcode 95 is bulk sample containing 300 cells. These information can be set by the `cellPerWell` argument. We apply cell barcode and UMI correction by setting `bcEdit` to 1 and `umiEdit` to 1. `r Rpackage("scruff")` makes use of the `r Biocpkg("SingleCellExperiment")` package. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
 
-```{r scruff, results = 'hide', warning = FALSE, message = FALSE}
+```{r scruff, eval = FALSE, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
 
 sce <- scruff(project = "example",
@@ -100,7 +100,7 @@ qc <- qcplots(sceExample)
 # Stepwise Tutorial For CEL-Seq Samples
 ## Load Example Dataset
 
-The `r Rpackage("scruff")` package contains 4 single cell RNA-seq FASTQ example files. Each file has 10,000 sequenced reads.
+The `r Rpackage("scruff")` package contains 4 single cell RNA-seq FASTQ example files. Each file has 2,000 sequenced reads.
 
 ```{r loadfiles2}
 library(scruff)
