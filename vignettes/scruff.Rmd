@@ -100,7 +100,7 @@ qc <- qcplots(sceExample)
 # Stepwise Tutorial For CEL-Seq Samples
 ## Load Example Dataset
 
-The `r Rpackage("scruff")` package contains 4 single cell RNA-seq FASTQ example files. Each file has 10,000 sequenced reads.
+The `r Rpackage("scruff")` package contains 4 single cell RNA-seq FASTQ example files. Each file has 2,000 sequenced reads.
 
 ```{r loadfiles2}
 library(scruff)
