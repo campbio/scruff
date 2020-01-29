@@ -1,7 +1,10 @@
 #' A vector of example cell barcodes.
 #'
-#' A vector containing 96 predefined cell barcodes which will be used for
-#'  demultiplexing the example FASTQ files.
+#' A vector containing 48  predefined cell barcodes which
+#'  will be used for
+#'  demultiplexing the example FASTQ files. Only the latter 48 barcodes within
+#'  the original 96 barcodes are used here to reduce the time to run example
+#'  codes and compile the vignette.
 #'
 #' @format A vector of cell barcode sequences. Cell barcodes for this study
 #'  (van den Brink, et al.) are of length 8.

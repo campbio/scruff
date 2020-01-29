@@ -1,6 +1,6 @@
 Package: scruff
 Title: Single Cell RNA-Seq UMI Filtering Facilitator (scruff)
-Version: 1.5.6
+Version: 1.5.7
 Date: 2020-01-12
 Authors@R: c(person("Zhe", "Wang",
                     email = "zhe@bu.edu",

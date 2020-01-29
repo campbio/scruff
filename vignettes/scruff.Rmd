@@ -63,7 +63,7 @@ Rsubread::buildindex(basename = indexBase,
     indexSplit = FALSE)
 ```
 
-Now that everything is ready, we can run `r Rpackage("scruff")`. In experiment 1h1, cell barcodes 95 and 96 are empty well controls. In experiment b1, cell barcode 95 is bulk sample containing 300 cells. These information can be set by the `cellPerWell` argument. We apply cell barcode and UMI correction by setting `bcEdit` to 1 and `umiEdit` to 1. `r Rpackage("scruff")` makes use of the `r Biocpkg("SingleCellExperiment")` package. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
+Now that everything is ready, we can run `r Rpackage("scruff")`. In experiment 1h1, cell barcodes 95 and 96 are empty well controls. **Only cell barcodes 49 to 96 are used here to reduce computing time.** In experiment b1, cell barcode 95 is bulk sample containing 300 cells. These information can be set by the `cellPerWell` argument. We apply cell barcode and UMI correction by setting `bcEdit` to 1 and `umiEdit` to 1. `r Rpackage("scruff")` makes use of the `r Biocpkg("SingleCellExperiment")` package. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
 
 ```{r scruff, eval = FALSE, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
@@ -85,7 +85,7 @@ sce <- scruff(project = "example",
     umiStop = 12,
     umiEdit = 1,
     keep = 75,
-    cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+    cellPerWell = c(rep(1, 46), 0, 0, rep(1, 46), 300, 1),
     cores = 4,
     verbose = TRUE)
 ```
@@ -197,7 +197,7 @@ sce = countUMI(al,
     gtf,
     umiEdit = 1,
     format = "BAM",
-    cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+    cellPerWell = c(rep(1, 46), 0, 0, rep(1, 46), 300, 1),
     verbose = TRUE,
     cores = 4)
 ```
