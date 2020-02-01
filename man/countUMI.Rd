@@ -103,7 +103,7 @@ al <- alignRsubread(de, indexBase, overwrite = TRUE)
 
 # Counting
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
-sce = countUMI(al, gtf, cellPerWell=c(rep(1, 94), 0, 0, rep(1, 94), 300, 1))
+sce = countUMI(al, gtf, cellPerWell=c(rep(1, 46), 0, 0, rep(1, 46), 300, 1))
 }
 
 # or use the built-in SingleCellExperiment object generated using

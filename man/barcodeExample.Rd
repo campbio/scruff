@@ -12,8 +12,8 @@ barcodeExample
 \description{
 A vector containing 48  predefined cell barcodes which
  will be used for
- demultiplexing the example FASTQ files. Only the latter 48 barcodes within
- the original 96 barcodes are used here to reduce the time to run example
+ demultiplexing the example FASTQ files. Only the cell barcodes from 49 to
+ 96 of the original 96 barcodes are used here to reduce the time to run example
  codes and compile the vignette.
 }
 \keyword{datasets}

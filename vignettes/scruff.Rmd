@@ -86,7 +86,7 @@ sce <- scruff(project = "example",
     umiEdit = 1,
     keep = 75,
     cellPerWell = c(rep(1, 46), 0, 0, rep(1, 46), 300, 1),
-    cores = 4,
+    cores = 2,
     verbose = TRUE)
 ```
 
@@ -129,7 +129,7 @@ vb1R2 <- system.file("extdata",
 
 ## Demultiplex and Assign Cell Specific Reads
 
-Now the FASTQ files are ready to be demultiplexed. `r Rpackage("scruff")` package provides built-in predefined cell barcodes `barcodeExample` for demultiplexing the example dataset. In the example FASTQ files, read 1 contains cell barcode and UMI sequence information. Read 2 contains transcript sequences. The barcode sequence of each read starts at base 1 and ends at base 8. The UMI sequence starts at base 9 and ends at base 12. They can be set via `bcStart`, `bcStop`, and `umiStart`, `umiStop` arguments. Cell barcode correction can be set by `bcEdit` parameter. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example FASTQ reads and trims reads longer than 75 nucleotides. The command returns a `SingleCellExperiment` object whose `colData` contains the cell index, barcode, reads, percentage of reads assigned, sample, and FASTQ file path information for each cell. By default, the cell specific demultiplexed fastq.gz files are stored in `./Demultiplex` folder.
+Now the FASTQ files are ready to be demultiplexed. `r Rpackage("scruff")` package provides built-in predefined cell barcodes `barcodeExample` for demultiplexing the example dataset.  **Only cell barcodes 49 to 96 are included in `barcodeExample` to reduce computing time.** In the example FASTQ files, read 1 contains cell barcode and UMI sequence information. Read 2 contains transcript sequences. The barcode sequence of each read starts at base 1 and ends at base 8. The UMI sequence starts at base 9 and ends at base 12. They can be set via `bcStart`, `bcStop`, and `umiStart`, `umiStop` arguments. Cell barcode correction can be set by `bcEdit` parameter. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example FASTQ reads and trims reads longer than 75 nucleotides. The command returns a `SingleCellExperiment` object whose `colData` contains the cell index, barcode, reads, percentage of reads assigned, sample, and FASTQ file path information for each cell. By default, the cell specific demultiplexed fastq.gz files are stored in `./Demultiplex` folder.
 
 ```{r de, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
@@ -149,7 +149,7 @@ de <- demultiplex(project = "example",
     yieldReads = 1e+06,
     verbose = TRUE,
     overwrite = TRUE,
-    cores = 4)
+    cores = 2)
 ```
 
 ## Alignment
@@ -181,7 +181,7 @@ al <- alignRsubread(de,
     format = "BAM",
     overwrite = TRUE,
     verbose = TRUE,
-    cores = 4)
+    cores = 2)
 ```
 
 ## UMI correction and Generation of Count Matrix
@@ -199,7 +199,7 @@ sce = countUMI(al,
     format = "BAM",
     cellPerWell = c(rep(1, 46), 0, 0, rep(1, 46), 300, 1),
     verbose = TRUE,
-    cores = 4)
+    cores = 2)
 ```
 
 ## Visualization of QC metrics
