@@ -201,7 +201,6 @@ fastqs <- list.files(system.file("extdata", package = "scruff"),
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 
-# NOTE: Rsubread package does not support Windows environment.
 library(Rsubread)
 # Specify the basename for Rsubread index
 indexBase <- "GRCm38_MT"
@@ -210,10 +209,10 @@ buildindex(basename = indexBase, reference = fasta, indexSplit = FALSE)
 
 # run scruff pipeline
 sce <- scruff(project = "example",
-    experiment = c("1h1", "b1"),
-    lane = c("L001", "L001"),
-    read1Path = c(fastqs[1], fastqs[3]),
-    read2Path = c(fastqs[2], fastqs[4]),
+    experiment = c("1h1"),
+    lane = c("L001"),
+    read1Path = c(fastqs[1]),
+    read2Path = c(fastqs[2]),
     bc = barcodeExample,
     index = indexBase,
     reference = gtf,
@@ -222,7 +221,7 @@ sce <- scruff(project = "example",
     umiStart = 9,
     umiStop = 12,
     keep = 75,
-    cellPerWell = c(rep(1, 94), 0, 0, rep(1, 94), 300, 1),
+    cellPerWell = c(rep(1, 46), 0, 0),
     overwrite = TRUE,
     verbose = TRUE)
 }
