@@ -48,10 +48,10 @@
 #'
 #' de <- demultiplex(
 #'     project = "example",
-#'     experiment = c("1h1", "b1"),
-#'     lane = c("L001", "L001"),
-#'     read1Path = c(fastqs[1], fastqs[3]),
-#'     read2Path = c(fastqs[2], fastqs[4]),
+#'     experiment = c("1h1"),
+#'     lane = c("L001"),
+#'     read1Path = c(fastqs[1]),
+#'     read2Path = c(fastqs[2]),
 #'     barcodeExample,
 #'     bcStart = 1,
 #'     bcStop = 8,
@@ -72,7 +72,7 @@
 #'
 #' # Counting
 #' gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
-#' sce = countUMI(al, gtf, cellPerWell=c(rep(1, 94), 0, 0, rep(1, 94), 300, 1))
+#' sce = countUMI(al, gtf, cellPerWell=c(rep(1, 46), 0, 0))
 #' }
 #'
 #' # or use the built-in SingleCellExperiment object generated using

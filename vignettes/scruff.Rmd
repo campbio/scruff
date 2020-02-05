@@ -41,12 +41,6 @@ v1h1R1 <- system.file("extdata",
 v1h1R2 <- system.file("extdata",
     "vandenBrink_1h1_L001_R2_001.fastq.gz",
     package = "scruff")
-vb1R1 <- system.file("extdata",
-    "vandenBrink_b1_L001_R1_001.fastq.gz",
-    package = "scruff")
-vb1R2 <- system.file("extdata",
-    "vandenBrink_b1_L001_R2_001.fastq.gz",
-    package = "scruff")
 fasta <- system.file("extdata", "GRCm38_MT.fa", package = "scruff")
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 ```
@@ -63,16 +57,16 @@ Rsubread::buildindex(basename = indexBase,
     indexSplit = FALSE)
 ```
 
-Now that everything is ready, we can run `r Rpackage("scruff")`. In experiment 1h1, cell barcodes 95 and 96 are empty well controls. **Only cell barcodes 49 to 96 are used here to reduce computing time.** In experiment b1, cell barcode 95 is bulk sample containing 300 cells. These information can be set by the `cellPerWell` argument. We apply cell barcode and UMI correction by setting `bcEdit` to 1 and `umiEdit` to 1. `r Rpackage("scruff")` makes use of the `r Biocpkg("SingleCellExperiment")` package. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
+Now that everything is ready, we can run `r Rpackage("scruff")`. In experiment 1h1, cell barcodes 95 and 96 are empty well controls. **Only cell barcodes 49 to 96 are used here to reduce computing time.** These information can be set by the `cellPerWell` argument. We apply cell barcode and UMI correction by setting `bcEdit` to 1 and `umiEdit` to 1. `r Rpackage("scruff")` makes use of the `r Biocpkg("SingleCellExperiment")` package. The following command returns a `SingleCellExperiment` object containing UMI filtered count matrix as well as gene and sample annotations and QC metrics.
 
 ```{r scruff, eval = FALSE, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
 
 sce <- scruff(project = "example",
-    experiment = c("1h1", "b1"),
-    lane = c("L001", "L001"),
-    read1Path = c(v1h1R1, vb1R1),
-    read2Path = c(v1h1R2, vb1R2),
+    experiment = c("1h1"),
+    lane = c("L001"),
+    read1Path = c(v1h1R1),
+    read2Path = c(v1h1R2),
     bc = barcodeExample,
     index = indexBase,
     unique = FALSE,
@@ -85,8 +79,8 @@ sce <- scruff(project = "example",
     umiStop = 12,
     umiEdit = 1,
     keep = 75,
-    cellPerWell = c(rep(1, 46), 0, 0, rep(1, 46), 300, 1),
-    cores = 4,
+    cellPerWell = c(rep(1, 46), 0, 0),
+    cores = 2,
     verbose = TRUE)
 ```
 
@@ -100,7 +94,7 @@ qc <- qcplots(sceExample)
 # Stepwise Tutorial For CEL-Seq Samples
 ## Load Example Dataset
 
-The `r Rpackage("scruff")` package contains 4 single cell RNA-seq FASTQ example files. Each file has 2,000 sequenced reads.
+The `r Rpackage("scruff")` package contains 2 single cell RNA-seq FASTQ example files. Each file has 500 sequenced reads.
 
 ```{r loadfiles2}
 library(scruff)
@@ -119,25 +113,19 @@ v1h1R1 <- system.file("extdata",
 v1h1R2 <- system.file("extdata",
     "vandenBrink_1h1_L001_R2_001.fastq.gz",
     package = "scruff")
-vb1R1 <- system.file("extdata",
-    "vandenBrink_b1_L001_R1_001.fastq.gz",
-    package = "scruff")
-vb1R2 <- system.file("extdata",
-    "vandenBrink_b1_L001_R2_001.fastq.gz",
-    package = "scruff")
 ```
 
 ## Demultiplex and Assign Cell Specific Reads
 
-Now the FASTQ files are ready to be demultiplexed. `r Rpackage("scruff")` package provides built-in predefined cell barcodes `barcodeExample` for demultiplexing the example dataset. In the example FASTQ files, read 1 contains cell barcode and UMI sequence information. Read 2 contains transcript sequences. The barcode sequence of each read starts at base 1 and ends at base 8. The UMI sequence starts at base 9 and ends at base 12. They can be set via `bcStart`, `bcStop`, and `umiStart`, `umiStop` arguments. Cell barcode correction can be set by `bcEdit` parameter. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example FASTQ reads and trims reads longer than 75 nucleotides. The command returns a `SingleCellExperiment` object whose `colData` contains the cell index, barcode, reads, percentage of reads assigned, sample, and FASTQ file path information for each cell. By default, the cell specific demultiplexed fastq.gz files are stored in `./Demultiplex` folder.
+Now the FASTQ files are ready to be demultiplexed. `r Rpackage("scruff")` package provides built-in predefined cell barcodes `barcodeExample` for demultiplexing the example dataset.  **Only cell barcodes 49 to 96 are included in `barcodeExample` to reduce computing time.** In the example FASTQ files, read 1 contains cell barcode and UMI sequence information. Read 2 contains transcript sequences. The barcode sequence of each read starts at base 1 and ends at base 8. The UMI sequence starts at base 9 and ends at base 12. They can be set via `bcStart`, `bcStop`, and `umiStart`, `umiStop` arguments. Cell barcode correction can be set by `bcEdit` parameter. By default, reads with any nucleotide in the barcode and UMI sequences with sequencing quality lower than 10 (Phred score) will be excluded. The following command demultiplexes the example FASTQ reads and trims reads longer than 75 nucleotides. The command returns a `SingleCellExperiment` object whose `colData` contains the cell index, barcode, reads, percentage of reads assigned, sample, and FASTQ file path information for each cell. By default, the cell specific demultiplexed fastq.gz files are stored in `./Demultiplex` folder.
 
 ```{r de, results = 'hide', warning = FALSE, message = FALSE}
 data(barcodeExample, package = "scruff")
 de <- demultiplex(project = "example",
-    experiment = c("1h1", "b1"),
-    lane = c("L001", "L001"),
-    read1Path = c(v1h1R1, vb1R1),
-    read2Path = c(v1h1R2, vb1R2),
+    experiment = c("1h1"),
+    lane = c("L001"),
+    read1Path = c(v1h1R1),
+    read2Path = c(v1h1R2),
     barcodeExample,
     bcStart = 1,
     bcStop = 8,
@@ -149,7 +137,7 @@ de <- demultiplex(project = "example",
     yieldReads = 1e+06,
     verbose = TRUE,
     overwrite = TRUE,
-    cores = 4)
+    cores = 2)
 ```
 
 ## Alignment
@@ -181,7 +169,7 @@ al <- alignRsubread(de,
     format = "BAM",
     overwrite = TRUE,
     verbose = TRUE,
-    cores = 4)
+    cores = 2)
 ```
 
 ## UMI correction and Generation of Count Matrix
@@ -197,9 +185,9 @@ sce = countUMI(al,
     gtf,
     umiEdit = 1,
     format = "BAM",
-    cellPerWell = c(rep(1, 46), 0, 0, rep(1, 46), 300, 1),
+    cellPerWell = c(rep(1, 46), 0, 0),
     verbose = TRUE,
-    cores = 4)
+    cores = 2)
 ```
 
 ## Visualization of QC metrics
