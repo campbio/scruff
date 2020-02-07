@@ -4,8 +4,8 @@
 #'  \code{SingleCellExperiment} object and return a list of figures in
 #'  \code{arrangelist} object.
 #'
-#' @param sce An \code{SingleCellExperiment} object returned from [scruff],
-#'  [countUMI], or [tenxBamqc] function.
+#' @param sce An \code{SingleCellExperiment} object returned from \link{scruff},
+#'  \link{countUMI}, or \link{tenxBamqc} function.
 #' @return A list of \code{grobs} objects ready for plotting
 #' @examples
 #' data(sceExample, package = "scruff")
