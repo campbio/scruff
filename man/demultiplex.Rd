@@ -108,7 +108,7 @@ in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 \value{
 A \link[SingleCellExperiment]{SingleCellExperiment} object
  containing the demultiplex summary information as
-  \link[SummarizedExperiment]{colData}.
+ \link{SummarizedExperiment::colData}.
 }
 \description{
 Demultiplex fastq files and write cell specific reads in compressed fastq

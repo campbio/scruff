@@ -62,7 +62,7 @@
 #'  in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @return A \link[SingleCellExperiment]{SingleCellExperiment} object
 #'  containing the demultiplex summary information as
-#'   \link[SummarizedExperiment]{colData}.
+#'  \link{SummarizedExperiment::colData}.
 #' @examples
 #' # Demultiplex example FASTQ files
 #' data(barcodeExample, package = "scruff")
