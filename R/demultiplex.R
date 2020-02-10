@@ -61,8 +61,7 @@
 #' @param logfilePrefix Prefix for log file. Default is current date and time
 #'  in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @return A \link[SingleCellExperiment]{SingleCellExperiment} object
-#'  containing the demultiplex summary information as
-#'  \link{SummarizedExperiment::colData}.
+#'  containing the demultiplex summary information in the \code{colData} slot.
 #' @examples
 #' # Demultiplex example FASTQ files
 #' data(barcodeExample, package = "scruff")
