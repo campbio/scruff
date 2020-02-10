@@ -26,8 +26,8 @@
 #' @param yieldSize The number of records (alignments) to yield when drawing
 #'  successive subsets from a BAM file, providing the number of successive
 #'  records to be returned on each yield. This parameter is passed to the
-#'  \code{yieldSize} argument of the \link{Rsamtools::BamFile} function in
-#'  \link{Rsamtools::Rsamtools} package. Default is \strong{1e06}.
+#'  \code{yieldSize} argument of the \code{BamFile} function in
+#'  \code{Rsamtools} package. Default is \strong{1e06}.
 #' @param outDir Output directory. The location to write resulting QC table.
 #' @param cores Number of cores used for parallelization. Default is
 #'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
