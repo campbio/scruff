@@ -4,11 +4,21 @@
 \alias{alignRsubread}
 \title{A wrapper to \code{Rsubread} read alignment function \code{align}}
 \usage{
-alignRsubread(sce, index, unique = FALSE, nBestLocations = 1,
-  format = "BAM", outDir = "./Alignment", cores = max(1,
-  parallel::detectCores() - 2), threads = 1,
-  summaryPrefix = "alignment", overwrite = FALSE, verbose = FALSE,
-  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"), ...)
+alignRsubread(
+  sce,
+  index,
+  unique = FALSE,
+  nBestLocations = 1,
+  format = "BAM",
+  outDir = "./Alignment",
+  cores = max(1, parallel::detectCores() - 2),
+  threads = 1,
+  summaryPrefix = "alignment",
+  overwrite = FALSE,
+  verbose = FALSE,
+  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"),
+  ...
+)
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object of which the \code{colData}
@@ -71,8 +81,7 @@ in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.}
 \value{
 A \strong{SingleCellExperiment} object containing the alignment
  summary information in the \code{colData} slot. The \code{alignment_path}
- column of the annotation table contains the paths to alignment files.
- of the paths to output alignment files.
+ column of the annotation table contains the paths to output alignment files.
 }
 \description{
 This function is \strong{not} available in Windows environment. Align cell
@@ -83,7 +92,6 @@ This function is \strong{not} available in Windows environment. Align cell
 \examples{
 # The SingleCellExperiment object returned by demultiplex function is
 # required for running alignRsubread function
-# Does not support Windows environment
 
 \dontrun{
 data(barcodeExample, package = "scruff")
@@ -92,10 +100,10 @@ fastqs <- list.files(system.file("extdata", package = "scruff"),
 
 de <- demultiplex(
     project = "example",
-    experiment = c("1h1", "b1"),
-    lane = c("L001", "L001"),
-    read1Path = c(fastqs[1], fastqs[3]),
-    read2Path = c(fastqs[2], fastqs[4]),
+    experiment = c("1h1"),
+    lane = c("L001"),
+    read1Path = c(fastqs[1]),
+    read2Path = c(fastqs[2]),
     barcodeExample,
     bcStart = 1,
     bcStop = 8,

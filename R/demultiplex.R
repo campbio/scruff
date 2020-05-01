@@ -61,8 +61,7 @@
 #' @param logfilePrefix Prefix for log file. Default is current date and time
 #'  in the format of \code{format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")}.
 #' @return A \link[SingleCellExperiment]{SingleCellExperiment} object
-#'  containing the demultiplex summary information as
-#'   \link[SummarizedExperiment]{colData}.
+#'  containing the demultiplex summary information in the \code{colData} slot.
 #' @examples
 #' # Demultiplex example FASTQ files
 #' data(barcodeExample, package = "scruff")
@@ -71,10 +70,10 @@
 #'
 #' de <- demultiplex(
 #'     project = "example",
-#'     experiment = c("1h1", "b1"),
-#'     lane = c("L001", "L001"),
-#'     read1Path = c(fastqs[1], fastqs[3]),
-#'     read2Path = c(fastqs[2], fastqs[4]),
+#'     experiment = c("1h1"),
+#'     lane = c("L001"),
+#'     read1Path = c(fastqs[1]),
+#'     read2Path = c(fastqs[2]),
 #'     barcodeExample,
 #'     bcStart = 1,
 #'     bcStop = 8,
