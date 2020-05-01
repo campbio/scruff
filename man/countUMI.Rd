@@ -4,11 +4,18 @@
 \alias{countUMI}
 \title{Count the number of UMIs for each gene and output count matrix}
 \usage{
-countUMI(sce, reference, umiEdit = 0, format = "BAM",
-  outDir = "./Count", cellPerWell = 1, cores = max(1,
-  parallel::detectCores() - 2), outputPrefix = "countUMI",
-  verbose = FALSE, logfilePrefix = format(Sys.time(),
-  "\%Y\%m\%d_\%H\%M\%S"))
+countUMI(
+  sce,
+  reference,
+  umiEdit = 0,
+  format = "BAM",
+  outDir = "./Count",
+  cellPerWell = 1,
+  cores = max(1, parallel::detectCores() - 2),
+  outputPrefix = "countUMI",
+  verbose = FALSE,
+  logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")
+)
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object of which the \code{colData}
@@ -72,10 +79,10 @@ fastqs <- list.files(system.file("extdata", package = "scruff"),
 
 de <- demultiplex(
     project = "example",
-    experiment = c("1h1", "b1"),
-    lane = c("L001", "L001"),
-    read1Path = c(fastqs[1], fastqs[3]),
-    read2Path = c(fastqs[2], fastqs[4]),
+    experiment = c("1h1"),
+    lane = c("L001"),
+    read1Path = c(fastqs[1]),
+    read2Path = c(fastqs[2]),
     barcodeExample,
     bcStart = 1,
     bcStop = 8,
@@ -96,7 +103,7 @@ al <- alignRsubread(de, indexBase, overwrite = TRUE)
 
 # Counting
 gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
-sce = countUMI(al, gtf, cellPerWell=c(rep(1, 94), 0, 0, rep(1, 94), 300, 1))
+sce = countUMI(al, gtf, cellPerWell=c(rep(1, 46), 0, 0))
 }
 
 # or use the built-in SingleCellExperiment object generated using

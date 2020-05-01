@@ -26,14 +26,16 @@
 #' @param yieldSize The number of records (alignments) to yield when drawing
 #'  successive subsets from a BAM file, providing the number of successive
 #'  records to be returned on each yield. This parameter is passed to the
-#'  \code{yieldSize} argument of the \link[Rsamtools]{BamFile} function in
-#'  \link[Rsamtools]{Rsamtools} package. Default is \strong{1e06}.
+#'  \code{yieldSize} argument of the \code{BamFile} function in
+#'  \code{Rsamtools} package. Default is \strong{1e06}.
 #' @param outDir Output directory. The location to write resulting QC table.
 #' @param cores Number of cores used for parallelization. Default is
 #'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
 #'  cores minus 2.
-#' @return ggplot object showing the number of aligned reads and reads aligned
-#'  to an gene.
+#' @return A \link[SingleCellExperiment]{SingleCellExperiment} object. The
+#'  \code{colData} contains the number of aligned reads
+#'  (reads_mapped_to_genome) and reads aligned
+#'  to genes (reads_mapped_to_genes).
 #' @examples
 #' # first 5000 records in the bam file downloaded from here:
 #' # http://sra-download.ncbi.nlm.nih.gov/srapub_files/
@@ -57,10 +59,10 @@
 #'     "SRR5167880_E18_20160930_Neurons_Sample_01_filtered_barcode.tsv",
 #'     package = "scruff")
 #' # QC results are saved to current working directory
-#' qcDt <- tenxBamqc(bam = bamfile10x,
+#' sce <- tenxBamqc(bam = bamfile10x,
 #'     experiment = "Neurons_Sample_01",
 #'     filter = filteredBc)
-#' qcDt
+#' sce
 #' @import Rsamtools
 #' @export
 tenxBamqc <- function(bam,
