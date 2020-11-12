@@ -5,8 +5,6 @@
 ## Workflow
 <p align="center"><img src="https://github.com/campbio/scruff/raw/master/data-raw/figure/20190312_scruff_workflow.png" height="900"></p>
 
-This is a mirror to scruff Bioconductor 3.8 stable version.
-
 To install the latest stable release of `scruff` from [Bioconductor](http://bioconductor.org/packages/scruff/):
 ```
 if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -22,7 +20,7 @@ install_github("campbio/scruff")
 
 ## Package User Guide
 
-An introduction to `scruff` package is available [here](http://bioconductor.org/packages/release/bioc/vignettes/scruff/inst/doc/scruff.pdf).
+An introduction to `scruff` package is available [here](http://bioconductor.org/packages/release/bioc/vignettes/scruff/inst/doc/scruff.html).
 
 ## Speed
 
