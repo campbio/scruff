@@ -4,7 +4,9 @@
 \name{cbtop10000}
 \alias{cbtop10000}
 \title{Top 10,000 rows for v1, v2, and v3 cell barcode whitelist files}
-\format{A \code{data.table} object.}
+\format{
+A \code{data.table} object.
+}
 \usage{
 cbtop10000
 }

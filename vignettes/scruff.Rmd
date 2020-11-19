@@ -181,7 +181,7 @@ gtf <- system.file("extdata", "GRCm38_MT.gtf", package = "scruff")
 # get the molecular counts of trancsripts for each cell
 # In experiment 1h1, cell barcodes 95 and 96 are empty well controls.
 # In experiment b1, cell barcode 95 is bulk sample containing 300 cells.
-sce = countUMI(al,
+sce <- countUMI(al,
     gtf,
     umiEdit = 1,
     format = "BAM",
@@ -222,7 +222,7 @@ end <- 2675
 
 g1 <- rview(bamExample, chr = "MT", start = start, end = end)
 g2 <- gview(gtf, chr = "MT", start = start, end = end)
-g <- ggbio::tracks(g1, g2, heights = c(4,1), xlab = "chr MT")
+g <- ggbio::tracks(g1, g2, heights = c(4, 1), xlab = "chr MT")
 g
 ```
 

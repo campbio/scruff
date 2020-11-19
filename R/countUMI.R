@@ -270,9 +270,9 @@ countUMI <- function(sce,
     #      "ERCC") <- grepl("ERCC-",
     #          rownames(scruffsce))
 
-    SingleCellExperiment::isSpike(scruffsce,
-        "ERCC") <- which(SummarizedExperiment::rowData(scruffsce)[,
-            "source"] == "ERCC")
+    # SingleCellExperiment::isSpike(scruffsce,
+    #     "ERCC") <- which(SummarizedExperiment::rowData(scruffsce)[,
+    #         "source"] == "ERCC")
 
     message(Sys.time(),
         " ... Save gene annotation data to ",
@@ -294,7 +294,8 @@ countUMI <- function(sce,
     # total counts exclude ERCC
     totalCounts <- base::colSums(as.data.frame(
         SummarizedExperiment::assay(scruffsce)
-        [!SingleCellExperiment::isSpike(scruffsce, "ERCC"), ]))
+        [which(SummarizedExperiment::rowData(scruffsce)[,
+            "source"] != "ERCC"), ]))
 
     # MT counts
     mtCounts <- base::colSums(as.data.frame(
@@ -304,7 +305,8 @@ countUMI <- function(sce,
 
     # gene number exclude ERCC
     cm <- SummarizedExperiment::assay(scruffsce)[
-        !SingleCellExperiment::isSpike(scruffsce, "ERCC"), ]
+        which(SummarizedExperiment::rowData(scruffsce)[,
+            "source"] != "ERCC"), ]
 
     geneNumber <- vapply(colnames(cm), function(cells) {
         sum(cm[, cells] != 0)
