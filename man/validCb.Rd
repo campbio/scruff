@@ -4,7 +4,9 @@
 \name{validCb}
 \alias{validCb}
 \title{Cell barcode whitelist (737K-august-2016.txt)}
-\format{A \code{data.table} object.}
+\format{
+A \code{data.table} object.
+}
 \usage{
 validCb
 }
