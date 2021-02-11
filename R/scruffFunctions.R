@@ -254,16 +254,45 @@
 
     geneAnnotation <- data.table::as.data.table(gtf)
 
-    geneAnnotation <- unique(geneAnnotation[type == "gene" |
-            source == "ERCC", c("gene_id",
-        "gene_name",
-        "gene_biotype",
-        "seqnames",
-        "start",
-        "end",
-        "width",
-        "strand",
-        "source")])
+    if ("gene_biotype" %in% colnames(geneAnnotation)) {
+        geneAnnotation <- unique(geneAnnotation[type == "gene" |
+                source == "ERCC", c("gene_id",
+                    "gene_name",
+                    "gene_biotype",
+                    "seqnames",
+                    "start",
+                    "end",
+                    "width",
+                    "strand",
+                    "source")])
+    } else if ("gene_type" %in% colnames(geneAnnotation)) {
+        message("Missing column 'gene_biotype'. Use 'gene_type' instead.")
+        geneAnnotation <- unique(geneAnnotation[type == "gene" |
+                source == "ERCC", c("gene_id",
+                    "gene_name",
+                    "gene_type",
+                    "seqnames",
+                    "start",
+                    "end",
+                    "width",
+                    "strand",
+                    "source")])
+        colnames(geneAnnotation)[which(colnames(geneAnnotation) ==
+                "gene_type")] <- "gene_biotype"
+    } else {
+        warning("Missing column 'gene_biotype' or 'gene_type'!")
+        geneAnnotation <- unique(geneAnnotation[type == "gene" |
+                source == "ERCC", c("gene_id",
+                    "gene_name",
+                    #"gene_biotype",
+                    "seqnames",
+                    "start",
+                    "end",
+                    "width",
+                    "strand",
+                    "source")])
+    }
+
     geneAnnotation <- geneAnnotation[order(gene_id), ]
     geneAnnotation[source == "ERCC", gene_name := gene_id]
     geneAnnotation[source == "ERCC", gene_biotype := source]
