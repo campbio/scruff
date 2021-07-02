@@ -6,7 +6,8 @@
 #' @param gtfFile A genome annotation file in GTF format.
 #' @param chr Chromosome name. Integer or "X", "Y", "MT".
 #' @param start Genomic coordinate of the start position.
-#' @param end Genomic coordinate of the end position.
+#' @param end Genomic coordinate of the end position. If \code{NULL}, then
+#' the maximum length of the chromosome will be used. Default \code{NULL}.
 #' @param rect_width Exon widths. Default 0.3.
 #' @param line_width Line weight. Default 0.5.
 #' @param arrow_segments The number of segments lines be divided to. The
@@ -31,8 +32,7 @@
 gview <- function(gtfFile,
     chr = 1,
     start = 1,
-    end = max(data.table::as.data.table(
-        rtracklayer::import(gtfFile))[seqnames == chr, end]),
+    end = NULL,
     rect_width = 0.3,
     line_width = 0.5,
     arrow_segments = 10,
@@ -180,7 +180,7 @@ gview <- function(gtfFile,
 
     # convert to data.table
     gtfDt <- data.table::as.data.table(
-        rtracklayer::import(gtfFile))[type != "gene", c("seqnames",
+        rtracklayer::readGFF(gtfFile))[type != "gene", c("seqid",
             "type",
             "start",
             "end",
@@ -195,9 +195,12 @@ gview <- function(gtfFile,
     # use new variables to avoid ambiguity
     begin <- start
     ed <- end
+    if(is.null(ed)) {
+        ed <- max(gtfDt[seqid == chr, end])
+    }
 
     # subset features
-    gtfDt <- gtfDt[end >= begin & start <= ed & seqnames == chr, ]
+    gtfDt <- gtfDt[end >= begin & start <= ed & seqid == chr, ]
 
     # aggregate transcripts
     txdt <- .getTxdt(gtfDt)

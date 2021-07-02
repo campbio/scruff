@@ -250,7 +250,7 @@
     message(Sys.time(),
         " ... Reading GTF file ",
         reference, " as data.table object")
-    gtf <- rtracklayer::import(reference)
+    gtf <- rtracklayer::readGFF(reference)
 
     geneAnnotation <- data.table::as.data.table(gtf)
 
@@ -259,7 +259,7 @@
                 source == "ERCC", c("gene_id",
                     "gene_name",
                     "gene_biotype",
-                    "seqnames",
+                    "seqid",
                     "start",
                     "end",
                     "width",
@@ -271,7 +271,7 @@
                 source == "ERCC", c("gene_id",
                     "gene_name",
                     "gene_type",
-                    "seqnames",
+                    "seqid",
                     "start",
                     "end",
                     "width",
@@ -285,7 +285,7 @@
                 source == "ERCC", c("gene_id",
                     "gene_name",
                     #"gene_biotype",
-                    "seqnames",
+                    "seqid",
                     "start",
                     "end",
                     "width",
