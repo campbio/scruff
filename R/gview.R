@@ -179,8 +179,12 @@ gview <- function(gtfFile,
 
 
     # convert to data.table
-    gtfDt <- data.table::as.data.table(
-        rtracklayer::readGFF(gtfFile))[type != "gene", c("seqid",
+    temp <- data.table::as.data.table(rtracklayer::readGFF(gtfFile))
+    if("seqname" %in% colnames(temp)) {
+        j <- which(colnames(temp) == "seqname")
+        colnames(temp)[i] <- "seqid"
+    }
+    gtfDt <- temp[type != "gene", c("seqid",
             "type",
             "start",
             "end",

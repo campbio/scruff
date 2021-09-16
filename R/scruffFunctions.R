@@ -253,13 +253,17 @@
     gtf <- rtracklayer::readGFF(reference)
 
     geneAnnotation <- data.table::as.data.table(gtf)
-
+    seqid <- "seqid"
+    if(!seqid %in% colnames(geneAnnotation)) {
+      seqid <- "seqnames"    
+    }
+    
     if ("gene_biotype" %in% colnames(geneAnnotation)) {
         geneAnnotation <- unique(geneAnnotation[type == "gene" |
                 source == "ERCC", c("gene_id",
                     "gene_name",
                     "gene_biotype",
-                    "seqid",
+                    seqid,
                     "start",
                     "end",
                     "width",
@@ -271,7 +275,7 @@
                 source == "ERCC", c("gene_id",
                     "gene_name",
                     "gene_type",
-                    "seqid",
+                    seqid,
                     "start",
                     "end",
                     "width",
@@ -285,7 +289,7 @@
                 source == "ERCC", c("gene_id",
                     "gene_name",
                     #"gene_biotype",
-                    "seqid",
+                    seqid,
                     "start",
                     "end",
                     "width",
