@@ -341,7 +341,7 @@
     }
 
     # check barcode length
-    if (any(!nchar(cb)[complete.cases(nchar(cb))] %in% l)) {
+    if (any(!nchar(cb)[stats::complete.cases(nchar(cb))] %in% l)) {
         cbtb <- table(nchar(cb))
         cbtb2 <- cbtb
         if (length(cbtb2) > 1) {

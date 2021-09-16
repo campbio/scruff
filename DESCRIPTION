@@ -16,10 +16,10 @@ Description: A pipeline which processes single cell RNA-seq (scRNA-seq) reads
     align reads to reference genome using Rsubread, and generate UMI filtered
     count matrix. Also provide visualizations of read alignments and pre- and
     post-alignment QC metrics.
-Depends: R (>= 3.5.0)
+Depends: R (>= 4.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: false
+LazyData: TRUE
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 Imports: data.table,
