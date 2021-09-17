@@ -37,10 +37,10 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
-      # Needed to install Rhtslib
-      - name: Install libcurl 
+      ## Needed to install Rhtslib
+      - name: Install libcurl
         if: runner.os == 'Linux' && matrix.config.r == 'release'
-          run: |
+        run: |
             sudo apt-get install --yes libcurl4-openssl-dev
             Rscript -e "install.packages('curl', repos='https://cloud.r-project.org')"
 
