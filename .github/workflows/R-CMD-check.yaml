@@ -18,8 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macOS-latest,   r: 'release'}
-          - {os: windows-latest, r: 'release'}
+#          - {os: macOS-latest,   r: 'release'}
+#          - {os: windows-latest, r: 'release'}
           - {os: ubuntu-latest,   r: 'release'}
 
     env:
@@ -36,6 +36,13 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
+
+      # Needed to install Rhtslib
+      - name: Install libcurl 
+        if: runner.os == 'Linux' && matrix.config.r == 'release'
+          run: |
+            sudo apt-get install --yes libcurl4-openssl-dev
+            Rscript -e "install.packages('curl', repos='https://cloud.r-project.org')"
 
       - uses: r-lib/actions/setup-r-dependencies@v1
         with:
