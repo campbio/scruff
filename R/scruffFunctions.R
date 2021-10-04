@@ -250,16 +250,20 @@
     message(Sys.time(),
         " ... Reading GTF file ",
         reference, " as data.table object")
-    gtf <- rtracklayer::import(reference)
+    gtf <- rtracklayer::readGFF(reference)
 
     geneAnnotation <- data.table::as.data.table(gtf)
-
+    seqid <- "seqid"
+    if(!seqid %in% colnames(geneAnnotation)) {
+      seqid <- "seqnames"    
+    }
+    
     if ("gene_biotype" %in% colnames(geneAnnotation)) {
         geneAnnotation <- unique(geneAnnotation[type == "gene" |
                 source == "ERCC", c("gene_id",
                     "gene_name",
                     "gene_biotype",
-                    "seqnames",
+                    seqid,
                     "start",
                     "end",
                     "width",
@@ -271,7 +275,7 @@
                 source == "ERCC", c("gene_id",
                     "gene_name",
                     "gene_type",
-                    "seqnames",
+                    seqid,
                     "start",
                     "end",
                     "width",
@@ -285,7 +289,7 @@
                 source == "ERCC", c("gene_id",
                     "gene_name",
                     #"gene_biotype",
-                    "seqnames",
+                    seqid,
                     "start",
                     "end",
                     "width",
@@ -337,7 +341,7 @@
     }
 
     # check barcode length
-    if (any(!nchar(cb)[complete.cases(nchar(cb))] %in% l)) {
+    if (any(!nchar(cb)[stats::complete.cases(nchar(cb))] %in% l)) {
         cbtb <- table(nchar(cb))
         cbtb2 <- cbtb
         if (length(cbtb2) > 1) {

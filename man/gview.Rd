@@ -8,8 +8,7 @@ gview(
   gtfFile,
   chr = 1,
   start = 1,
-  end = max(data.table::as.data.table(rtracklayer::import(gtfFile))[seqnames == chr,
-    end]),
+  end = NULL,
   rect_width = 0.3,
   line_width = 0.5,
   arrow_segments = 10,
@@ -26,7 +25,8 @@ gview(
 
 \item{start}{Genomic coordinate of the start position.}
 
-\item{end}{Genomic coordinate of the end position.}
+\item{end}{Genomic coordinate of the end position. If \code{NULL}, then
+the maximum length of the chromosome will be used. Default \code{NULL}.}
 
 \item{rect_width}{Exon widths. Default 0.3.}
 

@@ -170,7 +170,7 @@ alignRsubread <- function(sce,
                 logfile,
                 ...)
         } else {
-            invisible(capture.output(resL <-
+            invisible(utils::capture.output(resL <-
                     BiocParallel::bplapply(X = fastqPaths,
                         FUN = .alignRsubreadUnit,
                         BPPARAM = BiocParallel::SnowParam(
@@ -200,7 +200,7 @@ alignRsubread <- function(sce,
                 logfile,
                 ...)
         } else {
-            invisible(capture.output(resL <-
+            invisible(utils::capture.output(resL <-
                     BiocParallel::bplapply(X = fastqPaths,
                         FUN = .alignRsubreadUnit,
                         BPPARAM = BiocParallel::MulticoreParam(
