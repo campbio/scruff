@@ -254,10 +254,10 @@
 
     geneAnnotation <- data.table::as.data.table(gtf)
     seqid <- "seqid"
-    if(!seqid %in% colnames(geneAnnotation)) {
-      seqid <- "seqnames"    
+    if (!seqid %in% colnames(geneAnnotation)) {
+      seqid <- "seqnames"
     }
-    
+
     if ("gene_biotype" %in% colnames(geneAnnotation)) {
         geneAnnotation <- unique(geneAnnotation[type == "gene" |
                 source == "ERCC", c("gene_id",
@@ -266,9 +266,9 @@
                     seqid,
                     "start",
                     "end",
-                    "width",
+                    #"width",
                     "strand",
-                    "source")])
+                    "source"), with = FALSE])
     } else if ("gene_type" %in% colnames(geneAnnotation)) {
         message("Missing column 'gene_biotype'. Use 'gene_type' instead.")
         geneAnnotation <- unique(geneAnnotation[type == "gene" |
@@ -278,9 +278,9 @@
                     seqid,
                     "start",
                     "end",
-                    "width",
+                    #"width",
                     "strand",
-                    "source")])
+                    "source"), with = FALSE])
         colnames(geneAnnotation)[which(colnames(geneAnnotation) ==
                 "gene_type")] <- "gene_biotype"
     } else {
@@ -292,9 +292,9 @@
                     seqid,
                     "start",
                     "end",
-                    "width",
+                    #"width",
                     "strand",
-                    "source")])
+                    "source"), with = FALSE])
     }
 
     geneAnnotation <- geneAnnotation[order(gene_id), ]
