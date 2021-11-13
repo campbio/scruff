@@ -96,10 +96,10 @@ countUMI <- function(sce,
     geneAnnotation <- .getGeneAnnotation(reference)
 
     seqid <- "seqid"
-    if(!seqid %in% colnames(geneAnnotation)) {
-        seqid <- "seqnames"    
+    if (!seqid %in% colnames(geneAnnotation)) {
+        seqid <- "seqnames"
     }
-    
+
     gtfcolnames <- c("gene_id",
         "gene_name",
         "gene_biotype",
@@ -310,7 +310,7 @@ countUMI <- function(sce,
     # gene number exclude ERCC
     cm <- SummarizedExperiment::assay(scruffsce)[
         which(SummarizedExperiment::rowData(scruffsce)[,
-            "source"] != "ERCC"), ]
+            "source"] != "ERCC"), , drop = FALSE]
 
     geneNumber <- vapply(colnames(cm), function(cells) {
         sum(cm[, cells] != 0)
@@ -379,7 +379,7 @@ countUMI <- function(sce,
                     logfile = NULL,
                     append = FALSE)
     }
-    
+
     return(scruffsce)
 }
 
