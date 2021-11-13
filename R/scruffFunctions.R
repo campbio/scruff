@@ -250,33 +250,37 @@
     message(Sys.time(),
         " ... Reading GTF file ",
         reference, " as data.table object")
-    gtf <- rtracklayer::import(reference)
+    gtf <- rtracklayer::readGFF(reference)
 
     geneAnnotation <- data.table::as.data.table(gtf)
+    seqid <- "seqid"
+    if (!seqid %in% colnames(geneAnnotation)) {
+      seqid <- "seqnames"
+    }
 
     if ("gene_biotype" %in% colnames(geneAnnotation)) {
         geneAnnotation <- unique(geneAnnotation[type == "gene" |
                 source == "ERCC", c("gene_id",
                     "gene_name",
                     "gene_biotype",
-                    "seqnames",
+                    seqid,
                     "start",
                     "end",
-                    "width",
+                    #"width",
                     "strand",
-                    "source")])
+                    "source"), with = FALSE])
     } else if ("gene_type" %in% colnames(geneAnnotation)) {
         message("Missing column 'gene_biotype'. Use 'gene_type' instead.")
         geneAnnotation <- unique(geneAnnotation[type == "gene" |
                 source == "ERCC", c("gene_id",
                     "gene_name",
                     "gene_type",
-                    "seqnames",
+                    seqid,
                     "start",
                     "end",
-                    "width",
+                    #"width",
                     "strand",
-                    "source")])
+                    "source"), with = FALSE])
         colnames(geneAnnotation)[which(colnames(geneAnnotation) ==
                 "gene_type")] <- "gene_biotype"
     } else {
@@ -285,12 +289,12 @@
                 source == "ERCC", c("gene_id",
                     "gene_name",
                     #"gene_biotype",
-                    "seqnames",
+                    seqid,
                     "start",
                     "end",
-                    "width",
+                    #"width",
                     "strand",
-                    "source")])
+                    "source"), with = FALSE])
     }
 
     geneAnnotation <- geneAnnotation[order(gene_id), ]
@@ -337,7 +341,7 @@
     }
 
     # check barcode length
-    if (any(!nchar(cb)[complete.cases(nchar(cb))] %in% l)) {
+    if (any(!nchar(cb)[stats::complete.cases(nchar(cb))] %in% l)) {
         cbtb <- table(nchar(cb))
         cbtb2 <- cbtb
         if (length(cbtb2) > 1) {

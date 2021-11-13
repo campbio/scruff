@@ -95,13 +95,17 @@ countUMI <- function(sce,
     .checkCores(cores)
     geneAnnotation <- .getGeneAnnotation(reference)
 
+    seqid <- "seqid"
+    if (!seqid %in% colnames(geneAnnotation)) {
+        seqid <- "seqnames"
+    }
+
     gtfcolnames <- c("gene_id",
         "gene_name",
         "gene_biotype",
-        "seqnames",
+        seqid,
         "start",
         "end",
-        "width",
         "strand",
         "source")
 
@@ -301,12 +305,12 @@ countUMI <- function(sce,
     mtCounts <- base::colSums(as.data.frame(
         SummarizedExperiment::assay(scruffsce)
         [grep("MT", SummarizedExperiment::rowData(scruffsce)
-            [, "seqnames"], ignore.case = TRUE), ]))
+            [, seqid], ignore.case = TRUE), ]))
 
     # gene number exclude ERCC
     cm <- SummarizedExperiment::assay(scruffsce)[
         which(SummarizedExperiment::rowData(scruffsce)[,
-            "source"] != "ERCC"), ]
+            "source"] != "ERCC"), , drop = FALSE]
 
     geneNumber <- vapply(colnames(cm), function(cells) {
         sum(cm[, cells] != 0)
@@ -363,7 +367,19 @@ countUMI <- function(sce,
         outputPrefix, "_sce.rda"
     )))
 
-    message(Sys.time(), " ... UMI counting done!")
+    if (verbose) {
+        .logMessages(Sys.time(),
+                    "... UMI counting done!",
+                    logfile = logfile,
+                    append = FALSE)
+        message(" ... UMI counting done!")
+    } else {
+        .logMessages(Sys.time(),
+                    " ... UMI counting done!",
+                    logfile = NULL,
+                    append = FALSE)
+    }
+
     return(scruffsce)
 }
 
@@ -402,7 +418,7 @@ countUMI <- function(sce,
     tryCatch(
         GenomeInfoDb::seqlevelsStyle(bamGA) <- "NCBI",
         error = function(e) {
-            warning("found no sequence renaming map compatible with seqname",
+            warning("found no sequence renaming map compatible with the seqid.",
                 " style 'NCBI' for the BAM file ", basename(i))
         }
     )
