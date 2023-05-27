@@ -54,8 +54,8 @@
 #' @param overwrite Boolean indicating whether to overwrite the output
 #'  directory. Default is \strong{FALSE}.
 #' @param cores Number of cores used for parallelization. Default is
-#'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-#'  cores minus 2.
+#'  \code{max(1, parallelly::availableCores() - 2)}, i.e. the number
+#'  of available cores minus 2.
 #' @param verbose Poolean indicating whether to print log messages. Useful for
 #'  debugging. Default to \strong{FALSE}.
 #' @param logfilePrefix Prefix for log file. Default is current date and time
@@ -102,7 +102,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     outDir = "./Demultiplex",
     summaryPrefix = "demultiplex",
     overwrite = FALSE,
-    cores = max(1, parallel::detectCores() - 2),
+    cores = max(1, parallelly::availableCores() - 2),
     verbose = FALSE,
     logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
 
@@ -122,7 +122,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     message(Sys.time(), " Start demultiplexing ...")
     print(match.call(expand.dots = TRUE))
 
-    isWindows <- .Platform$OS.type == "windows"
+    smc <- parallelly::supportsMulticore()
 
     if (overwrite) {
         message(Sys.time(),
@@ -131,7 +131,7 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
             " will be deleted ...")
     }
 
-    fastqAnnot <- data.table::data.table(
+    fastqAnnotDt <- data.table::data.table(
         project = project,
         experiment = experiment,
         lane = lane,
@@ -140,12 +140,11 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
 
     if (verbose) {
         message("Input sample information for FASTQ files:")
-        print(fastqAnnot)
+        print(fastqAnnotDt)
     }
 
     .checkCellBarcodes(bc, bcStart, bcStop, verbose)
 
-    fastqAnnotDt <- data.table::data.table(fastqAnnot)
     barcodeDt <- data.table::data.table("cell_index" = seq_len(length(bc)),
         "barcode" = bc)
     expId <- fastqAnnotDt[, unique(experiment)]
@@ -154,99 +153,59 @@ demultiplex <- function(project = paste0("project_", Sys.Date()),
     nthreads <- .Call(ShortRead:::.set_omp_threads, 1L)
     on.exit(.Call(ShortRead:::.set_omp_threads, nthreads))
 
-    # parallelization BiocParallel
+    # parallelization
 
-    if (isWindows) {
+    if (!isTRUE(smc)) {
         # Windows
-        if (verbose) {
-            resL <- BiocParallel::bplapply(X = expId,
-                FUN = .demultiplexUnit,
-                BPPARAM = BiocParallel::SnowParam(
-                    workers = cores),
-                fastqAnnotDt,
-                barcodeDt,
-                bcStart,
-                bcStop,
-                bcEdit,
-                umiStart,
-                umiStop,
-                keep,
-                minQual,
-                yieldReads,
-                outDir,
-                summaryPrefix,
-                overwrite,
-                logfilePrefix = logfilePrefix
-            )
-        } else {
-            resL <- BiocParallel::bplapply(X = expId,
-                FUN = .demultiplexUnit,
-                BPPARAM = BiocParallel::SnowParam(
-                    workers = cores),
-                fastqAnnotDt,
-                barcodeDt,
-                bcStart,
-                bcStop,
-                bcEdit,
-                umiStart,
-                umiStop,
-                keep,
-                minQual,
-                yieldReads,
-                outDir,
-                summaryPrefix,
-                overwrite,
-                logfilePrefix = NULL
-            )
-        }
+        cl <- parallelly::makeClusterPSOCK(cores)
     } else {
         # Linux or macOS
-        if (verbose) {
-            resL <- BiocParallel::bplapply(X = expId,
-                FUN = .demultiplexUnit,
-                BPPARAM =
-                    BiocParallel::MulticoreParam(
-                        workers = cores),
-                fastqAnnotDt,
-                barcodeDt,
-                bcStart,
-                bcStop,
-                bcEdit,
-                umiStart,
-                umiStop,
-                keep,
-                minQual,
-                yieldReads,
-                outDir,
-                summaryPrefix,
-                overwrite,
-                logfilePrefix = logfilePrefix
-            )
-        } else {
-            resL <- BiocParallel::bplapply(X = expId,
-                FUN = .demultiplexUnit,
-                BPPARAM =
-                    BiocParallel::MulticoreParam(
-                        workers = cores),
-                fastqAnnotDt,
-                barcodeDt,
-                bcStart,
-                bcStop,
-                bcEdit,
-                umiStart,
-                umiStop,
-                keep,
-                minQual,
-                yieldReads,
-                outDir,
-                summaryPrefix,
-                overwrite,
-                logfilePrefix = NULL
-            )
-        }
+        cl <- parallel::makeForkCluster(cores)
     }
 
-    resDt <- as.data.table(plyr::rbind.fill(resL))
+    if (verbose) {
+        resL <- parallel::parLapply(cl = cl,
+            X = expId,
+            fun = .demultiplexUnit,
+            fastqAnnotDt,
+            barcodeDt,
+            bcStart,
+            bcStop,
+            bcEdit,
+            umiStart,
+            umiStop,
+            keep,
+            minQual,
+            yieldReads,
+            outDir,
+            summaryPrefix,
+            overwrite,
+            logfilePrefix = logfilePrefix
+        )
+    } else {
+        resL <- parallel::parLapply(cl = cl,
+            X = expId,
+            fun = .demultiplexUnit,
+            fastqAnnotDt,
+            barcodeDt,
+            bcStart,
+            bcStop,
+            bcEdit,
+            umiStart,
+            umiStop,
+            keep,
+            minQual,
+            yieldReads,
+            outDir,
+            summaryPrefix,
+            overwrite,
+            logfilePrefix = NULL
+        )
+    }
+
+    parallel::stopCluster(cl)
+
+    resDt <- data.table::as.data.table(plyr::rbind.fill(resL))
 
     message(
         Sys.time(),

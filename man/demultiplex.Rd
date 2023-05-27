@@ -22,7 +22,7 @@ demultiplex(
   outDir = "./Demultiplex",
   summaryPrefix = "demultiplex",
   overwrite = FALSE,
-  cores = max(1, parallel::detectCores() - 2),
+  cores = max(1, parallelly::availableCores() - 2),
   verbose = FALSE,
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")
 )
@@ -96,8 +96,8 @@ respectively. \strong{Make sure the folder is empty.} Default is
 directory. Default is \strong{FALSE}.}
 
 \item{cores}{Number of cores used for parallelization. Default is
-\code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-cores minus 2.}
+\code{max(1, parallelly::availableCores() - 2)}, i.e. the number
+of available cores minus 2.}
 
 \item{verbose}{Poolean indicating whether to print log messages. Useful for
 debugging. Default to \strong{FALSE}.}

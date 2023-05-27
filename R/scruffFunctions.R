@@ -140,11 +140,11 @@
 
 
 .checkCores <- function(cores) {
-    if (cores > parallel::detectCores()) {
+    if (cores > parallelly::availableCores()) {
         stop("The specified cores ",
             cores,
             " is greater than the number of cores available ",
-            parallel::detectCores())
+            parallelly::availableCores())
     }
 }
 

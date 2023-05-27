@@ -11,7 +11,7 @@ alignRsubread(
   nBestLocations = 1,
   format = "BAM",
   outDir = "./Alignment",
-  cores = max(1, parallel::detectCores() - 2),
+  cores = max(1, parallelly::availableCores() - 2),
   threads = 1,
   summaryPrefix = "alignment",
   overwrite = FALSE,
@@ -56,8 +56,8 @@ files will be stored in folders in this directory, respectively.
 \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.}
 
 \item{cores}{Number of cores used for parallelization. Default is
-\code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-cores minus 2.}
+\code{max(1, parallelly::availableCores() - 2)}, i.e. the number of
+available cores minus 2.}
 
 \item{threads}{\strong{Do not change}. Number of threads/CPUs used for
 mapping for each core. Refer to \code{align} function in \code{Rsubread}
