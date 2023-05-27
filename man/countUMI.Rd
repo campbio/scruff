@@ -11,7 +11,7 @@ countUMI(
   format = "BAM",
   outDir = "./Count",
   cellPerWell = 1,
-  cores = max(1, parallel::detectCores() - 2),
+  cores = max(1, parallelly::availableCores() - 2),
   outputPrefix = "countUMI",
   verbose = FALSE,
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")
@@ -45,8 +45,8 @@ to the total number of cells in the input alignment files specifying the
 number of cells in each file. Default is 1.}
 
 \item{cores}{Number of cores used for parallelization. Default is
-\code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-cores minus 2.}
+\code{max(1, parallelly::availableCores() - 2)}, i.e. the number of
+available cores minus 2.}
 
 \item{outputPrefix}{Prefix for expression table filename. Default is
 \code{"countUMI"}.}

@@ -28,8 +28,8 @@
 #'  to the total number of cells in the input alignment files specifying the
 #'  number of cells in each file. Default is 1.
 #' @param cores Number of cores used for parallelization. Default is
-#'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-#'  cores minus 2.
+#'  \code{max(1, parallelly::availableCores() - 2)}, i.e. the number of
+#'  available cores minus 2.
 #' @param outputPrefix Prefix for expression table filename. Default is
 #'  \code{"countUMI"}.
 #' @param verbose Print log messages. Useful for debugging. Default to
@@ -87,7 +87,7 @@ countUMI <- function(sce,
     format = "BAM",
     outDir = "./Count",
     cellPerWell = 1,
-    cores = max(1, parallel::detectCores() - 2),
+    cores = max(1, parallelly::availableCores() - 2),
     outputPrefix = "countUMI",
     verbose = FALSE,
     logfilePrefix = format(Sys.time(), "%Y%m%d_%H%M%S")) {
@@ -96,10 +96,10 @@ countUMI <- function(sce,
     geneAnnotation <- .getGeneAnnotation(reference)
 
     seqid <- "seqid"
-    if(!seqid %in% colnames(geneAnnotation)) {
-        seqid <- "seqnames"    
+    if (!seqid %in% colnames(geneAnnotation)) {
+        seqid <- "seqnames"
     }
-    
+
     gtfcolnames <- c("gene_id",
         "gene_name",
         "gene_biotype",
@@ -111,7 +111,7 @@ countUMI <- function(sce,
 
     .checkGTF(geneAnnotation, gtfcolnames)
 
-    isWindows <- .Platform$OS.type == "windows"
+    smc <- parallelly::supportsMulticore()
 
     message(Sys.time(), " Start UMI counting ...")
     print(match.call(expand.dots = TRUE))
@@ -168,52 +168,37 @@ countUMI <- function(sce,
         }
     )
 
-    # parallelization BiocParallel
     if (format == "SAM") {
-        if (isWindows) {
-            alignmentFilePaths <- BiocParallel::bplapply(
-                X = alignmentFilePaths,
-                FUN = .toBam,
-                BPPARAM = BiocParallel::SnowParam(
-                    workers = cores),
-                logfile, overwrite = FALSE, index = FALSE)
+        if (!isTRUE(smc)) {
+            cl <- parallelly::makeClusterPSOCK(cores)
         } else {
-            alignmentFilePaths <- BiocParallel::bplapply(
-                X = alignmentFilePaths,
-                FUN = .toBam,
-                BPPARAM = BiocParallel::MulticoreParam(
-                    workers = cores),
-                logfile, overwrite = FALSE, index = FALSE)
+            cl <- parallel::makeForkCluster(cores)
         }
+        alignmentFilePaths <- parallel::parLapply(cl = cl,
+            X = alignmentFilePaths,
+            fun = .toBam,
+            logfile, overwrite = FALSE, index = FALSE)
+        parallel::stopCluster(cl)
         alignmentFilePaths <- unlist(alignmentFilePaths)
     }
 
 
-    if (isWindows) {
-        exprL <- suppressPackageStartupMessages(
-            BiocParallel::bplapply(
-                X = alignmentFilePaths,
-                FUN = .countUmiUnit,
-                BPPARAM = BiocParallel::SnowParam(
-                    workers = cores),
-                features,
-                umiEdit,
-                logfile,
-                verbose)
-        )
+    if (!isTRUE(smc)) {
+        cl <- parallelly::makeClusterPSOCK(cores)
     } else {
-        exprL <- suppressPackageStartupMessages(
-            BiocParallel::bplapply(
-                X = alignmentFilePaths,
-                FUN = .countUmiUnit,
-                BPPARAM = BiocParallel::MulticoreParam(
-                    workers = cores),
-                features,
-                umiEdit,
-                logfile,
-                verbose)
-        )
+        cl <- parallel::makeForkCluster(cores)
     }
+
+    exprL <- suppressPackageStartupMessages(
+        parallel::parLapply(cl = cl,
+            X = alignmentFilePaths,
+            fun = .countUmiUnit,
+            features,
+            umiEdit,
+            logfile,
+            verbose))
+
+    parallel::stopCluster(cl)
 
     expr <- do.call(cbind, exprL)
     expr <- data.table::as.data.table(expr, keep.rownames = TRUE)
@@ -310,7 +295,7 @@ countUMI <- function(sce,
     # gene number exclude ERCC
     cm <- SummarizedExperiment::assay(scruffsce)[
         which(SummarizedExperiment::rowData(scruffsce)[,
-            "source"] != "ERCC"), ]
+            "source"] != "ERCC"), , drop = FALSE]
 
     geneNumber <- vapply(colnames(cm), function(cells) {
         sum(cm[, cells] != 0)
@@ -379,7 +364,7 @@ countUMI <- function(sce,
                     logfile = NULL,
                     append = FALSE)
     }
-    
+
     return(scruffsce)
 }
 

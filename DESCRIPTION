@@ -1,7 +1,7 @@
 Package: scruff
 Title: Single Cell RNA-Seq UMI Filtering Facilitator (scruff)
-Version: 1.10.1
-Date: 2021-02-11
+Version: 1.19.1
+Date: 2023-05-27
 Authors@R: c(person("Zhe", "Wang",
                     email = "zhe@bu.edu",
                     role = c("aut", "cre")),
@@ -20,7 +20,7 @@ Depends: R (>= 4.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: TRUE
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 VignetteBuilder: knitr
 Imports: data.table,
     GenomicAlignments,
@@ -45,7 +45,8 @@ Imports: data.table,
     rtracklayer,
     SingleCellExperiment,
     SummarizedExperiment,
-    Rsubread
+    Rsubread,
+    parallelly
 Suggests:
     BiocStyle,
     knitr,
