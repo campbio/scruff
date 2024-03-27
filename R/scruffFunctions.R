@@ -64,7 +64,7 @@
             gtf.db.file,
             "does not exist"))
         message(paste(Sys.time(), "... Creating TxDb object", gtf.db.file))
-        gtf.db <- GenomicFeatures::makeTxDbFromGFF(file = gtf)
+        gtf.db <- txdbmaker::makeTxDbFromGFF(file = gtf)
         AnnotationDbi::saveDb(gtf.db, file = gtf.db.file)
         return(GenomicFeatures::exonsBy(gtf.db, by = "gene"))
     }
