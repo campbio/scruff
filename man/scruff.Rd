@@ -35,7 +35,7 @@ scruff(
   logfilePrefix = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S"),
   overwrite = FALSE,
   verbose = FALSE,
-  cores = max(1, parallel::detectCores() - 2),
+  cores = max(1, parallelly::availableCores() - 2),
   threads = 1,
   ...
 )
@@ -171,8 +171,8 @@ directory. Default is \strong{FALSE}.}
 debugging. Default to \strong{FALSE}.}
 
 \item{cores}{Number of cores to use for parallelization. Default is
-\code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-cores minus 2.}
+\code{max(1, parallelly::availableCores() - 2)}, i.e. the number of
+available cores minus 2.}
 
 \item{threads}{\strong{Do not change}. Number of threads/CPUs used for
 mapping for each core. Refer to \code{align} function in \code{Rsubread}

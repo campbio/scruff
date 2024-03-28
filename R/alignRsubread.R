@@ -34,8 +34,8 @@
 #'  files will be stored in folders in this directory, respectively.
 #'  \strong{Make sure the folder is empty.} Default is \code{"./Alignment"}.
 #' @param cores Number of cores used for parallelization. Default is
-#'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-#'  cores minus 2.
+#'  \code{max(1, parallelly::availableCores() - 2)}, i.e. the number of
+#'  available cores minus 2.
 #' @param threads \strong{Do not change}. Number of threads/CPUs used for
 #'  mapping for each core. Refer to \code{align} function in \code{Rsubread}
 #'  for details. Default is \strong{1}. It should not be changed in most cases.
@@ -94,7 +94,7 @@ alignRsubread <- function(sce,
     nBestLocations = 1,
     format = "BAM",
     outDir = "./Alignment",
-    cores = max(1, parallel::detectCores() - 2),
+    cores = max(1, parallelly::availableCores() - 2),
     threads = 1,
     summaryPrefix = "alignment",
     overwrite = FALSE,
@@ -116,7 +116,7 @@ alignRsubread <- function(sce,
     message(Sys.time(), " Start alignment ...")
     print(match.call(expand.dots = TRUE))
 
-    isWindows <- .Platform$OS.type == "windows"
+    smc <- parallelly::supportsMulticore()
 
     logfile <- paste0(logfilePrefix, "_alignment_log.txt")
 
@@ -152,69 +152,43 @@ alignRsubread <- function(sce,
     dir.create(file.path(outDir), showWarnings = FALSE, recursive = TRUE)
 
     message(Sys.time(), " ... Mapping")
-    # parallelization BiocParallel
-    if (isWindows) {
+    # parallelization
+    if (!isTRUE(smc)) {
         # Windows
-        if (verbose) {
-            resL <- BiocParallel::bplapply(
-                X = fastqPaths,
-                FUN = .alignRsubreadUnit,
-                BPPARAM = BiocParallel::SnowParam(
-                    workers = cores),
-                index,
-                unique,
-                nBestLocations,
-                format,
-                outDir,
-                threads,
-                logfile,
-                ...)
-        } else {
-            invisible(utils::capture.output(resL <-
-                    BiocParallel::bplapply(X = fastqPaths,
-                        FUN = .alignRsubreadUnit,
-                        BPPARAM = BiocParallel::SnowParam(
-                            workers = cores),
-                        index,
-                        unique,
-                        nBestLocations,
-                        format,
-                        outDir,
-                        threads,
-                        logfile = NULL,
-                        ...), type = "message"))
-        }
+        cl <- parallelly::makeClusterPSOCK(cores)
     } else {
         # Linux or macOS
-        if (verbose) {
-            resL <- BiocParallel::bplapply(
-                X = fastqPaths,
-                FUN = .alignRsubreadUnit,
-                BPPARAM = BiocParallel::MulticoreParam(workers = cores),
-                index,
-                unique,
-                nBestLocations,
-                format,
-                outDir,
-                threads,
-                logfile,
-                ...)
-        } else {
-            invisible(utils::capture.output(resL <-
-                    BiocParallel::bplapply(X = fastqPaths,
-                        FUN = .alignRsubreadUnit,
-                        BPPARAM = BiocParallel::MulticoreParam(
-                            workers = cores),
-                        index,
-                        unique,
-                        nBestLocations,
-                        format,
-                        outDir,
-                        threads,
-                        logfile = NULL,
-                        ...), type = "message"))
-        }
+        cl <- parallel::makeForkCluster(cores)
     }
+
+    if (verbose) {
+        resL <- parallel::parLapply(cl = cl,
+            X = fastqPaths,
+            fun = .alignRsubreadUnit,
+            index,
+            unique,
+            nBestLocations,
+            format,
+            outDir,
+            threads,
+            logfile,
+            ...)
+    } else {
+        invisible(utils::capture.output(resL <- parallel::parLapply(
+            cl = cl,
+            X = fastqPaths,
+            fun = .alignRsubreadUnit,
+            index,
+            unique,
+            nBestLocations,
+            format,
+            outDir,
+            threads,
+            logfile = NULL,
+            ...), type = "message"))
+    }
+
+    parallel::stopCluster(cl)
 
     resDt <- data.table::as.data.table(plyr::rbind.fill(resL))
 

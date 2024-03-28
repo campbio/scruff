@@ -30,8 +30,8 @@
 #'  \code{Rsamtools} package. Default is \strong{1e06}.
 #' @param outDir Output directory. The location to write resulting QC table.
 #' @param cores Number of cores used for parallelization. Default is
-#'  \code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-#'  cores minus 2.
+#'  \code{max(1, parallelly::availableCores() - 2)}, i.e. the number of
+#'  available cores minus 2.
 #' @return A \link[SingleCellExperiment]{SingleCellExperiment} object. The
 #'  \code{colData} contains the number of aligned reads
 #'  (reads_mapped_to_genome) and reads aligned
@@ -72,11 +72,11 @@ tenxBamqc <- function(bam,
     tags = c("NH", "GX", "CB", "MM"),
     yieldSize = 1000000,
     outDir = "./",
-    cores = max(1, parallel::detectCores() - 2)) {
+    cores = max(1, parallelly::availableCores() - 2)) {
 
     .checkCores(cores)
 
-    isWindows <- .Platform$OS.type == "windows"
+    smc <- parallelly::supportsMulticore()
 
     print(match.call(expand.dots = TRUE))
 
@@ -131,7 +131,7 @@ tenxBamqc <- function(bam,
         # Initialize iterator
         .bamIter <- .bamIterator(bamfl, param)
 
-        if (isWindows) {
+        if (!isTRUE(smc)) {
             qcL <- BiocParallel::bpiterate(
                 ITER = .bamIter,
                 FUN = .tenxBamqcUnit,

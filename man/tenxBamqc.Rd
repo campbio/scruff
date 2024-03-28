@@ -12,7 +12,7 @@ tenxBamqc(
   tags = c("NH", "GX", "CB", "MM"),
   yieldSize = 1e+06,
   outDir = "./",
-  cores = max(1, parallel::detectCores() - 2)
+  cores = max(1, parallelly::availableCores() - 2)
 )
 }
 \arguments{
@@ -50,8 +50,8 @@ records to be returned on each yield. This parameter is passed to the
 \item{outDir}{Output directory. The location to write resulting QC table.}
 
 \item{cores}{Number of cores used for parallelization. Default is
-\code{max(1, parallel::detectCores() - 2)}, i.e. the number of available
-cores minus 2.}
+\code{max(1, parallelly::availableCores() - 2)}, i.e. the number of
+available cores minus 2.}
 }
 \value{
 A \link[SingleCellExperiment]{SingleCellExperiment} object. The
