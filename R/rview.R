@@ -33,8 +33,8 @@ rview <- function(bamGA,
     S4Vectors::mcols(readsGr)$umi <- data.table::last(
         data.table::tstrsplit(names(readsGr), ":"))
 
-    g <- ggplot2::ggplot(readsGr) +
-        ggbio::geom_arrow(ggplot2::aes(color = umi)) +
+    g <- ggplot2::ggplot() +
+        ggbio::geom_arrow(data = readsGr, ggplot2::aes(color = umi)) +
         .themePublication() +
         ggplot2::theme(axis.title.y = ggplot2::element_blank())
 

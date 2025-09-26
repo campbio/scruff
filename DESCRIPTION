@@ -20,7 +20,7 @@ Depends: R (>= 4.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: TRUE
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 Imports: data.table,
     GenomicAlignments,
@@ -47,7 +47,8 @@ Imports: data.table,
     SingleCellExperiment,
     SummarizedExperiment,
     Rsubread,
-    parallelly
+    parallelly,
+    patchwork
 Suggests:
     BiocStyle,
     knitr,
