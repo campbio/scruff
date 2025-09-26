@@ -26,6 +26,7 @@ suppressPackageStartupMessages(library(BiocStyle))
 # For generation of these files, please refer to the Stepwise Tutorial.
 
 library(scruff)
+library(patchwork)
 
 # Get the paths to example FASTQ, FASTA, and GTF files.
 # Please note that because the following files are included in
@@ -220,9 +221,16 @@ data(bamExample, package = "scruff")
 start <- 1094
 end <- 2675
 
-g1 <- rview(bamExample, chr = "MT", start = start, end = end)
-g2 <- gview(gtf, chr = "MT", start = start, end = end)
-g <- ggbio::tracks(g1, g2, heights = c(4, 1), xlab = "chr MT")
+g1 <- rview(bamExample, chr = "MT", start = start, end = end) +
+    ggplot2::scale_x_continuous(limits = c(start, end))
+g2 <- gview(gtf, chr = "MT", start = start, end = end) +
+    ggplot2::scale_x_continuous(limits = c(start, end))
+g <- (g1 + ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+    axis.text.x = ggplot2::element_blank(),
+    plot.margin = ggplot2::margin(t = 0, b = 0))) /
+    (g2 + ggplot2::theme(plot.margin = ggplot2::margin(t = 0, b = 0))) /
+    patchwork::plot_layout(ncol = 1,
+        heights = c(4, 1))
 g
 ```
 

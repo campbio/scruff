@@ -47,7 +47,8 @@ Imports: data.table,
     SingleCellExperiment,
     SummarizedExperiment,
     Rsubread,
-    parallelly
+    parallelly,
+    patchwork
 Suggests:
     BiocStyle,
     knitr,
